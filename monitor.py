@@ -18,6 +18,7 @@ Fontes (todas sem chave de API):
   cpc.ncep.noaa.gov   boletim ENSO (El Nino)
 """
 
+import hashlib
 import html as html_mod
 import json
 import os
@@ -198,6 +199,246 @@ ETAPAS = [
     ("2027-01-05", "ca", "Último dia em Los Angeles",
      "Dia livre a pé ou de aplicativo. Saída para o aeroporto às 20h.",
      ["lax"], False),
+]
+
+# ---------------------------------------------------------------- roteiro
+# Trechos com hora, distancia e a estrada exata. Poentes calculados para as
+# datas e coordenadas reais, nao copiados de lugar nenhum.
+# (hora, o que, como, duracao)
+ROTEIRO = [
+ {"dia": "2026-12-22", "regiao": "ca", "titulo": "Ida: Los Angeles a Pacific Grove",
+  "cabecalho": "535 km, 5h20 de volante puro, poente às 16h49 no sul e 16h57 no norte",
+  "trechos": [
+    ("09:00", "Retirar o carro na Alamo", "Terminal do LAX. Conferir o tanque e a "
+     "franquia antes de sair", "20 min"),
+    ("09:20", "LAX até El Matador, em Malibu", "Lincoln Blvd norte, I-10 oeste, "
+     "SR-1 (Pacific Coast Highway). Oceano à esquerda de Santa Monica em diante",
+     "55 km, 1h"),
+    ("10:20", "El Matador State Beach", "USD 10 por veículo. Escada na falésia até "
+     "os arcos de pedra. Maré baixa deixa passar entre eles", "40 min"),
+    ("11:00", "Malibu até Santa Barbara", "SR-1 até Oxnard, US-101 norte. De Ventura "
+     "a Santa Barbara a 101 corre na praia: sair da PCH aqui não custa mar nenhum",
+     "100 km, 1h15"),
+    ("12:15", "Almoço em Santa Barbara", "State Street e o cais. Estacionamento "
+     "municipal das primeiras 75 minutos de graça", "1h15"),
+    ("13:30", "Santa Barbara até Pismo Beach", "US-101. O trecho até Gaviota ainda é "
+     "orla; em Gaviota Pass a estrada entra no continente. Em Las Cruces ignorar a "
+     "SR-1 para Lompoc: mais lenta e sem vista", "165 km, 1h50"),
+    ("15:20", "Monarch Butterfly Grove, em Pismo", "Na Dolliver St, a própria SR-1, "
+     "dois minutos fora da 101. Gratuito. Dezembro é o pico das monarcas "
+     "hibernando nos eucaliptos", "30 min"),
+    ("15:50", "Pismo até Pacific Grove", "US-101 por San Luis Obispo, Atascadero, "
+     "Paso Robles e Salinas. Interior, quatro pistas, rápido e sem graça, e é de "
+     "propósito: é o trecho que sobra para depois do escuro", "235 km, 2h30"),
+    ("18:30", "Gosby House Inn", "643 Lighthouse Ave. A recepção fecha às 18h",
+     "chegada"),
+  ],
+  "notas": [
+    "O dia todo tem 9 horas e o plano cheio pede 9h25. A saída não é cortar "
+    "parada: é pedir à agência para avisar a Gosby House que vocês chegam entre "
+    "18h30 e 19h. A própria confirmação diz que basta avisar antes.",
+    "A ordem foi montada para o escuro cair no trecho feio. Tudo o que tem "
+    "paisagem acontece antes das 16h; os últimos 235 km de 101 são retão de "
+    "quatro pistas e não perdem nada por serem à noite.",
+    "Solvang é a alternativa ao bosque das monarcas, cinco minutos fora da 101 em "
+    "Buellton. Não cabem os dois. O bosque é gratuito, dura 30 minutos e é "
+    "sazonal; o vilarejo dinamarquês fica lá o ano todo.",
+    "Big Sur não entra na ida. Pegar a SR-1 em San Luis Obispo somaria 2h30 e "
+    "jogaria a falésia toda para depois do poente.",
+  ]},
+
+ {"dia": "2026-12-23", "regiao": "ca", "titulo": "Península de Monterey e o pedaço de Big Sur",
+  "cabecalho": "menos de 100 km no dia inteiro, poente às 16:57 em Carmel",
+  "trechos": [
+    ("09:45", "Fila do Monterey Bay Aquarium", "Abre às 10h. 23/12 é feriado cheio: "
+     "chegar antes da abertura vale meia hora de fila", "2h30"),
+    ("12:30", "Cannery Row e almoço", "A pé desde o aquário", "1h30"),
+    ("14:00", "17-Mile Drive", "Entrar pelo Pacific Grove Gate e sair pelo Carmel "
+     "Gate, no sentido do relógio. USD 12,75 por veículo", "1h15"),
+    ("15:15", "Point Lobos", "USD 10 por veículo. Fecha ao anoitecer. Trilha curta "
+     "da Cypress Grove", "30 min"),
+    ("15:45", "Carmel até Bixby Bridge", "SR-1 sul. Passa por Hurricane Point e "
+     "Rocky Creek antes da ponte", "24 km, 35 min"),
+    ("16:30", "Bixby Bridge no poente", "O mirante do lado norte olha para a ponte "
+     "e para o sul. Poente às 16:57", "45 min"),
+    ("17:30", "Volta a Pacific Grove", "SR-1 norte no escuro. É o trecho manso, não "
+     "a falésia exposta", "40 min"),
+  ],
+  "notas": [
+    "Este é o dia que ganha o pedaço de Big Sur que a viagem não teria de outra "
+    "forma. A ida e volta a Bixby custa 1h30 contando as paradas e entrega a "
+    "vista mais fotografada da costa inteira.",
+    "A versão cautelosa inverte: Bixby de manhã, das 8h às 10h30, e o aquário "
+    "depois do almoço. Troca a luz dourada na ponte por não dirigir a SR-1 no "
+    "escuro. Nenhuma das duas está errada.",
+    "O Monarch Grove Sanctuary de Pacific Grove fica a 1,5 km da pousada, é "
+    "gratuito e também está no pico em dezembro. Cabe em 30 minutos antes do "
+    "aquário, e serve de plano B se Pismo não der na ida.",
+    "Lovers Point, o poente que o roteiro original sugeria, fica a sete minutos a "
+    "pé da pousada e continua disponível em qualquer uma das duas noites.",
+  ]},
+
+ {"dia": "2026-12-24", "regiao": "ca", "titulo": "Volta: Pacific Grove ao LAX",
+  "cabecalho": "535 km, 5h20 sem trânsito, para uma janela de 7 horas",
+  "trechos": [
+    ("07:00", "Sair de Pacific Grove", "Amanhece às 7h17: os primeiros 20 minutos "
+     "são no escuro, em estrada reta", "saída"),
+    ("07:40", "Salinas e o vale", "US-101 sul. É aqui que mora o único risco de "
+     "neblina da viagem, e é neblina de vale, não de costa", "80 km"),
+    ("09:30", "Paso Robles e San Luis Obispo", "US-101. Posto e banheiro em "
+     "Atascadero ou Paso", "20 min de parada"),
+    ("11:30", "Buellton ou Santa Barbara", "Parada única de comida. Depois daqui não "
+     "para mais", "30 min"),
+    ("13:00", "Ventura e a orla", "US-101 na praia outra vez, no sentido contrário "
+     "da ida", "—"),
+    ("13:45", "Entrada em Los Angeles", "US-101 pelo Vale de San Fernando e I-405 "
+     "sul. Não passar pelo centro", "70 km"),
+    ("14:15", "Abastecer perto do aeroporto", "A Alamo cobra caro pelo tanque. Posto "
+     "na Century ou na Sepulveda", "15 min"),
+    ("14:40", "Devolver o carro", "Terminal do LAX. Devolução marcada para 15h", "—"),
+    ("17:43", "Voo para Honolulu", "Chegada às 21h31, e cerca de 30 minutos de "
+     "aplicativo até Waikiki", "—"),
+  ],
+  "notas": [
+    "Sair às 7h em vez das 8h é a única mudança que eu faria no roteiro inteiro. "
+    "Transforma 1h20 de folga em 2h20, e o que está do outro lado é a devolução "
+    "do carro e um voo internacional na véspera de Natal.",
+    "Não existe trecho cênico possível na volta. Voltar pela SR-1 por Malibu dá "
+    "quase a mesma distância, mas é mais lento e joga vocês no trânsito de véspera "
+    "de Natal em Santa Monica com hora marcada para devolver o carro.",
+    "A neblina do vale de Salinas é radiativa, de manhã, e some por volta das 10h. "
+    "Se o painel mostrar visibilidade abaixo de 1,5 km, a conta muda: 40 minutos a "
+    "mais até clarear, e aí sair às 7h deixa de ser conforto e passa a ser o que "
+    "salva o voo.",
+  ]},
+
+ {"dia": "2026-12-27", "regiao": "oahu", "titulo": "A volta da ilha de Oahu",
+  "cabecalho": "cerca de 180 km, o único dia com carro na ilha, poente às 17:58",
+  "trechos": [
+    ("10:00", "Retirar o carro", "1778 Ala Moana Blvd, a poucos minutos do hotel a "
+     "pé", "20 min"),
+    ("10:40", "Hanauma Bay", "Kalanianaʻole Hwy (SR-72). Entrada permitida só até "
+     "13h30. Reserva abre às 7h de 25/12 e esgota em segundos", "1h30"),
+    ("12:30", "Mirante de Makapuʻu", "SR-72 contornando o extremo leste. O farol e "
+     "a vista das ilhas Mānana", "30 min"),
+    ("13:15", "Waimānalo e Kailua", "SR-72 e depois SR-61. Praia de areia branca e "
+     "água rasa", "30 min"),
+    ("13:45", "Almoço em Kailua e Lanikai", "Estacionar em Kailua e caminhar; "
+     "Lanikai é bairro residencial com vaga escassa", "1h15"),
+    ("15:00", "Costa de Kualoa", "Kamehameha Hwy (SR-83), a estrada de barlavento. "
+     "Ilha do Chinaman's Hat e os vales do Jurassic Park", "1h"),
+    ("16:15", "Sunset Beach e Waimea Bay", "SR-83 até o North Shore. Ondas gigantes "
+     "de inverno. Ver de cima, não entrar", "45 min"),
+    ("17:30", "Poente e jantar em Haleʻiwa", "Food trucks e o camarão de Kahuku no "
+     "caminho. Poente às 17:58", "1h30"),
+    ("19:30", "Volta a Waikiki", "H-2 sul e H-1 leste, pelo centro da ilha",
+     "60 km, 1h"),
+  ],
+  "notas": [
+    "Se o barlavento estiver chovendo de manhã, inverter o laço: subir pelo centro "
+    "até o North Shore primeiro e voltar por Kailua à tarde. O painel compara a "
+    "chuva dos dois lados entre 8h e 13h e diz qual sentido pegar.",
+    "Hanauma Bay é a única coisa do dia com hora marcada e só existe neste "
+    "domingo: a baía fecha segundas e terças, e no Natal e no Ano Novo. Se "
+    "conseguirem a reserva, o laço começa por lá obrigatoriamente.",
+    "O hotel cobra USD 51 de valet por noite, e vocês ficam com o carro uma noite "
+    "só. Vale contar esse valor na conta do dia, porque estacionar em Waikiki na "
+    "rua durante a noite não é opção.",
+    "Devolução às 10h do dia 28 no aeroporto, não no centro. São endereços "
+    "diferentes na reserva: retirada em Ala Moana, devolução no HNL.",
+  ]},
+
+ {"dia": "2026-12-29", "regiao": "bi", "titulo": "Kilauea, e a noite que decide",
+  "cabecalho": "45 minutos de Hilo, ingresso de USD 30 por veículo e vale 7 dias",
+  "trechos": [
+    ("08:30", "Hilo até o parque", "SR-11 (Hawaii Belt Road) sudoeste", "50 km, 45 min"),
+    ("09:15", "Crater Rim Drive e os mirantes", "Kīlauea Overlook, Keanakākoʻi, "
+     "Steam Vents. A cratera do Halemaʻumaʻu é o palco dos episódios", "2h"),
+    ("11:30", "Nāhuku, o túnel de lava", "Estacionamento lota cedo; ir antes do "
+     "meio-dia", "45 min"),
+    ("13:00", "Chain of Craters Road até o mar", "60 km ida e volta, descendo 1.100 m "
+     "até a costa. Sem posto, sem água, sem sinal", "2h30"),
+    ("16:00", "Volta a Hilo, jantar e descanso", "SR-11", "45 min"),
+    ("19:00", "Se houver episódio ativo: voltar", "SR-11 outra vez, agora no escuro. "
+     "O brilho da cratera só existe em erupção", "1h30 ida e volta"),
+  ],
+  "notas": [
+    "Hoje o Kilauea está em ORANGE/WATCH e a sequência episódica iniciada em "
+    "dezembro de 2024 continua. Cada episódio dura horas e as pausas duram dias, "
+    "então nenhuma agenda alcança: o monitor do vulcão que já existe manda push "
+    "quando uma fonte de lava começa.",
+    "Esta é a decisão a proteger no roteiro. De Hilo o mirante fica a 45 minutos; "
+    "depois da mudança para Kona, no dia 31, a mesma ida noturna passa a custar "
+    "2h15 por trecho. Na prática só as noites de 28, 29 e 30 servem.",
+    "O ingresso vale sete dias e vocês ficam na ilha até 4 de janeiro, então o "
+    "bilhete não é o limite. A geografia é.",
+    "Hilo chove em 72% dos dias desta janela, a maior taxa do roteiro inteiro. "
+    "Nuvem encobrindo a cratera não é motivo para desistir: abre e fecha em "
+    "minutos.",
+  ]},
+
+ {"dia": "2026-12-30", "regiao": "bi", "titulo": "Costa Hamakua de dia, Mauna Kea de noite",
+  "cabecalho": "o cume a 4.207 m, poente às 17:53, e 4x4 obrigatório acima da VIS",
+  "trechos": [
+    ("08:30", "Hawaii Tropical Bioreserve Garden", "SR-19 norte, na Scenic Route de "
+     "Onomea. USD 25 por pessoa", "1h30"),
+    ("10:30", "Akaka Falls", "SR-19 até Honomū e subir. USD 10 por veículo. Trilha "
+     "de 600 m em laço", "1h"),
+    ("12:00", "Mirante do Waipiʻo Valley", "SR-19 até Honokaʻa e SR-240. A descida do "
+     "vale está fechada a quem não mora lá desde 2022: o mirante é o destino",
+     "1h30 de estrada"),
+    ("14:30", "Volta a Hilo, comer e beber água", "SR-19. Subir ao cume desidratado "
+     "e de estômago vazio é como a altitude derruba as pessoas", "1h"),
+    ("15:30", "Hilo até a Visitor Information Station", "SR-200 (Daniel K. Inouye "
+     "Highway, a Saddle Road) e a Mauna Kea Access Road", "70 km, 1h30"),
+    ("17:00", "Aclimatação na VIS, a 2.804 m", "Meia hora parado é o mínimo, e é "
+     "regra, não sugestão", "30 min"),
+    ("17:30", "VIS até o cume", "13 km, os primeiros 7 sem asfalto e em rampa de "
+     "15%. Tração nas quatro rodas exigida, e o Wrangler da reserva atende", "30 min"),
+    ("17:53", "Poente no cume", "Acima das nuvens, com a sombra da montanha se "
+     "projetando no mar de nuvens a leste", "40 min"),
+    ("18:30", "Descer para a VIS e olhar estrelas", "O cume tem de ser desocupado "
+     "meia hora depois do poente. A observação de estrelas é na VIS, não lá em "
+     "cima", "1h30"),
+    ("21:00", "Volta a Hilo", "Saddle Road no escuro, sem iluminação", "1h30"),
+  ],
+  "notas": [
+    "O que fecha a estrada do cume é gelo, e gelo se antecipa: o painel vigia o "
+    "nível de congelamento contra os 4.207 m do cume. Quando ele cai abaixo disso "
+    "com chuva prevista, a estrada fecha e 4x4 não resolve. A média histórica do "
+    "cume nesta janela é 5°C de máxima e 3,8°C abaixo de zero de mínima.",
+    "Esta é a decisão flexível do roteiro, e por isso ela é que deve ceder. O cume "
+    "alcança de Hilo em 1h30 e de Kona em cerca de 1h45, então existem sete noites "
+    "candidatas entre 28/12 e 03/01. O painel escolhe a melhor.",
+    "Não há posto de gasolina na subida nem sinal de celular acima da VIS. Sair de "
+    "Hilo com o tanque cheio, agasalho de verdade e água.",
+    "Descer é o perigo real, não subir: freio de motor em marcha baixa, porque "
+    "freio a disco superaquece e falha nos 15% de rampa. A locadora avisa, e a "
+    "razão é essa.",
+  ]},
+
+ {"dia": "2026-12-31", "regiao": "bi", "titulo": "Travessia pelo sul, Hilo a Kona",
+  "cabecalho": "200 km pelo caminho mais bonito, cerca de 4 horas com paradas",
+  "trechos": [
+    ("09:00", "Sair de Hilo", "SR-11 sudoeste, passando de novo pela borda do "
+     "parque", "saída"),
+    ("10:30", "Punaluʻu Black Sand Beach", "Areia vulcânica preta. Tartarugas verdes "
+     "descansando ao sol são comuns, e é proibido tocar ou chegar perto", "1h"),
+    ("11:45", "Desvio opcional a Ka Lae, o South Point", "20 km de estrada secundária "
+     "cada trecho. O ponto mais ao sul dos Estados Unidos", "1h30 extra"),
+    ("13:00", "Subida da costa de Kona", "SR-11 pelos cafezais de Captain Cook e "
+     "Kealakekua", "1h30"),
+    ("15:00", "Kailua-Kona e o centro histórico", "Antes do check-in, se sobrar "
+     "tempo", "1h"),
+    ("16:00", "Check-in no Outrigger Kona, em Keauhou", "Luau do hotel às 17h",
+     "chegada"),
+  ],
+  "notas": [
+    "Se a noite do Kilauea não aconteceu nos dias 28, 29 ou 30, hoje é a última "
+    "chance barata: o parque fica no caminho, a 1h30 de Hilo, e dá para parar no "
+    "fim da tarde antes de seguir para Kona. Depois disso a ida passa a custar 4h30 "
+    "de carro, saindo do resort.",
+  ]},
 ]
 
 # Condados e lugares que importam para a rota da Califórnia. O boletim da
@@ -563,8 +804,14 @@ def janela(hourly, dia, h0, h1):
 # Noites em que eles estao na Big Island com o 4x4 na mao (28/12 16h a 04/01 14h).
 # O ingresso do parque vale 7 dias, e o cume nao tem hora marcada: as duas
 # decisoes podem escolher a melhor noite em vez de obedecer ao roteiro.
-NOITES_BI = ["2026-12-28", "2026-12-29", "2026-12-30", "2026-12-31",
-             "2027-01-01", "2027-01-02", "2027-01-03"]
+# O cume alcanca dos dois lados: de Hilo pela Saddle Road sao 1h30, de
+# Kona/Waikoloa cerca de 1h45. Sete noites candidatas.
+NOITES_CUME = ["2026-12-28", "2026-12-29", "2026-12-30", "2026-12-31",
+               "2027-01-01", "2027-01-02", "2027-01-03"]
+# A cratera nao: de Hilo sao 45 min por trecho, de Kona 2h15. Uma ida noturna
+# saindo de Kona vira uma viagem de 5 horas. Na pratica so as noites de Hilo
+# contam, e sao tres.
+NOITES_CRATERA = ["2026-12-28", "2026-12-29", "2026-12-30"]
 ORDEM_VER = {"bom": 0, "atencao": 1, "ruim": 2}
 
 
@@ -637,7 +884,7 @@ def decisoes(prev, mar, kil):
                                "contar com estrelas não."), num
         return "bom", "Cume limpo e vento tolerável. É a noite de subir.", num
 
-    dia_mk = melhor_noite(prev, "mk_cume", NOITES_BI, 15, 21, av_mk)
+    dia_mk = melhor_noite(prev, "mk_cume", NOITES_CUME, 15, 21, av_mk)
     add("mk_cume", "Cume do Mauna Kea, poente e estrelas", dia_mk, "15h às 21h",
         "Não sobe com neve, ou nível de congelamento abaixo de 4.250 m com chuva, "
         "ou rajada acima de 45 nós.",
@@ -659,13 +906,15 @@ def decisoes(prev, mar, kil):
                                "a nuvem abre e fecha em minutos."), num
         return "bom", "Em erupção e céu aberto. É a noite.", num
 
-    dia_kil = melhor_noite(prev, "kilauea", NOITES_BI, 17, 22, av_kil)
+    dia_kil = melhor_noite(prev, "kilauea", NOITES_CRATERA, 17, 22, av_kil)
     add("kilauea", "Cratera do Kilauea ao anoitecer", dia_kil, "17h às 22h",
         "Aviso urgente se o USGS puser o Kilauea em ORANGE ou RED durante a viagem.",
         J("kilauea", dia_kil, 17, 22), av_kil,
-        "O ingresso do parque vale sete dias, então serve qualquer noite entre "
-        "29/12 e 04/01, e vocês estarão na ilha até o dia 4. Quem marca a hora é "
-        "o vulcão, não a agenda.")
+        "Só as três noites de Hilo servem: 28, 29 e 30/12, a 45 minutos do "
+        "mirante. Depois da mudança para Kona, no dia 31, a mesma ida noturna "
+        "passa a custar 2h15 por trecho, e 5 horas de carro no escuro. Se a "
+        "cratera estiver ativa, esta é a decisão a proteger no roteiro, não o "
+        "Mauna Kea, que alcança dos dois lados.")
 
     # 3. Sentido da volta de Oahu: barlavento chove de manha; se chover, inverte.
     lan = J("lanikai", "2026-12-27", 8, 13)
@@ -846,6 +1095,12 @@ def resumo_texto(d):
 
 # ---------------------------------------------------------------- main
 
+def _marca(texto):
+    """Identidade estavel de um aviso, para o delta funcionar entre processos.
+    hash() embutido nao serve: e aleatorizado a cada execucao do Python."""
+    return hashlib.md5(" ".join(texto.split())[:160].encode("utf-8")).hexdigest()[:12]
+
+
 def _le(p, padrao):
     if not p.exists():
         return padrao
@@ -935,7 +1190,7 @@ def main():
         "pontos": pontos, "por_id": por_id, "etapas": etapas,
         "prev_por_dia": prev_por_dia, "estradas": vias, "alertas": alertas,
         "enso": es, "kilauea": kil,
-        "decisoes": decisoes(prev, mar, kil),
+        "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO,
     }
 
     # ---- alertas urgentes, sempre por DELTA: repetir o mesmo aviso a cada 6 h
@@ -949,7 +1204,7 @@ def main():
     for v in vias:
         for i in v["itens"]:
             if i["fechado"] and i["na_rota"]:
-                marca = "via:" + str(hash(i["texto"][:120]))
+                marca = "via:" + _marca(i["texto"])
                 if marca not in vistos:
                     novos_ids.append(marca)
                     urgentes.append(f"{v['rodovia']} fechada: {i['texto'][:180]}")

@@ -552,6 +552,7 @@ def monta(d):
             .replace("{{ABAS}}", "".join(abas))
             .replace("{{CARDS}}", cards)
             .replace("{{DECISOES}}", _bloco_decisoes(d["decisoes"]))
+            .replace("{{ROTEIRO}}", _bloco_roteiro(d["roteiro"]))
             .replace("{{LEGENDA}}", leg)
             .replace("{{ESTRADAS}}", _bloco_estradas(d["estradas"]))
             .replace("{{AVISOS}}", _bloco_avisos(d["alertas"]))
@@ -629,6 +630,15 @@ HTML = """<!DOCTYPE html>
 </section>
 
 <section>
+  <h2>Trecho por trecho</h2>
+  <p class="leg">Os quatro dias de estrada, com a rodovia exata, a distância e o
+  horário. Os poentes foram calculados para a data e a coordenada de cada
+  ponto: na Califórnia é a semana do solstício e o sol se põe antes das 17h,
+  quase uma hora mais cedo do que no fim de janeiro.</p>
+  {{ROTEIRO}}
+</section>
+
+<section>
   <h2>O Pacífico e o vulcão</h2>
   <p class="leg">A esta distância, os dois sinais com valor preditivo são o
   estado do El Niño, que inclina a estação inteira, e o nível de alerta do
@@ -693,3 +703,58 @@ HTML = """<!DOCTYPE html>
 </body>
 </html>
 """
+
+
+CSS += r"""
+.perna{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;
+  padding:18px 18px 6px;margin:0 0 14px;box-shadow:var(--sombra)}
+.perna>.cab{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  flex-wrap:wrap;border-bottom:1px solid var(--linha);padding-bottom:11px;
+  margin-bottom:4px}
+.perna .data{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--poppy);font-weight:700}
+.perna .resumo{font-size:12.5px;color:var(--tinta2);font-variant-numeric:tabular-nums}
+table.pernas{width:100%;border-collapse:collapse;font-size:13.5px}
+table.pernas td{padding:9px 8px 9px 0;border-bottom:1px solid var(--linha);
+  vertical-align:baseline}
+table.pernas tr:last-child td{border-bottom:0}
+table.pernas td.h{width:58px;font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--pacifico2);white-space:nowrap}
+table.pernas td.q b{display:block;font-weight:650}
+table.pernas td.q span{color:var(--tinta2);font-size:13px}
+table.pernas td.dur{width:96px;text-align:right;color:var(--tinta2);font-size:12.5px;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.perna ul{margin:12px 0 14px;padding-left:0;list-style:none}
+.perna ul li{position:relative;padding:0 0 9px 18px;font-size:13.5px;
+  color:var(--tinta)}
+.perna ul li:before{content:"";position:absolute;left:0;top:.55em;width:6px;
+  height:6px;border-radius:50%;background:var(--dourado)}
+@media (max-width:560px){
+  .perna{padding:15px 14px 4px}
+  table.pernas td.dur{display:none}
+  table.pernas td.h{width:50px;font-size:12.5px}
+}
+"""
+
+
+def _bloco_roteiro(pernas):
+    h = []
+    for p in pernas:
+        br = p["dia"][8:10] + "/" + p["dia"][5:7]
+        h.append('<article class="perna"><div class="cab"><div>'
+                 '<div class="data">' + br + " &middot; "
+                 + NOME_REG[p["regiao"]] + "</div><h3>"
+                 + _h.escape(p["titulo"]) + '</h3></div>'
+                 '<div class="resumo">' + _h.escape(p["cabecalho"]) + "</div></div>")
+        h.append('<table class="pernas">')
+        for hora, oque, como, dur in p["trechos"]:
+            h.append('<tr><td class="h">' + _h.escape(hora) + '</td>'
+                     '<td class="q"><b>' + _h.escape(oque) + "</b><span>"
+                     + _h.escape(como) + '</span></td>'
+                     '<td class="dur">' + _h.escape(dur) + "</td></tr>")
+        h.append("</table>")
+        if p.get("notas"):
+            h.append("<ul>" + "".join("<li>" + _h.escape(n) + "</li>"
+                                      for n in p["notas"]) + "</ul>")
+        h.append("</article>")
+    return "".join(h)
