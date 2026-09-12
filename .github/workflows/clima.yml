@@ -1,0 +1,64 @@
+name: Costa Dourada
+
+on:
+  schedule:
+    # Pedimos de 2 em 2 horas para conseguir QUATRO publicacoes por dia: o
+    # agendador do GitHub descarta a maioria dos horarios (medido: dispara a
+    # cada 1h30 a 4h30, nao no minuto marcado). A guarda de frescor dentro do
+    # monitor.py encerra em segundos qualquer rodada que chegue antes de 5h da
+    # ultima, entao adensar o cron nao multiplica a carga nas fontes.
+    - cron: "23 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      forca:
+        description: "Ignorar a guarda de frescor"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: costa-dourada
+  cancel-in-progress: false
+
+jobs:
+  clima:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Olhar o tempo e publicar
+        env:
+          PA_TOKEN: ${{ secrets.PA_TOKEN }}
+          PA_USER: rafaelcortopassi
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+        run: |
+          python3 monitor.py ${{ inputs.forca && '--forca' || '' }}
+
+      - name: Guardar o estado
+        if: always()
+        run: |
+          git config user.name "costa-dourada-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if ! git diff --quiet state/; then
+            git add state/
+            git commit -q -m "estado: $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull -q --rebase && git push -q || echo "AVISO: push do estado falhou"
+          else
+            echo "estado sem mudanca"
+          fi
+
+      # O GitHub desliga cron de repositorio sem atividade ha 60 dias. Entre
+      # rodadas o estado muda quase sempre, mas o commit vazio e barato e
+      # garante o agendamento se algo travar o passo de cima.
+      - name: Keepalive
+        if: always()
+        run: |
+          ULTIMO=$(git log -1 --format=%ct)
+          if [ $(( ($(date +%s) - ULTIMO) / 86400 )) -ge 25 ]; then
+            git commit --allow-empty -m "keepalive" && git push
+          fi

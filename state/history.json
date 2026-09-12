@@ -1,0 +1,37 @@
+[
+ {
+  "utc": "2026-09-12T16:26:31+00:00",
+  "dias_para": 101,
+  "kilauea": "ORANGE",
+  "avisos": 2,
+  "urgentes": 2
+ },
+ {
+  "utc": "2026-09-12T16:28:12+00:00",
+  "dias_para": 101,
+  "kilauea": "ORANGE",
+  "avisos": 2,
+  "urgentes": 1
+ },
+ {
+  "utc": "2026-09-12T16:30:04+00:00",
+  "dias_para": 101,
+  "kilauea": "ORANGE",
+  "avisos": 2,
+  "urgentes": 1
+ },
+ {
+  "utc": "2026-09-12T16:31:34+00:00",
+  "dias_para": 101,
+  "kilauea": "ORANGE",
+  "avisos": 2,
+  "urgentes": 1
+ },
+ {
+  "utc": "2026-09-12T16:33:23+00:00",
+  "dias_para": 101,
+  "kilauea": "ORANGE",
+  "avisos": 2,
+  "urgentes": 1
+ }
+]
