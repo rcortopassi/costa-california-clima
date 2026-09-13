@@ -6,7 +6,12 @@ Califórnia (Los Angeles a Carmel), Oahu e Big Island.
 - `monitor.py` busca tudo, decide, gera a página e publica. Só stdlib.
 - `_pagina.py` é o template: CSS, JS e HTML. Editar SEMPRE aqui, nunca o
   `index.html`, que é gerado e está no `.gitignore`.
-- `state/` guarda o que já foi avisado, para o push ser sempre delta.
+- `_geo.py` calcula rotas (OSRM), acha início e fim de cada interdição (feed LCS
+  da Caltrans, com Nominatim de reserva) e a área de cada aviso do NWS.
+- `_cartografia.py` decide o que cada mapa mostra e escreve a frase que diz se
+  o aviso toca o trajeto. `_mapa.py` desenha (Pillow).
+- `state/` guarda o que já foi avisado, para o push ser sempre delta, os hashes
+  dos mapas publicados e o cache de geografia (`geo.json`).
 
 Publicado em <https://rafaelcortopassi.pythonanywhere.com/california/>.
 
@@ -29,6 +34,9 @@ martelar as fontes: o agendador do GitHub descarta a maioria dos horários.
 | avisos | api.weather.gov, uma chamada por estado (CA e HI) |
 | estradas | roads.dot.ca.gov, SR 1 e US 101 |
 | El Niño | Climate Prediction Center, NOAA |
+| rotas | router.project-osrm.org, cacheadas em `state/geo.json` |
+| início e fim das interdições | cwwp2.dot.ca.gov, feed LCS dos distritos 5 e 7 |
+| fundo dos mapas | Esri World Street Map (a CARTO passou a exigir chave) |
 | vulcão | API HANS do USGS, Kilauea vnum 332010 |
 
 ## Armadilhas já resolvidas, não reintroduzir
@@ -47,3 +55,17 @@ martelar as fontes: o agendador do GitHub descarta a maioria dos horários.
   arredondado. Ficou em 115 KB.
 - **Validar o JS com `node --check` antes de publicar.** Já está no código e
   aborta a publicação se quebrar.
+
+## Mapas nos avisos
+
+Todo aviso com lugar vai com mapa: interdição com início e fim, aviso do NWS
+com a área e os pontos onde o trajeto entra e sai dela, e sempre o trajeto de
+vocês. Nomes de lugar ficam no original (Salinas Valley, Windward Coast,
+Mauna Kea Summit), como nas placas e no Google Maps.
+
+- **Ponto de passagem sem nome** (`_ORLA_101`) prende a rota na US 101 pela
+  orla. Livre, o roteador corta Santa Barbara a Buellton pela CA 154 (San
+  Marcos Pass), e o mapa passava a mostrar uma estrada que o roteiro não usa.
+- Mudar `VERSAO` em `_cartografia.py` força redesenhar e reenviar todos.
+- Testar sem incomodar: `python3 monitor.py --forca --sem-publicar --sem-avisar`
+  grava os mapas em `mapas/`. No Actions, disparar com `avisar=false`.

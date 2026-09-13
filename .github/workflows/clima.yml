@@ -14,6 +14,10 @@ on:
         description: "Ignorar a guarda de frescor"
         type: boolean
         default: true
+      avisar:
+        description: "Mandar Telegram e ntfy (desligar para testar sem incomodar)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -29,6 +33,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Os mapas dos avisos sao desenhados com Pillow e rotulados em DejaVu,
+      # que tem o okina dos nomes havaianos (Haleʻiwa, Punaluʻu).
+      - name: Preparar desenho dos mapas
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pillow
+          if [ ! -f /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf ]; then
+            sudo apt-get install -y -qq fonts-dejavu-core
+          fi
+          python3 -c "import PIL; print('Pillow', PIL.__version__)"
+
       - name: Olhar o tempo e publicar
         env:
           PA_TOKEN: ${{ secrets.PA_TOKEN }}
@@ -37,7 +51,7 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
         run: |
-          python3 monitor.py ${{ inputs.forca && '--forca' || '' }}
+          python3 monitor.py ${{ inputs.forca && '--forca' || '' }} ${{ inputs.avisar == false && '--sem-avisar' || '' }}
 
       - name: Guardar o estado
         if: always()

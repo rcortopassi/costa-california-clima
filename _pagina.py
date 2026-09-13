@@ -343,7 +343,7 @@ VER = {
     "ruim":    ("ru", "f-ru", "não vá"),
     "espera":  ("es", "f-es", "regra armada"),
 }
-NOME_REG = {"ca": "Califórnia", "oahu": "Oahu", "bi": "Big Island"}
+NOME_REG = {"ca": "California", "oahu": "Oahu", "bi": "Big Island"}
 
 
 def _card_etapa(e, ponto, prev_dia, dias_para):
@@ -401,6 +401,18 @@ def _bloco_decisoes(decs):
     return "".join(h)
 
 
+def _bloco_mapa(url, link, efeito, alt):
+    if not url:
+        return ('<p class="efeito">' + _h.escape(efeito) + "</p>") if efeito else ""
+    return ((('<p class="efeito">' + _h.escape(efeito) + "</p>") if efeito else "")
+            # no celular o mapa sai com ~320 px; o toque abre a imagem inteira para ampliar
+            + '<a class="mapa" href="' + _h.escape(url) + '" target="_blank" rel="noopener">'
+            + '<img class="mapa" loading="lazy" src="' + _h.escape(url) + '" alt="'
+            + _h.escape(alt) + '" width="1200" height="900"></a>'
+            + (('<a class="gmaps" href="' + _h.escape(link) + '" target="_blank" rel="noopener">'
+                "Abrir no Google Maps</a>") if link else ""))
+
+
 def _bloco_estradas(vias):
     if not vias:
         return '<p class="vazio">Boletim da Caltrans indisponível nesta rodada.</p>'
@@ -422,14 +434,16 @@ def _bloco_estradas(vias):
             h.append('<div class="item ' + cls + '"><div class="cab"><span class="via">'
                      + v["rodovia"] + " &middot; " + _h.escape(i["area"].title())
                      + "</span>" + faixa + "</div><p>" + _h.escape(i["texto"])
-                     + "</p></div>")
+                     + "</p>" + _bloco_mapa(i.get("mapa_url"), i.get("mapa_link"),
+                                            i.get("efeito", ""), "Mapa: " + i["texto"][:120])
+                     + "</div>")
     return "".join(h)
 
 
 def _bloco_avisos(alertas):
     if not alertas:
         return ('<p class="vazio">Nenhum aviso ativo do National Weather Service '
-                'em nenhum ponto do roteiro, nem na Califórnia nem no Havaí.</p>')
+                'em nenhum ponto do roteiro, nem na California nem no Hawaii.</p>')
     h = []
     for a in alertas:
         grave = a["severidade"] in ("Severe", "Extreme")
@@ -440,7 +454,9 @@ def _bloco_avisos(alertas):
                  + '</span><span class="faixa f-' + ("ru" if grave else "at") + '">'
                  + _h.escape(a["severidade"] or "aviso") + "</span></div><p>"
                  + _h.escape(a["manchete"] or a["descricao"][:300]) + "</p>"
-                 '<p class="num">' + _h.escape(a["onde"]) + "</p></div>")
+                 '<p class="num">' + _h.escape(a["onde"]) + "</p>"
+                 + _bloco_mapa(a.get("mapa_url"), a.get("mapa_link"), a.get("efeito", ""),
+                               "Mapa do aviso " + a["evento"]) + "</div>")
     return "".join(h)
 
 
@@ -454,7 +470,7 @@ def _bloco_pacifico(e, k):
                  '<p class="num">Boletim de '
                  + _h.escape(e.get("emitido") or "data não lida")
                  + ". O CPC concentra o sinal de chuva acima da média na costa da "
-                   "Califórnia com pico entre janeiro e março de 2027, ou seja, "
+                   "California com pico entre janeiro e março de 2027, ou seja, "
                    "depois da viagem.</p></div>")
     else:
         h.append('<p class="vazio">Boletim ENSO indisponível nesta rodada.</p>')
@@ -600,7 +616,7 @@ HTML = """<!DOCTYPE html>
     <div class="marca">Rafael e Ana Cecília &middot; 20/12/2026 a 06/01/2027</div>
     <h1>Costa <em>Dourada</em></h1>
     <p class="sub">O tempo, a luz, o mar e a estrada nos {{N_PONTOS}} pontos do
-    roteiro: costa da Califórnia, Oahu e Big Island.</p>
+    roteiro: costa da California, Oahu e Big Island.</p>
     <div class="regua">
       <span class="selo" id="contagem">calculando</span>
       <span class="selo">atualizado <b>{{GERADO_PST}}</b> na costa</span>
@@ -624,7 +640,7 @@ HTML = """<!DOCTYPE html>
   <h2>Dia por dia</h2>
   <p class="leg">Enquanto a viagem estiver a mais de 16 dias, nenhum modelo
   prevê o dia. O cartão então mostra a climatologia da janela real de cada
-  ilha, calculada sobre 1995 a 2025 na Califórnia e 2000 a 2025 no Havaí, e
+  ilha, calculada sobre 1995 a 2025 na California e 2000 a 2025 no Hawaii, e
   avisa quando a previsão de verdade entra.</p>
   <div class="grade">{{CARDS}}</div>
 </section>
@@ -633,7 +649,7 @@ HTML = """<!DOCTYPE html>
   <h2>Trecho por trecho</h2>
   <p class="leg">Os quatro dias de estrada, com a rodovia exata, a distância e o
   horário. Os poentes foram calculados para a data e a coordenada de cada
-  ponto: na Califórnia é a semana do solstício e o sol se põe antes das 17h,
+  ponto: na California é a semana do solstício e o sol se põe antes das 17h,
   quase uma hora mais cedo do que no fim de janeiro.</p>
   {{ROTEIRO}}
 </section>
@@ -661,22 +677,22 @@ HTML = """<!DOCTYPE html>
   <h2>A estrada</h2>
   <p class="leg">Boletim da Caltrans para a SR 1 e a US 101, recortado nos
   condados do roteiro. O que acontece de Santa Cruz para o norte fica de fora
-  de propósito. No Havaí não existe boletim equivalente: a estrada que fecha é
-  a do cume do Mauna Kea, e ela fecha por gelo, o que a grade acima antecipa.</p>
+  de propósito. No Hawaii não existe boletim equivalente: a estrada que fecha é
+  a Mauna Kea Access Road, até o Mauna Kea Summit, e ela fecha por gelo, o que a grade acima antecipa.</p>
   {{ESTRADAS}}
 </section>
 
 <section>
   <h2>Avisos oficiais</h2>
   <p class="leg">Alertas ativos do National Weather Service em qualquer ponto
-  do roteiro, na Califórnia e no Havaí.</p>
+  do roteiro, na California e no Hawaii.</p>
   {{AVISOS}}
 </section>
 
 <section>
   <h2>O que a história diz</h2>
   <p class="leg">Médias da janela de cada ilha e a hora do poente. Na
-  Califórnia é a semana do solstício, a de dias mais curtos do ano.</p>
+  California é a semana do solstício, a de dias mais curtos do ano.</p>
   <div class="rolagem" style="padding:2px 14px 8px">
   <table class="hist">
     <thead><tr><th>ponto</th><th>máx</th><th>mín</th><th>mm/dia</th>
@@ -695,7 +711,7 @@ HTML = """<!DOCTYPE html>
   Prediction Center</a>. Vulcão:
   <a href="https://www.usgs.gov/observatories/hvo">Hawaiian Volcano Observatory</a>.</p>
   <p>Página gerada de 6 em 6 horas pelo GitHub Actions e publicada no
-  PythonAnywhere. Horário da Califórnia é PST (UTC-8), do Havaí é HST (UTC-10).</p>
+  PythonAnywhere. Horário da California é PST (UTC-8), do Hawaii é HST (UTC-10).</p>
 </footer>
 </div>
 <button class="tema" id="bt-tema">tema</button>
@@ -746,6 +762,8 @@ def _bloco_roteiro(pernas):
                  + NOME_REG[p["regiao"]] + "</div><h3>"
                  + _h.escape(p["titulo"]) + '</h3></div>'
                  '<div class="resumo">' + _h.escape(p["cabecalho"]) + "</div></div>")
+        h.append(_bloco_mapa(p.get("mapa_url"), p.get("mapa_link"), "",
+                             "Mapa do trajeto de " + br))
         h.append('<table class="pernas">')
         for hora, oque, como, dur in p["trechos"]:
             h.append('<tr><td class="h">' + _h.escape(hora) + '</td>'
@@ -758,3 +776,14 @@ def _bloco_roteiro(pernas):
                                       for n in p["notas"]) + "</ul>")
         h.append("</article>")
     return "".join(h)
+
+
+CSS += r"""
+img.mapa{display:block;width:100%;height:auto;margin:12px 0 6px;border-radius:10px;
+  border:1px solid var(--linha);background:var(--papel2)}
+a.gmaps{display:inline-flex;align-items:center;min-height:44px;font-size:13.5px;
+  font-weight:650;color:var(--pacifico2);text-decoration:none}
+a.gmaps:after{content:" \2192";margin-left:4px}
+.item p.efeito,.perna p.efeito{margin:8px 0 0;font-size:13.5px;color:var(--tinta);
+  font-weight:600}
+"""

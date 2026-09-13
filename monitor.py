@@ -34,6 +34,8 @@ from urllib.request import Request, urlopen
 AQUI = Path(__file__).resolve().parent
 STATE = AQUI / "state" / "state.json"
 HIST = AQUI / "state" / "history.json"
+GEO = AQUI / "state" / "geo.json"
+MAPAS_LOCAL = AQUI / "mapas"
 
 def _carrega_env_local():
     """Le .env.local quando existir, sem sobrepor variavel ja definida. No
@@ -71,14 +73,14 @@ VIAGEM = {
     "carro_lax": "2026-12-22T09:00",       # Alamo, terminal do LAX
     "devolve_lax": "2026-12-24T15:00",
     "voo_honolulu": "2026-12-24T17:43",
-    "carro_oahu": "2026-12-27T10:00",      # centro de Honolulu
+    "carro_oahu": "2026-12-27T10:00",      # 1778 Ala Moana Blvd, Honolulu
     "devolve_oahu": "2026-12-28T10:00",    # aeroporto HNL
     "carro_bi": "2026-12-28T16:00",        # Jeep Wrangler 4x4, aeroporto de Hilo
     "devolve_bi": "2027-01-04T14:00",      # aeroporto de Kona
 }
 
 REGIOES = [
-    ("ca", "Costa da Califórnia", "America/Los_Angeles", -8),
+    ("ca", "California", "America/Los_Angeles", -8),
     ("oahu", "Oahu", "Pacific/Honolulu", -10),
     ("bi", "Big Island", "Pacific/Honolulu", -10),
 ]
@@ -86,7 +88,7 @@ REGIOES = [
 # id, nome, lat, lon, elevacao forcada (None = modelo decide), regiao, papel,
 # normal climatologica da janela daquela regiao, mar (pede dado de onda)
 PONTOS = [
-    # ---- Califórnia: 21 a 24 de dezembro, normais 1995-2025
+    # ---- California: 21 a 24 de dezembro, normais 1995-2025
     ("lax", "Los Angeles", 33.9425, -118.4081, 40, "ca", "Hotel e aeroporto",
      {"tmax": 17.3, "tmin": 7.3, "mm": 3.5, "pct": 24, "forte": 15}, False),
     ("malibu", "Malibu / El Matador", 34.0387, -118.8747, 10, "ca", "Primeira parada da PCH",
@@ -115,9 +117,9 @@ PONTOS = [
      {"tmax": 24.3, "tmin": 21.6, "mm": 2.1, "pct": 28, "forte": 8}, True),
     ("makapuu", "Makapuʻu", 21.3100, -157.6500, 60, "oahu", "Mirante do lado leste",
      {"tmax": 24.0, "tmin": 20.8, "mm": 2.5, "pct": 40, "forte": 10}, False),
-    ("lanikai", "Kailua e Lanikai", 21.3930, -157.7350, 5, "oahu", "Água clara do barlavento",
+    ("lanikai", "Kailua e Lanikai", 21.3930, -157.7350, 5, "oahu", "Água clara da Windward Coast",
      {"tmax": 24.0, "tmin": 20.8, "mm": 2.5, "pct": 40, "forte": 10}, True),
-    ("kualoa", "Kualoa", 21.5200, -157.8380, 10, "oahu", "Costa de barlavento",
+    ("kualoa", "Kualoa", 21.5200, -157.8380, 10, "oahu", "Windward Coast",
      {"tmax": 24.0, "tmin": 20.8, "mm": 2.5, "pct": 40, "forte": 10}, False),
     ("northshore", "North Shore", 21.6400, -158.0650, 10, "oahu", "Ondas gigantes do inverno",
      {"tmax": 24.0, "tmin": 20.2, "mm": 1.9, "pct": 45, "forte": 11}, True),
@@ -129,10 +131,10 @@ PONTOS = [
      {"tmax": 23.1, "tmin": 17.7, "mm": 5.0, "pct": 72, "forte": 29}, False),
     ("kilauea", "Kilauea / HVNP", 19.4200, -155.2870, 1150, "bi", "Cratera e Chain of Craters",
      {"tmax": 19.4, "tmin": 13.7, "mm": 4.4, "pct": 59, "forte": 21}, False),
-    ("mk_vis", "Mauna Kea, base (VIS)", 19.7600, -155.4560, 2804, "bi",
+    ("mk_vis", "Mauna Kea VIS", 19.7600, -155.4560, 2804, "bi",
      "Aclimatação obrigatória, 9.200 pés",
      {"tmax": 12.0, "tmin": 3.0, "mm": 2.6, "pct": 35, "forte": 10}, False),
-    ("mk_cume", "Mauna Kea, cume", 19.8207, -155.4681, 4207, "bi",
+    ("mk_cume", "Mauna Kea Summit", 19.8207, -155.4681, 4207, "bi",
      "13.796 pés. Só com 4x4 e luz do dia na subida",
      {"tmax": 5.0, "tmin": -3.8, "mm": 2.3, "pct": 33, "forte": 9}, False),
     ("akaka", "Akaka Falls", 19.8550, -155.1520, 400, "bi", "Cachoeira, trilha curta",
@@ -157,7 +159,7 @@ ETAPAS = [
      "Carro às 9h no LAX. PCH até Malibu, 101 pela orla até Santa Barbara, "
      "101 pelo interior até Pacific Grove. Recepção fecha às 18h.",
      ["lax", "malibu", "sb", "pismo", "paso", "salinas", "pg"], True),
-    ("2026-12-23", "ca", "Península de Monterey",
+    ("2026-12-23", "ca", "Monterey Peninsula",
      "Aquário, Cannery Row, 17-Mile Drive, Carmel, Point Lobos. "
      "Sobra tempo para uma ida e volta até Bixby Bridge.",
      ["pg", "carmel", "bixby"], True),
@@ -180,9 +182,9 @@ ETAPAS = [
     ("2026-12-29", "bi", "Hawaii Volcanoes National Park",
      "Crater Rim, Nāhuku, Chain of Craters. Voltar ao anoitecer se houver "
      "atividade na cratera.", ["kilauea"], True),
-    ("2026-12-30", "bi", "Costa Hamakua e Mauna Kea",
-     "Jardim tropical, Akaka Falls, mirante do Waipiʻo. À noite, o cume do "
-     "Mauna Kea para o poente e as estrelas.",
+    ("2026-12-30", "bi", "Hamakua Coast e Mauna Kea",
+     "Jardim tropical, Akaka Falls, Waipiʻo Valley Lookout. À noite, o "
+     "Mauna Kea Summit para o poente e as estrelas.",
      ["akaka", "waipio", "mk_vis", "mk_cume"], True),
     ("2026-12-31", "bi", "Hilo a Kona pelo sul",
      "Travessia pelo sul com parada em Punaluʻu. Check-in às 16h, réveillon "
@@ -192,7 +194,7 @@ ETAPAS = [
     ("2027-01-02", "bi", "Mar e vida marinha em Kona",
      "Catamarã à Kealakekua Bay de manhã, snorkel noturno com arraias-manta.",
      ["kealakekua", "kona"], False),
-    ("2027-01-03", "bi", "Praias da costa oeste",
+    ("2027-01-03", "bi", "Praias de Kona e Kohala",
      "Magic Sands, Kua Bay ou Hāpuna. Ritmo livre.", ["hapuna", "kona"], True),
     ("2027-01-04", "ca", "Big Island a Los Angeles",
      "Carro de volta às 14h em Kona. Transfer do hotel no LAX.", ["kona", "lax"], True),
@@ -207,30 +209,31 @@ ETAPAS = [
 # (hora, o que, como, duracao)
 ROTEIRO = [
  {"dia": "2026-12-22", "regiao": "ca", "titulo": "Ida: Los Angeles a Pacific Grove",
-  "cabecalho": "535 km, 5h20 de volante puro, poente às 16h49 no sul e 16h57 no norte",
+  "cabecalho": "563 km e 6h40 de volante, poente às 16h49 no sul e 16h57 no norte",
   "trechos": [
     ("09:00", "Retirar o carro na Alamo", "Terminal do LAX. Conferir o tanque e a "
      "franquia antes de sair", "20 min"),
     ("09:20", "LAX até El Matador, em Malibu", "Lincoln Blvd norte, I-10 oeste, "
      "SR-1 (Pacific Coast Highway). Oceano à esquerda de Santa Monica em diante",
-     "55 km, 1h"),
+     "52 km, 1h"),
     ("10:20", "El Matador State Beach", "USD 10 por veículo. Escada na falésia até "
      "os arcos de pedra. Maré baixa deixa passar entre eles", "40 min"),
     ("11:00", "Malibu até Santa Barbara", "SR-1 até Oxnard, US-101 norte. De Ventura "
      "a Santa Barbara a 101 corre na praia: sair da PCH aqui não custa mar nenhum",
-     "100 km, 1h15"),
+     "98 km, 1h15"),
     ("12:15", "Almoço em Santa Barbara", "State Street e o cais. Estacionamento "
      "municipal das primeiras 75 minutos de graça", "1h15"),
-    ("13:30", "Santa Barbara até Pismo Beach", "US-101. O trecho até Gaviota ainda é "
-     "orla; em Gaviota Pass a estrada entra no continente. Em Las Cruces ignorar a "
-     "SR-1 para Lompoc: mais lenta e sem vista", "165 km, 1h50"),
-    ("15:20", "Monarch Butterfly Grove, em Pismo", "Na Dolliver St, a própria SR-1, "
+    ("13:30", "Santa Barbara até Pismo Beach", "US-101 pela orla até Gaviota, passando por "
+     "El Capitán e Refugio; em Gaviota Pass a estrada entra no continente. Recusar a CA 154 "
+     "(San Marcos Pass) que o GPS vai sugerir: 22 km mais curta, mas é serra por dentro da "
+     "montanha, sem mar. Em Las Cruces ignorar a SR-1 para Lompoc", "155 km, 1h40"),
+    ("15:10", "Monarch Butterfly Grove, em Pismo", "Na Dolliver St, a própria SR-1, "
      "dois minutos fora da 101. Gratuito. Dezembro é o pico das monarcas "
      "hibernando nos eucaliptos", "30 min"),
-    ("15:50", "Pismo até Pacific Grove", "US-101 por San Luis Obispo, Atascadero, "
+    ("15:40", "Pismo até Pacific Grove", "US-101 por San Luis Obispo, Atascadero, "
      "Paso Robles e Salinas. Interior, quatro pistas, rápido e sem graça, e é de "
-     "propósito: é o trecho que sobra para depois do escuro", "235 km, 2h30"),
-    ("18:30", "Gosby House Inn", "643 Lighthouse Ave. A recepção fecha às 18h",
+     "propósito: é o trecho que sobra para depois do escuro", "257 km, 2h45"),
+    ("18:25", "Gosby House Inn", "643 Lighthouse Ave. A recepção fecha às 18h",
      "chegada"),
   ],
   "notas": [
@@ -238,7 +241,7 @@ ROTEIRO = [
     "parada: é pedir à agência para avisar a Gosby House que vocês chegam entre "
     "18h30 e 19h. A própria confirmação diz que basta avisar antes.",
     "A ordem foi montada para o escuro cair no trecho feio. Tudo o que tem "
-    "paisagem acontece antes das 16h; os últimos 235 km de 101 são retão de "
+    "paisagem acontece antes das 16h; os últimos 257 km de 101 são retão de "
     "quatro pistas e não perdem nada por serem à noite.",
     "Solvang é a alternativa ao bosque das monarcas, cinco minutos fora da 101 em "
     "Buellton. Não cabem os dois. O bosque é gratuito, dura 30 minutos e é "
@@ -247,7 +250,7 @@ ROTEIRO = [
     "jogaria a falésia toda para depois do poente.",
   ]},
 
- {"dia": "2026-12-23", "regiao": "ca", "titulo": "Península de Monterey e o pedaço de Big Sur",
+ {"dia": "2026-12-23", "regiao": "ca", "titulo": "Monterey Peninsula e o pedaço de Big Sur",
   "cabecalho": "menos de 100 km no dia inteiro, poente às 16:57 em Carmel",
   "trechos": [
     ("09:45", "Fila do Monterey Bay Aquarium", "Abre às 10h. 23/12 é feriado cheio: "
@@ -279,54 +282,60 @@ ROTEIRO = [
   ]},
 
  {"dia": "2026-12-24", "regiao": "ca", "titulo": "Volta: Pacific Grove ao LAX",
-  "cabecalho": "535 km, 5h20 sem trânsito, para uma janela de 7 horas",
+  "cabecalho": "564 km pela US 101, cerca de 6 horas de volante sem trânsito",
   "trechos": [
-    ("07:00", "Sair de Pacific Grove", "Amanhece às 7h17: os primeiros 20 minutos "
-     "são no escuro, em estrada reta", "saída"),
-    ("07:40", "Salinas e o vale", "US-101 sul. É aqui que mora o único risco de "
-     "neblina da viagem, e é neblina de vale, não de costa", "80 km"),
-    ("09:30", "Paso Robles e San Luis Obispo", "US-101. Posto e banheiro em "
-     "Atascadero ou Paso", "20 min de parada"),
-    ("11:30", "Buellton ou Santa Barbara", "Parada única de comida. Depois daqui não "
-     "para mais", "30 min"),
-    ("13:00", "Ventura e a orla", "US-101 na praia outra vez, no sentido contrário "
-     "da ida", "—"),
-    ("13:45", "Entrada em Los Angeles", "US-101 pelo Vale de San Fernando e I-405 "
-     "sul. Não passar pelo centro", "70 km"),
-    ("14:15", "Abastecer perto do aeroporto", "A Alamo cobra caro pelo tanque. Posto "
-     "na Century ou na Sepulveda", "15 min"),
-    ("14:40", "Devolver o carro", "Terminal do LAX. Devolução marcada para 15h", "—"),
+    ("07:00", "Sair de Pacific Grove", "CA 68 até Salinas. Amanhece às 7h17: os primeiros "
+     "20 minutos são no escuro", "37 km, 35 min"),
+    ("07:35", "Salinas Valley", "US-101 sul. É aqui que mora o único risco de neblina da "
+     "viagem, e é neblina de vale, não de costa", "153 km até Paso Robles"),
+    ("09:05", "Paso Robles", "Banheiro e café, sem sentar", "10 min"),
+    ("09:15", "Paso Robles até Buellton", "US-101 por San Luis Obispo, Cuesta Grade e "
+     "Santa Maria", "146 km, 1h30"),
+    ("10:45", "Buellton, a parada de comida", "Depois daqui não para mais", "30 min"),
+    ("11:15", "Buellton até Santa Barbara pela orla", "US-101 por Gaviota e Refugio. A CA "
+     "154 corta caminho e economiza uns 20 minutos: é a única troca aceitável se o dia "
+     "apertar e não houver aviso de vento ou chuva na serra", "73 km, 45 min"),
+    ("12:00", "Santa Barbara até Ventura", "US-101 na praia", "44 km, 30 min"),
+    ("12:30", "Ventura até Woodland Hills", "US-101 pelo San Fernando Valley, já com "
+     "trânsito de véspera de Natal", "70 km, 50 min"),
+    ("13:20", "Woodland Hills até o LAX", "I-405 sul pela Sepulveda Pass, o trecho que "
+     "mais trava. Não passar pelo centro", "41 km, 45 min"),
+    ("14:05", "Abastecer perto do aeroporto", "A Alamo cobra caro pelo tanque. Posto na "
+     "Century Blvd ou na Sepulveda", "15 min"),
+    ("14:20", "Devolver o carro", "Locadoras do lado leste do LAX. Devolução marcada para "
+     "15h", "folga de 40 min"),
     ("17:43", "Voo para Honolulu", "Chegada às 21h31, e cerca de 30 minutos de "
      "aplicativo até Waikiki", "—"),
   ],
   "notas": [
-    "Sair às 7h em vez das 8h é a única mudança que eu faria no roteiro inteiro. "
-    "Transforma 1h20 de folga em 2h20, e o que está do outro lado é a devolução "
-    "do carro e um voo internacional na véspera de Natal.",
+    "Sair às 7h em vez das 8h é a mudança mais importante do roteiro inteiro. Medido: "
+    "564 km e cerca de 6 horas de volante sem trânsito, mais uma parada de comida, o "
+    "abastecimento e o trânsito de véspera de Natal em Los Angeles. Saindo às 8h a "
+    "conta termina depois das 15h da devolução; saindo às 7h sobram uns 40 minutos. "
+    "Do outro lado está um voo para Honolulu às 17h43.",
     "Não existe trecho cênico possível na volta. Voltar pela SR-1 por Malibu dá "
     "quase a mesma distância, mas é mais lento e joga vocês no trânsito de véspera "
     "de Natal em Santa Monica com hora marcada para devolver o carro.",
-    "A neblina do vale de Salinas é radiativa, de manhã, e some por volta das 10h. "
+    "A neblina do Salinas Valley é radiativa, de manhã, e some por volta das 10h. "
     "Se o painel mostrar visibilidade abaixo de 1,5 km, a conta muda: 40 minutos a "
-    "mais até clarear, e aí sair às 7h deixa de ser conforto e passa a ser o que "
-    "salva o voo.",
+    "mais até clarear consomem a folga inteira, e aí o certo é sair às 6h30.",
   ]},
 
- {"dia": "2026-12-27", "regiao": "oahu", "titulo": "A volta da ilha de Oahu",
+ {"dia": "2026-12-27", "regiao": "oahu", "titulo": "A volta de Oahu",
   "cabecalho": "cerca de 180 km, o único dia com carro na ilha, poente às 17:58",
   "trechos": [
     ("10:00", "Retirar o carro", "1778 Ala Moana Blvd, a poucos minutos do hotel a "
      "pé", "20 min"),
     ("10:40", "Hanauma Bay", "Kalanianaʻole Hwy (SR-72). Entrada permitida só até "
      "13h30. Reserva abre às 7h de 25/12 e esgota em segundos", "1h30"),
-    ("12:30", "Mirante de Makapuʻu", "SR-72 contornando o extremo leste. O farol e "
+    ("12:30", "Makapuʻu Point Lookout", "SR-72 contornando o extremo leste. O farol e "
      "a vista das ilhas Mānana", "30 min"),
     ("13:15", "Waimānalo e Kailua", "SR-72 e depois SR-61. Praia de areia branca e "
      "água rasa", "30 min"),
     ("13:45", "Almoço em Kailua e Lanikai", "Estacionar em Kailua e caminhar; "
      "Lanikai é bairro residencial com vaga escassa", "1h15"),
-    ("15:00", "Costa de Kualoa", "Kamehameha Hwy (SR-83), a estrada de barlavento. "
-     "Ilha do Chinaman's Hat e os vales do Jurassic Park", "1h"),
+    ("15:00", "Kualoa", "Kamehameha Hwy (SR-83), a estrada da Windward Coast. "
+     "Mokoliʻi (Chinaman's Hat) e os vales do Kualoa Ranch", "1h"),
     ("16:15", "Sunset Beach e Waimea Bay", "SR-83 até o North Shore. Ondas gigantes "
      "de inverno. Ver de cima, não entrar", "45 min"),
     ("17:30", "Poente e jantar em Haleʻiwa", "Food trucks e o camarão de Kahuku no "
@@ -335,11 +344,11 @@ ROTEIRO = [
      "60 km, 1h"),
   ],
   "notas": [
-    "Se o barlavento estiver chovendo de manhã, inverter o laço: subir pelo centro "
+    "Se a Windward Coast estiver com chuva de manhã, inverter o laço: subir pelo centro "
     "até o North Shore primeiro e voltar por Kailua à tarde. O painel compara a "
     "chuva dos dois lados entre 8h e 13h e diz qual sentido pegar.",
     "Hanauma Bay é a única coisa do dia com hora marcada e só existe neste "
-    "domingo: a baía fecha segundas e terças, e no Natal e no Ano Novo. Se "
+    "domingo: Hanauma Bay fecha segundas e terças, e no Natal e no Ano Novo. Se "
     "conseguirem a reserva, o laço começa por lá obrigatoriamente.",
     "O hotel cobra USD 51 de valet por noite, e vocês ficam com o carro uma noite "
     "só. Vale contar esse valor na conta do dia, porque estacionar em Waikiki na "
@@ -351,10 +360,10 @@ ROTEIRO = [
  {"dia": "2026-12-29", "regiao": "bi", "titulo": "Kilauea, e a noite que decide",
   "cabecalho": "45 minutos de Hilo, ingresso de USD 30 por veículo e vale 7 dias",
   "trechos": [
-    ("08:30", "Hilo até o parque", "SR-11 (Hawaii Belt Road) sudoeste", "50 km, 45 min"),
+    ("08:30", "Hilo até o parque", "SR-11 (Hawaii Belt Road) sudoeste", "47 km, 45 min"),
     ("09:15", "Crater Rim Drive e os mirantes", "Kīlauea Overlook, Keanakākoʻi, "
-     "Steam Vents. A cratera do Halemaʻumaʻu é o palco dos episódios", "2h"),
-    ("11:30", "Nāhuku, o túnel de lava", "Estacionamento lota cedo; ir antes do "
+     "Steam Vents. Halemaʻumaʻu Crater é o palco dos episódios", "2h"),
+    ("11:30", "Nāhuku (Thurston Lava Tube)", "Estacionamento lota cedo; ir antes do "
      "meio-dia", "45 min"),
     ("13:00", "Chain of Craters Road até o mar", "60 km ida e volta, descendo 1.100 m "
      "até a costa. Sem posto, sem água, sem sinal", "2h30"),
@@ -377,30 +386,37 @@ ROTEIRO = [
     "minutos.",
   ]},
 
- {"dia": "2026-12-30", "regiao": "bi", "titulo": "Costa Hamakua de dia, Mauna Kea de noite",
+ {"dia": "2026-12-30", "regiao": "bi", "titulo": "Hamakua Coast de dia, Mauna Kea de noite",
   "cabecalho": "o cume a 4.207 m, poente às 17:53, e 4x4 obrigatório acima da VIS",
   "trechos": [
     ("08:30", "Hawaii Tropical Bioreserve Garden", "SR-19 norte, na Scenic Route de "
      "Onomea. USD 25 por pessoa", "1h30"),
     ("10:30", "Akaka Falls", "SR-19 até Honomū e subir. USD 10 por veículo. Trilha "
      "de 600 m em laço", "1h"),
-    ("12:00", "Mirante do Waipiʻo Valley", "SR-19 até Honokaʻa e SR-240. A descida do "
-     "vale está fechada a quem não mora lá desde 2022: o mirante é o destino",
-     "1h30 de estrada"),
-    ("14:30", "Volta a Hilo, comer e beber água", "SR-19. Subir ao cume desidratado "
-     "e de estômago vazio é como a altitude derruba as pessoas", "1h"),
-    ("15:30", "Hilo até a Visitor Information Station", "SR-200 (Daniel K. Inouye "
-     "Highway, a Saddle Road) e a Mauna Kea Access Road", "70 km, 1h30"),
-    ("17:00", "Aclimatação na VIS, a 2.804 m", "Meia hora parado é o mínimo, e é "
-     "regra, não sugestão", "30 min"),
-    ("17:30", "VIS até o cume", "13 km, os primeiros 7 sem asfalto e em rampa de "
-     "15%. Tração nas quatro rodas exigida, e o Wrangler da reserva atende", "30 min"),
+    ("11:00", "Akaka Falls até Waipiʻo Valley Lookout", "SR-19 até Honokaʻa e SR-240. A "
+     "descida do vale está fechada a quem não mora lá desde 2022: o mirante é o destino",
+     "67 km, 1h10"),
+    ("12:10", "Waipiʻo Valley Lookout", "Mirante sobre o vale e o mar", "40 min"),
+    ("12:50", "Waipiʻo até Waimea", "SR-240 e SR-19 oeste. Em vez de voltar a Hilo, "
+     "seguir para o lado de lá da montanha", "36 km, 40 min"),
+    ("13:30", "Almoço e posto em Waimea", "Último posto de gasolina antes da Saddle "
+     "Road. Comer e beber água: subir ao cume desidratado e de estômago vazio é "
+     "como a altitude derruba as pessoas", "1h15"),
+    ("14:45", "Waimea até a Mauna Kea VIS", "HI 190 (Mamalahoa Highway) por 22 km, HI 200 "
+     "(Daniel K. Inouye Highway, a Saddle Road) por 38 km e Mauna Kea Access Road",
+     "70 km, 1h15"),
+    ("16:00", "Aclimatação na VIS, a 2.804 m", "Meia hora parado é o mínimo e é regra; "
+     "com a folga do almoço dá para ficar 50 minutos", "50 min"),
+    ("16:50", "Mauna Kea VIS até o Mauna Kea Summit", "13 km, os primeiros 7 sem asfalto "
+     "e em rampa de 15%. Tração nas quatro rodas exigida, e o Wrangler da reserva "
+     "atende", "30 min"),
     ("17:53", "Poente no cume", "Acima das nuvens, com a sombra da montanha se "
      "projetando no mar de nuvens a leste", "40 min"),
     ("18:30", "Descer para a VIS e olhar estrelas", "O cume tem de ser desocupado "
      "meia hora depois do poente. A observação de estrelas é na VIS, não lá em "
      "cima", "1h30"),
-    ("21:00", "Volta a Hilo", "Saddle Road no escuro, sem iluminação", "1h30"),
+    ("20:00", "Volta a Hilo", "HI 200 (Saddle Road) leste, no escuro e sem iluminação",
+     "73 km, 1h30"),
   ],
   "notas": [
     "O que fecha a estrada do cume é gelo, e gelo se antecipa: o painel vigia o "
@@ -410,8 +426,12 @@ ROTEIRO = [
     "Esta é a decisão flexível do roteiro, e por isso ela é que deve ceder. O cume "
     "alcança de Hilo em 1h30 e de Kona em cerca de 1h45, então existem sete noites "
     "candidatas entre 28/12 e 03/01. O painel escolhe a melhor.",
-    "Não há posto de gasolina na subida nem sinal de celular acima da VIS. Sair de "
-    "Hilo com o tanque cheio, agasalho de verdade e água.",
+    "Por Waimea em vez de voltar a Hilo depois do Waipiʻo: medido no roteador, 285 km "
+    "contra 321 km no dia e 40 minutos a menos ao volante. E Waimea tem onde almoçar "
+    "e o último posto antes da Saddle Road, o que resolve as duas coisas que a volta "
+    "a Hilo resolvia.",
+    "Não há posto de gasolina na Saddle Road nem sinal de celular acima da VIS. "
+    "Tanque cheio em Waimea, agasalho de verdade e água.",
     "Descer é o perigo real, não subir: freio de motor em marcha baixa, porque "
     "freio a disco superaquece e falha nos 15% de rampa. A locadora avisa, e a "
     "razão é essa.",
@@ -426,7 +446,7 @@ ROTEIRO = [
      "descansando ao sol são comuns, e é proibido tocar ou chegar perto", "1h"),
     ("11:45", "Desvio opcional a Ka Lae, o South Point", "20 km de estrada secundária "
      "cada trecho. O ponto mais ao sul dos Estados Unidos", "1h30 extra"),
-    ("13:00", "Subida da costa de Kona", "SR-11 pelos cafezais de Captain Cook e "
+    ("13:00", "Subida pela Kona Coast", "SR-11 pelos cafezais de Captain Cook e "
      "Kealakekua", "1h30"),
     ("15:00", "Kailua-Kona e o centro histórico", "Antes do check-in, se sobrar "
      "tempo", "1h"),
@@ -441,7 +461,103 @@ ROTEIRO = [
   ]},
 ]
 
-# Condados e lugares que importam para a rota da Califórnia. O boletim da
+# ---------------------------------------------------------------- rotas
+# Paradas na ORDEM em que voces passam, com coordenadas conferidas no
+# OpenStreetMap em 13/09/2026 (o Hōlei Sea Arch estava 4 km fora no chute).
+# "trajeto": True = dia de estrada do roteiro, desenhado em todo mapa de aviso
+# daquela regiao. As outras sao os recortes que as decisoes usam.
+_GOSBY = (36.6216, -121.9196, "Gosby House Inn")
+# lado leste, onde ficam as locadoras; o centro do aeroporto fazia a rota contornar a pista
+_LAX = (33.9491, -118.3868, "LAX")
+# Ponto de passagem SEM nome (nao vira marcador): prende a rota na US 101 pela
+# orla. Livre, o roteador corta Santa Barbara-Buellton pela CA 154 (San Marcos
+# Pass), 22 km mais curta e por dentro da serra, que nao e o que o roteiro quer.
+_ORLA_101 = (34.4630, -120.0710, None)
+_HILO = (19.7281, -155.0667, "Castle Hilo Hawaiian Hotel")
+ROTAS = {
+    "ida_2212": {
+        "dia": "2026-12-22", "regiao": "ca", "trajeto": True,
+        "titulo": "LAX até Pacific Grove",
+        "resumo": "PCH até Malibu, US 101 pela orla até Santa Barbara e pelo interior até Salinas",
+        "paradas": [_LAX, (34.0380, -118.8745, "El Matador State Beach"),
+                    (34.4100, -119.6858, "Santa Barbara"), _ORLA_101,
+                    (35.1297, -120.6326, "Pismo Beach"), _GOSBY],
+        "passagens": [(35.6266, -120.6910, "Paso Robles"), (36.6777, -121.6555, "Salinas")]},
+    "peninsula_2312": {
+        "dia": "2026-12-23", "regiao": "ca", "trajeto": True,
+        "titulo": "Monterey Peninsula e Bixby Bridge",
+        "resumo": "17-Mile Drive, Carmel-by-the-Sea, Point Lobos e SR 1 até Bixby Bridge",
+        "paradas": [_GOSBY, (36.6181, -121.9017, "Monterey Bay Aquarium"),
+                    (36.5687, -121.9652, "Lone Cypress"), (36.5147, -121.9428, "Point Lobos"),
+                    (36.3716, -121.9019, "Bixby Bridge"), _GOSBY],
+        "passagens": [(36.5552, -121.9233, "Carmel-by-the-Sea")]},
+    "volta_2412": {
+        "dia": "2026-12-24", "regiao": "ca", "trajeto": True,
+        "titulo": "Pacific Grove até LAX",
+        "resumo": "US 101 do começo ao fim, San Fernando Valley e I-405 até o LAX",
+        # ponto na propria US 101: o centro de Salinas desviava a rota e dava 564 km
+        "paradas": [_GOSBY, (36.6400, -121.6230, "Salinas"), _ORLA_101, _LAX],
+        "passagens": [(35.6266, -120.6910, "Paso Robles"), (34.6136, -120.1929, "Buellton"),
+                      (34.4100, -119.6858, "Santa Barbara"), (34.2805, -119.2945, "Ventura")]},
+    "oahu_2712": {
+        "dia": "2026-12-27", "regiao": "oahu", "trajeto": True,
+        "titulo": "A volta de Oahu",
+        "resumo": "SR 72 pela costa leste, SR 83 pela Windward Coast e North Shore, H-2 e H-1 na volta",
+        "paradas": [(21.2855, -157.8375, "Alamo, Ala Moana Blvd"), (21.2696, -157.6938, "Hanauma Bay"),
+                    (21.3110, -157.6490, "Makapuʻu Point"), (21.3966, -157.7259, "Kailua Beach Park"),
+                    (21.5130, -157.8367, "Kualoa Regional Park"), (21.6708, -158.0457, "Sunset Beach"),
+                    (21.6414, -158.0668, "Waimea Bay"), (21.5936, -158.1045, "Haleʻiwa"),
+                    (21.2842, -157.8323, "The Ambassador Hotel Waikiki")]},
+    "kilauea_2912": {
+        "dia": "2026-12-29", "regiao": "bi", "trajeto": True,
+        "titulo": "Hawaii Volcanoes National Park",
+        "resumo": "SR 11 até o parque, Crater Rim Drive e Chain of Craters Road até o mar",
+        "paradas": [_HILO, (19.4296, -155.2571, "Kīlauea Visitor Center"),
+                    (19.4145, -155.2373, "Nāhuku"), (19.2958, -155.0957, "Hōlei Sea Arch"), _HILO]},
+    "hamakua_3012": {
+        "dia": "2026-12-30", "regiao": "bi", "trajeto": True,
+        "titulo": "Hamakua Coast e Mauna Kea Summit",
+        "resumo": "SR 19 pela Hamakua Coast, almoço em Waimea, HI 190, Saddle Road (HI 200) e Mauna Kea Access Road",
+        "paradas": [_HILO, (19.8547, -155.1536, "Akaka Falls State Park"),
+                    (20.1180, -155.5844, "Waipiʻo Valley Lookout"), (20.0230, -155.6718, "Waimea"),
+                    (19.7607, -155.4563, "Mauna Kea VIS"), (19.8207, -155.4681, "Mauna Kea Summit"), _HILO]},
+    "sul_3112": {
+        "dia": "2026-12-31", "regiao": "bi", "trajeto": True,
+        "titulo": "Hilo até Kona pelo sul",
+        "resumo": "SR 11 contornando o sul da ilha, passando pela entrada do parque",
+        "paradas": [_HILO, (19.1361, -155.5046, "Punaluʻu Black Sand Beach"),
+                    (19.5584, -155.9647, "Outrigger Kona Resort")]},
+    # recortes das decisoes
+    "bixby": {
+        "dia": "2026-12-23", "regiao": "ca", "titulo": "Carmel-by-the-Sea até Bixby Bridge",
+        "resumo": "SR 1 sul, passando por Point Lobos e Rocky Creek",
+        "paradas": [(36.5552, -121.9233, "Carmel-by-the-Sea"), (36.5147, -121.9428, "Point Lobos"),
+                    (36.3716, -121.9019, "Bixby Bridge")]},
+    "mk_subida": {
+        "dia": "2026-12-30", "regiao": "bi", "titulo": "Hilo até Mauna Kea Summit",
+        "resumo": "Saddle Road (SR 200), Mauna Kea VIS e os 13 km da Mauna Kea Access Road",
+        "paradas": [_HILO, (19.7607, -155.4563, "Mauna Kea VIS"), (19.8207, -155.4681, "Mauna Kea Summit")]},
+    "kilauea_noite": {
+        "dia": "2026-12-29", "regiao": "bi", "titulo": "Hilo até Kīlauea Caldera",
+        "resumo": "SR 11, 45 minutos por trecho",
+        "paradas": [_HILO, (19.4296, -155.2571, "Kīlauea Visitor Center")]},
+    "snorkel": {
+        "dia": "2027-01-02", "regiao": "bi", "barco": True, "titulo": "Keauhou Bay até Kealakekua Bay",
+        "resumo": "catamarã pela costa de Kona",
+        "paradas": [(19.5613, -155.9643, "Keauhou Bay"), (19.4771, -155.9271, "Kealakekua Bay")]},
+    "northshore": {
+        "dia": "2026-12-27", "regiao": "oahu", "titulo": "Haleʻiwa até Sunset Beach",
+        "resumo": "Kamehameha Hwy (SR 83) pelo North Shore",
+        "paradas": [(21.5936, -158.1045, "Haleʻiwa"), (21.6414, -158.0668, "Waimea Bay"),
+                    (21.6708, -158.0457, "Sunset Beach")]},
+}
+ROTA_DO_DIA = {r["dia"]: rid for rid, r in ROTAS.items() if r.get("trajeto")}
+ROTA_DA_DECISAO = {"mk_cume": "mk_subida", "kilauea": "kilauea_noite",
+                   "oahu_sentido": "oahu_2712", "ca_ida": "ida_2212", "ca_volta": "volta_2412",
+                   "bixby": "bixby", "snorkel": "snorkel", "northshore": "northshore"}
+
+
+# Condados e lugares que importam para a rota da California. O boletim da
 # Caltrans traz o estado inteiro; sem este filtro a pagina grita por causa de
 # Fort Bragg e Point Reyes, a centenas de quilometros do roteiro.
 CONDADOS_ROTA = ("monterey", "san luis obispo", "santa barbara", "ventura",
@@ -497,7 +613,7 @@ def previsoes_lote(pontos):
     """UMA chamada para todos os pontos. O Open-Meteo aceita lista de
     coordenadas e devolve lista na mesma ordem; a elevacao tambem e por ponto,
     o que importa muito numa ilha vulcanica: sem forcar, o modelo escolhe o
-    ponto de grade encosta acima e o cume do Mauna Kea vira uma colina."""
+    ponto de grade encosta acima e o Mauna Kea Summit vira uma colina."""
     fusos = {r[0]: r[2] for r in REGIOES}
     out = {}
     for reg, tz in sorted({(p[5], fusos[p[5]]) for p in pontos}):
@@ -572,6 +688,7 @@ def alertas_por_area(areas=("CA", "HI")):
                 "descricao": (p.get("description") or "").strip()[:900],
                 "onde": (p.get("areaDesc") or "")[:110],
                 "regioes": regs,
+                "zonas": p.get("affectedZones") or [],
                 "fim": p.get("ends") or p.get("expires") or "",
                 "id": p.get("id", ""),
             })
@@ -703,7 +820,7 @@ def sol(lat, lon, dia="2026-12-23", tz=-8):
 
 # ---------------------------------------------------------------- push
 
-def push_ntfy(titulo, corpo, prioridade="default", tags=""):
+def push_ntfy(titulo, corpo, prioridade="default", tags="", anexo=""):
     if not NTFY_TOPIC:
         print("aviso: NTFY_TOPIC nao definido; push pulado")
         return
@@ -711,6 +828,8 @@ def push_ntfy(titulo, corpo, prioridade="default", tags=""):
            "Priority": prioridade, "Click": LINK_SITE}
     if tags:
         cab["Tags"] = tags
+    if anexo:
+        cab["Attach"] = anexo        # o ntfy baixa a imagem do PythonAnywhere e mostra no push
     req = Request(f"https://ntfy.sh/{NTFY_TOPIC}", data=corpo.encode("utf-8"),
                   method="POST", headers=cab)
     try:
@@ -739,16 +858,37 @@ def push_telegram(titulo, corpo, urgente=False):
         print(f"ERRO no telegram: {e}")
 
 
+def push_telegram_foto(jpeg, legenda_html, urgente=False):
+    """Mapa por foto no Telegram. Legenda em HTML, no maximo 1024 caracteres."""
+    if not (TG_TOKEN and TG_CHAT) or not jpeg:
+        return
+    lim = "----tg" + uuid.uuid4().hex
+    partes = []
+    for k, v in (("chat_id", str(TG_CHAT)), ("caption", legenda_html[:1024]),
+                 ("parse_mode", "HTML"), ("disable_notification", "false" if urgente else "true")):
+        partes.append(f'--{lim}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode("utf-8"))
+    partes.append((f'--{lim}\r\nContent-Disposition: form-data; name="photo"; filename="mapa.jpg"\r\n'
+                   "Content-Type: image/jpeg\r\n\r\n").encode() + jpeg + b"\r\n")
+    corpo = b"".join(partes) + f"--{lim}--\r\n".encode()
+    req = Request(f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto", data=corpo, method="POST",
+                  headers={"Content-Type": f"multipart/form-data; boundary={lim}"})
+    try:
+        with urlopen(req, timeout=60) as r:
+            print(f"telegram foto enviada ({r.getcode()}): {legenda_html[:60]}")
+    except Exception as e:  # noqa: BLE001
+        print(f"ERRO na foto do telegram: {e}")
+
+
 def upload_pa(conteudo, nome="index.html"):
     if not PA_TOKEN:
         print("aviso: PA_TOKEN nao definido; upload pulado")
         return False
     dest = f"/home/{PA_USER}/{PA_DIR}/{nome}"
     url = f"{PA_API}/api/v0/user/{PA_USER}/files/path{dest}"
-    data = conteudo.encode("utf-8")
+    data = conteudo if isinstance(conteudo, bytes) else conteudo.encode("utf-8")
     lim = "----pa" + uuid.uuid4().hex
     corpo = ((f"--{lim}\r\n"
-              f'Content-Disposition: form-data; name="content"; filename="{nome}"\r\n'
+              f'Content-Disposition: form-data; name="content"; filename="{nome.split("/")[-1]}"\r\n'
               "Content-Type: application/octet-stream\r\n\r\n").encode()
              + data + f"\r\n--{lim}--\r\n".encode())
     req = Request(url, data=corpo, method="POST", headers={
@@ -885,7 +1025,7 @@ def decisoes(prev, mar, kil):
         return "bom", "Cume limpo e vento tolerável. É a noite de subir.", num
 
     dia_mk = melhor_noite(prev, "mk_cume", NOITES_CUME, 15, 21, av_mk)
-    add("mk_cume", "Cume do Mauna Kea, poente e estrelas", dia_mk, "15h às 21h",
+    add("mk_cume", "Mauna Kea Summit: poente e estrelas", dia_mk, "15h às 21h",
         "Não sobe com neve, ou nível de congelamento abaixo de 4.250 m com chuva, "
         "ou rajada acima de 45 nós.",
         J("mk_cume", dia_mk, 15, 21), av_mk,
@@ -907,7 +1047,7 @@ def decisoes(prev, mar, kil):
         return "bom", "Em erupção e céu aberto. É a noite.", num
 
     dia_kil = melhor_noite(prev, "kilauea", NOITES_CRATERA, 17, 22, av_kil)
-    add("kilauea", "Cratera do Kilauea ao anoitecer", dia_kil, "17h às 22h",
+    add("kilauea", "Kilauea Caldera ao anoitecer", dia_kil, "17h às 22h",
         "Aviso urgente se o USGS puser o Kilauea em ORANGE ou RED durante a viagem.",
         J("kilauea", dia_kil, 17, 22), av_kil,
         "Só as três noites de Hilo servem: 28, 29 e 30/12, a 45 minutos do "
@@ -923,20 +1063,20 @@ def decisoes(prev, mar, kil):
     def av_oahu(w):
         cl = (lan or {}).get("chuva") or 0
         cn = (nor or {}).get("chuva") or 0
-        num = f"chuva de manhã: barlavento {cl:.1f} mm, North Shore {cn:.1f} mm"
+        num = f"chuva de manhã: Windward Coast {cl:.1f} mm, North Shore {cn:.1f} mm"
         if cl > cn + 1.5:
-            return "atencao", ("Barlavento mais molhado. Inverter o laço: subir pelo "
+            return "atencao", ("Windward Coast mais molhada. Inverter o laço: subir pelo "
                                "centro até o North Shore e voltar por Kailua à tarde."), num
-        return "bom", ("Barlavento igual ou melhor que o North Shore. Seguir o "
+        return "bom", ("Windward Coast igual ou melhor que o North Shore. Seguir o "
                        "sentido normal: leste primeiro, North Shore no fim."), num
 
-    add("oahu_sentido", "Sentido da volta da ilha de Oahu", "2026-12-27", "manhã",
-        "Inverte o laço se o barlavento tiver 1,5 mm mais de chuva que o North "
+    add("oahu_sentido", "Sentido da volta de Oahu", "2026-12-27", "manhã",
+        "Inverte o laço se a Windward Coast tiver 1,5 mm mais de chuva que o North "
         "Shore entre 8h e 13h.",
         lan, av_oahu,
         "Se quiserem Hanauma Bay, a reserva abre às 7h de 25/12 e esgota em "
         "segundos; a entrada só vale até 13h30, e aí o laço começa por lá de "
-        "qualquer maneira. Carro às 10h no centro de Honolulu e devolução às 10h "
+        "qualquer maneira. Carro às 10h na Ala Moana Blvd e devolução às 10h "
         "do dia 28 no aeroporto: a volta inteira cabe num dia, 180 km.")
 
     # 4. Ida pela costa, 22/12.
@@ -953,16 +1093,16 @@ def decisoes(prev, mar, kil):
     add("ca_ida", "Ida: Los Angeles a Pacific Grove", "2026-12-22", "9h às 18h",
         "Corta as paradas se a chuva do dia passar de 15 mm ou a rajada de 35 nós.",
         J("sb", "2026-12-22", 9, 18), av_ida,
-        "PCH de Santa Monica a Malibu, 101 pela orla de Ventura a Santa Barbara, "
-        "101 pelo interior de Gaviota a Pacific Grove. Big Sur não entra na ida: "
-        "seriam 2h30 a mais e no escuro.")
+        "PCH de Santa Monica a Malibu, 101 pela orla de Ventura a Gaviota, 101 pelo "
+        "interior até Pacific Grove. Em Santa Barbara, recusar a CA 154 que o GPS "
+        "sugere. Big Sur não entra na ida: seriam 2h30 a mais e no escuro.")
 
     # 5. Volta, 24/12. O risco da madrugada aqui e neblina no vale, nao chuva.
     def av_volta(w):
         vis = w["vis"] if w["vis"] is not None else 20
         num = (f"visibilidade mínima 6h-9h {vis:.1f} km, chuva {w['chuva'] or 0:.1f} mm")
         if vis < 1.5:
-            return "ruim", ("Neblina fechada no vale de Salinas. Sair às 7h e contar "
+            return "ruim", ("Neblina fechada no Salinas Valley. Sair às 6h30 e contar "
                             "com 40 minutos a mais até clarear."), num
         if vis < 5:
             return "atencao", ("Neblina no vale. Farol baixo e sem pressa nos "
@@ -970,12 +1110,13 @@ def decisoes(prev, mar, kil):
         return "bom", "Vale limpo. 101 direto até o LAX.", num
 
     add("ca_volta", "Volta: Pacific Grove ao LAX", "2026-12-24", "6h às 9h",
-        "Sair uma hora mais cedo se a visibilidade no vale de Salinas cair abaixo "
+        "Sair às 6h30 em vez das 7h se a visibilidade no Salinas Valley cair abaixo "
         "de 1,5 km.",
         J("salinas", "2026-12-24", 6, 9), av_volta,
-        "São 5h20 de 101 para uma janela de 7h, com devolução às 15h e voo às "
-        "17h43. Não cabe desvio cênico. Sair às 7h em vez de 8h transforma 1h20 "
-        "de folga em 2h20, e é a única mudança que eu faria no roteiro.")
+        "São 564 km e cerca de 6 horas de 101 sem trânsito, mais a parada de comida, o "
+        "abastecimento e o trânsito de véspera de Natal em Los Angeles, até a devolução "
+        "às 15h e o voo às 17h43. Saindo às 8h a conta não fecha; saindo às 7h sobram "
+        "uns 40 minutos. Não cabe desvio cênico.")
 
     # 6. Ida e volta a Bixby Bridge, no dia da peninsula.
     def av_bixby(w):
@@ -1000,16 +1141,16 @@ def decisoes(prev, mar, kil):
         num = ((f"onda {onda:.1f} m" if onda is not None else "sem dado de onda")
                + f", vento {w['vento'] or 0:.0f} nós")
         if onda is not None and onda > 2.0:
-            return "ruim", "Mar grande na baía. Visibilidade do snorkel vai a zero.", num
+            return "ruim", "Mar grande na Kealakekua Bay. Visibilidade do snorkel vai a zero.", num
         if onda is not None and onda > 1.2:
             return "atencao", "Mar mexido. O catamarã sai, a água fica turva.", num
-        return "bom", "Baía calma. É o melhor snorkel da ilha.", num
+        return "bom", "Kealakekua Bay calma. É o melhor snorkel da ilha.", num
 
     add("snorkel", "Catamarã e snorkel na Kealakekua Bay", "2027-01-02", "9h às 13h",
         "Mar acima de 2 m fecha a janela de visibilidade.",
         J("kealakekua", "2027-01-02", 9, 13), av_snorkel,
-        "O snorkel noturno com arraias-manta é na enseada de Keauhou, protegida, e "
-        "aguenta mar que a baía aberta não aguenta.")
+        "O snorkel noturno com arraias-manta é na Keauhou Bay, protegida, e "
+        "aguenta mar que a Kealakekua Bay, aberta, não aguenta.")
 
     # 8. North Shore: onda grande e o espetaculo, e tambem o perigo.
     def av_ns(w):
@@ -1082,12 +1223,16 @@ def resumo_texto(d):
             achou = True
             marca = "FECHADA" if i["fechado"] else ("livre" if i.get("livre") else "restricao")
             L.append(f"  {v['rodovia']}: {marca} - {i['texto'][:140]}")
+            if i.get("efeito"):
+                L.append(f"    {i['efeito']}")
     if not achou:
         L.append("  sem boletim para os condados da rota")
     if d["alertas"]:
         L += ["", "AVISOS DO NWS"]
         for a in d["alertas"]:
             L.append(f"  {a['evento']} ({a['severidade']}) - {a['onde'][:70]}")
+            if a.get("efeito"):
+                L.append(f"    {a['efeito']}")
     else:
         L += ["", "AVISOS DO NWS: nenhum ativo na rota."]
     return "\n".join(L)
@@ -1214,6 +1359,59 @@ def main():
         "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO,
     }
 
+    # ---- mapas: um por dia de estrada e um por aviso que tenha lugar. Falha
+    # aqui nao pode calar o aviso: sem mapa, o texto sai do mesmo jeito.
+    geo = _le(GEO, {})
+    geo_antes = json.dumps(geo, sort_keys=True)
+    mapas = {}
+    try:
+        import _cartografia as carto
+        rotas = carto.prepara_rotas(ROTAS, geo)
+        lcs = {}
+        for dia, rid in ROTA_DO_DIA.items():
+            if rid in rotas:
+                r = rotas[rid]
+                mapas["trajeto_" + rid] = carto.com_hash({
+                    "tipo": "trajeto", "regiao": r["regiao"], "spec": carto.spec_trajeto(r),
+                    "titulo": r["titulo"], "efeito": "", "toca": True,
+                    "link": carto.link_gmaps([p[:2] for p in r["paradas"]])})
+        for v in vias:
+            for i in v["itens"]:
+                if i["na_rota"] and not i.get("livre"):
+                    m = carto.mapa_interdicao(v["rodovia"], i, rotas, geo, lcs)
+                    if m:
+                        i["mapa"] = "via_" + _marca(i["texto"])
+                        i["efeito"] = m["efeito"]
+                        mapas[i["mapa"]] = carto.com_hash(m)
+        for a in alertas:
+            m = carto.mapa_aviso(a, rotas, geo)
+            if m:
+                a["mapa"] = "nws_" + _marca(a["id"])
+                a["efeito"] = m["efeito"]
+                mapas[a["mapa"]] = carto.com_hash(m)
+        for reg in ("ca", "oahu", "bi"):
+            itens = [m for m in mapas.values()
+                     if m["regiao"] == reg and m["tipo"] in ("interdicao", "aviso")]
+            m = carto.mapa_resumo(reg, itens, rotas)
+            if m:
+                mapas["resumo_" + reg] = carto.com_hash(m)
+        for dec in d["decisoes"]:
+            rid = ROTA_DA_DECISAO.get(dec["id"])
+            if dec["veredito"] == "ruim" and rid in rotas:
+                dec["mapa"] = "dec_" + dec["id"]
+                mapas[dec["mapa"]] = carto.com_hash(carto.mapa_decisao(dec, rotas[rid]))
+    except Exception as e:  # noqa: BLE001
+        print(f"AVISO: mapas indisponiveis nesta rodada ({type(e).__name__}: {e})")
+    try:
+        import _geo
+        if _geo.USADAS and "rotas" in geo:
+            geo["rotas"] = {k: v for k, v in geo["rotas"].items() if k in _geo.USADAS}
+    except Exception:  # noqa: BLE001
+        pass
+    if json.dumps(geo, sort_keys=True) != geo_antes:
+        GEO.parent.mkdir(parents=True, exist_ok=True)
+        GEO.write_text(json.dumps(geo, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
     # ---- alertas urgentes, sempre por DELTA: repetir o mesmo aviso a cada 6 h
     # treina o usuario a ignorar o push.
     vistos = set(estado.get("vistos") or [])
@@ -1221,36 +1419,110 @@ def main():
     for a in alertas:
         if a["severidade"] in ("Severe", "Extreme") and a["id"] not in vistos:
             novos_ids.append(a["id"])
-            urgentes.append(f"NWS {a['evento']}: {a['manchete'][:180]}")
+            urgentes.append({"texto": f"NWS {a['evento']}: {a['manchete'][:180]}",
+                             "mapa": a.get("mapa"), "extra": ""})
     for v in vias:
         for i in v["itens"]:
             if i["fechado"] and i["na_rota"]:
                 marca = "via:" + _marca(i["texto"])
                 if marca not in vistos:
                     novos_ids.append(marca)
-                    urgentes.append(f"{v['rodovia']} fechada: {i['texto'][:180]}")
+                    urgentes.append({"texto": f"{v['rodovia']} fechada: {i['texto'][:180]}",
+                                     "mapa": i.get("mapa"), "extra": i["texto"]})
     cor_kil = (kil or {}).get("cor", "")
     if cor_kil in ("ORANGE", "RED") and estado.get("kilauea_cor") not in ("ORANGE", "RED"):
-        urgentes.append(f"Kilauea subiu para {cor_kil}: fonte de lava ativa. "
-                        f"Detalhe no monitor do vulcao.")
+        urgentes.append({"texto": f"Kilauea subiu para {cor_kil}: fonte de lava ativa. "
+                                  f"Detalhe no monitor do vulcao.", "mapa": None, "extra": ""})
     for dec in d["decisoes"]:
         if dec["veredito"] == "ruim":
             marca = "dec:" + dec["id"] + ":" + dec["dia"]
             if marca not in vistos:
                 novos_ids.append(marca)
-                urgentes.append(f"{dec['titulo']} ({dec['dia'][8:10]}/"
-                                f"{dec['dia'][5:7]}): {dec['motivo'][:160]}")
+                urgentes.append({"texto": f"{dec['titulo']} ({dec['dia'][8:10]}/"
+                                          f"{dec['dia'][5:7]}): {dec['motivo'][:160]}",
+                                 "mapa": dec.get("mapa"), "extra": ""})
+
+    # ---- desenha e publica os mapas. Redesenha so o que mudou, mais o que
+    # vai ser enviado agora (o Telegram recebe a imagem em bytes, e nao pela
+    # URL, porque o PythonAnywhere as vezes serve arquivo pela metade logo
+    # depois do upload).
+    enviar = {u["mapa"] for u in urgentes if u["mapa"]} if urgentes else \
+        {k for k in mapas if k.startswith("resumo_")}
+    anterior = estado.get("mapas") or {}
+    publicados, imagens = {}, {}
+    try:
+        import _mapa
+        print(f"mapas: {len(mapas)} (fonte {_mapa.nome_fonte()})")
+        for mid, m in mapas.items():
+            mudou = anterior.get(mid) != m["hash"]
+            if mudou or mid in enviar or so_local:
+                try:
+                    imagens[mid] = _mapa.renderiza(m["spec"])
+                except Exception as e:  # noqa: BLE001
+                    print(f"aviso: mapa {mid} nao desenhou ({e})")
+                    continue
+            if so_local:
+                MAPAS_LOCAL.mkdir(exist_ok=True)
+                (MAPAS_LOCAL / f"{mid}.jpg").write_bytes(imagens[mid])
+                publicados[mid] = m["hash"]
+            elif mudou:
+                if upload_pa(imagens[mid], f"mapas/{mid}.jpg"):
+                    publicados[mid] = m["hash"]
+            else:
+                publicados[mid] = m["hash"]
+    except ImportError as e:
+        print(f"AVISO: Pillow ausente, avisos sem mapa ({e})")
+
+    def url_mapa(mid, absoluta=False):
+        if mid not in publicados:
+            return ""
+        return (LINK_SITE if absoluta else "") + f"mapas/{mid}.jpg?v={publicados[mid]}"
+
+    for v in vias:
+        for i in v["itens"]:
+            if i.get("mapa"):
+                i["mapa_url"], i["mapa_link"] = url_mapa(i["mapa"]), mapas[i["mapa"]]["link"]
+    for a in alertas:
+        if a.get("mapa"):
+            a["mapa_url"], a["mapa_link"] = url_mapa(a["mapa"]), mapas[a["mapa"]]["link"]
+    for perna in ROTEIRO:
+        mid = "trajeto_" + ROTA_DO_DIA.get(perna["dia"], "")
+        perna["mapa_url"] = url_mapa(mid)
+        perna["mapa_link"] = mapas[mid]["link"] if mid in mapas else ""
+
+    def legenda(mid, extra=""):
+        m = mapas[mid]
+        partes = [f"<b>{html_mod.escape(m['spec']['titulo'])}</b>"]
+        if m["spec"].get("subtitulo"):
+            partes.append(html_mod.escape(m["spec"]["subtitulo"]))
+        if extra:
+            partes.append("<i>" + html_mod.escape(extra[:320]) + "</i>")
+        links = []
+        if m.get("link"):
+            links.append(f'<a href="{m["link"]}">Abrir no Google Maps</a>')
+        links.append(f'<a href="{LINK_SITE}">Painel</a>')
+        partes.append(" · ".join(links))
+        return "\n\n".join(partes)
 
     corpo = resumo_texto(d)
     print("\n" + corpo + "\n")
 
-    if urgentes:
-        titulo = "Costa Dourada: " + urgentes[0][:60]
-        push_ntfy(titulo, "\n".join(urgentes) + "\n\n" + corpo,
-                  prioridade="high", tags="warning")
-        push_telegram(titulo, "\n".join(urgentes) + "\n\n" + corpo, urgente=True)
+    if "--sem-avisar" in sys.argv:
+        print("--sem-avisar: nada enviado")
+    elif urgentes:
+        titulo = "Costa Dourada: " + urgentes[0]["texto"][:60]
+        anexo = next((url_mapa(u["mapa"], True) for u in urgentes if u["mapa"] and url_mapa(u["mapa"])), "")
+        textos = "\n".join(u["texto"] for u in urgentes)
+        push_ntfy(titulo, textos + "\n\n" + corpo, prioridade="high", tags="warning", anexo=anexo)
+        push_telegram(titulo, textos + "\n\n" + corpo, urgente=True)
+        for u in urgentes:
+            if u["mapa"] in imagens:
+                push_telegram_foto(imagens[u["mapa"]], legenda(u["mapa"], u["extra"]), urgente=True)
     else:
         push_telegram(f"Costa Dourada, faltam {dias_para} dias", corpo, urgente=False)
+        for mid in sorted(enviar):
+            if mid in imagens:
+                push_telegram_foto(imagens[mid], legenda(mid), urgente=False)
 
     from _pagina import monta
     html, js = monta(d)
@@ -1284,6 +1556,7 @@ def main():
         upload_pa(json.dumps(resumo_indice(d), ensure_ascii=False,
                              separators=(",", ":")), "resumo.json")
         upload_pa(unquote(FAVICON.split(",", 1)[1]), "favicon.svg")
+        estado["mapas"] = publicados
 
     estado.update({
         "rodada_utc": agora.isoformat(timespec="seconds"),
