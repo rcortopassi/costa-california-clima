@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-13T12:05:53+00:00",
+ "rodada_utc": "2026-09-13T20:57:33+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "via:-6420877876578995145",
@@ -9,18 +9,19 @@
   "via:6638256350534922170",
   "via:d8fee71d3c0f"
  ],
- "dias_para": 100,
+ "dias_para": 99,
  "mapas": {
-  "trajeto_ida_2212": "8d9bdcd4ea",
-  "trajeto_peninsula_2312": "23c7a39339",
-  "trajeto_volta_2412": "b86e69f6ea",
-  "trajeto_oahu_2712": "db0aa41150",
-  "trajeto_kilauea_2912": "3f224dd6d8",
-  "trajeto_hamakua_3012": "ef897062fd",
-  "trajeto_sul_3112": "1d81e507a3",
-  "via_d8fee71d3c0f": "fae3862d5f",
-  "via_3f401545f646": "fd1b4de74e",
-  "nws_da696082ff14": "aa61ae6870",
-  "resumo_ca": "ae73b62e63"
+  "trajeto_ida_2212": "3d57a04c04",
+  "trajeto_peninsula_2312": "c2071b3421",
+  "trajeto_volta_2412": "6bb3b58f4a",
+  "trajeto_oahu_2712": "861140772e",
+  "trajeto_kilauea_2912": "4065a7b6e7",
+  "trajeto_hamakua_3012": "06a1d9e86f",
+  "trajeto_sul_3112": "c6195b0dfa",
+  "via_d8fee71d3c0f": "8e0de03f9d",
+  "via_3f401545f646": "bbe8f22578",
+  "nws_02e7af89c312": "98143fe2b3",
+  "nws_25e99e696a99": "a343d8e163",
+  "resumo_ca": "50f7abfc01"
  }
 }
