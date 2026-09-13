@@ -1101,6 +1101,27 @@ def _marca(texto):
     return hashlib.md5(" ".join(texto.split())[:160].encode("utf-8")).hexdigest()[:12]
 
 
+
+def resumo_indice(d):
+    """O que o cartao do indice precisa saber, e nada alem disso."""
+    cont = {"bom": 0, "atencao": 0, "ruim": 0, "espera": 0}
+    for dec in d["decisoes"]:
+        cont[dec["veredito"]] = cont.get(dec["veredito"], 0) + 1
+    vias = sum(1 for v in d["estradas"] for i in v["itens"]
+               if i["fechado"] and i["na_rota"])
+    return {
+        "gerado_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "partida": VIAGEM["carro_lax"] + ":00-08:00",
+        "fim": "2027-01-06T00:40:00-08:00",
+        "pontos": len(d["pontos"]), "regioes": len(d["regioes"]),
+        "decisoes": cont,
+        "dias_com_previsao": len(d["prev_por_dia"]),
+        "vias_fechadas": vias,
+        "avisos_rota": len(d["alertas"]),
+        "kilauea": (d.get("kilauea") or {}).get("cor", ""),
+    }
+
+
 def _le(p, padrao):
     if not p.exists():
         return padrao
@@ -1254,6 +1275,15 @@ def main():
             print("aviso: node ausente, JS nao validado")
         if not upload_pa(html):
             return 3
+        # Contrato pequeno para o indice em /home/. O indice roda no Mac e a copia
+        # local deste repo NAO recebe os commits do Actions, entao ler o state/
+        # local daria numero velho. Estes arquivos sao opcionais: falha aqui nao
+        # derruba a rodada.
+        from _pagina import FAVICON
+        from urllib.parse import unquote
+        upload_pa(json.dumps(resumo_indice(d), ensure_ascii=False,
+                             separators=(",", ":")), "resumo.json")
+        upload_pa(unquote(FAVICON.split(",", 1)[1]), "favicon.svg")
 
     estado.update({
         "rodada_utc": agora.isoformat(timespec="seconds"),
