@@ -418,9 +418,12 @@ def _missa_do_dia(dia, regiao, missas, igrejas):
     if m.get("rec"):
         ig = igrejas[m["rec"]["igreja"]]
         txt = f'{m["rec"]["hora"]} · {ig["nome"]}, {ig["lugar"]}'
+    elif m.get("alts"):
+        a0 = m["alts"][0]
+        txt = (m.get("badge") or "opções") + ": " + a0["hora"] + " · " + igrejas[a0["igreja"]]["nome"] \
+            + (" e outras" if len(m["alts"]) > 1 else "")
     else:
-        txt = "sem missa possível neste dia" if "Não há" in m["sem"] or "Nenhuma" in m["sem"] \
-            else m["sem"].split(".")[0]
+        txt = m["sem"].split(".")[0]
     return ('<p class="missa-cartao"><span>missa</span>' + _h.escape(txt) + "</p>")
 
 
@@ -467,11 +470,13 @@ def _bloco_missas(missas, igrejas):
     for m in missas:
         br = m["dia"][8:10] + "/" + m["dia"][5:7]
         selos = ""
+        if m.get("badge"):
+            selos += '<span class="faixa f-ok">' + _h.escape(m["badge"]) + "</span>"
         if m.get("preceito"):
             selos += '<span class="faixa f-at">preceito</span>'
         if m.get("confirmar"):
             selos += '<span class="faixa f-es">confirmar em dezembro</span>'
-        cls = "item missa " + ("ok" if m.get("rec") else "es")
+        cls = "item missa " + ("ok" if m.get("rec") else ("at" if m.get("alts") else "es"))
         h.append('<article class="' + cls + '"><div class="cab"><span class="via">' + br
                  + " · " + _semana(m["dia"]) + " · " + _h.escape(m["liturgia"])
                  + '</span><span class="selos">' + selos + "</span></div>")
@@ -487,7 +492,8 @@ def _bloco_missas(missas, igrejas):
         if m.get("sem"):
             h.append('<p class="txt">' + _h.escape(m["sem"]) + "</p>")
         if m.get("alts"):
-            h.append('<p class="alts-tit">Outras possíveis</p><ul class="alts">')
+            h.append('<p class="alts-tit">' + ("Outras possíveis" if m.get("rec") else "Onde")
+                     + '</p><ul class="alts">')
             for a in m["alts"]:
                 ig = igrejas[a["igreja"]]
                 h.append('<li><b>' + _h.escape(a["hora"]) + "</b> " + _h.escape(ig["nome"])

@@ -164,8 +164,8 @@ ETAPAS = [
      "Sobra tempo para uma ida e volta até Bixby Bridge.",
      ["pg", "carmel", "bixby"], True),
     ("2026-12-24", "ca", "Pacific Grove a Los Angeles",
-     "Saída às 8h. Carro de volta no LAX às 15h, voo para Honolulu às 17h43. "
-     "Sem folga para desvio cênico.",
+     "Saída às 6h10 e missa às 8h30 em Paso Robles. Carro de volta no LAX às 15h, voo "
+     "para Honolulu às 17h43.",
      ["pg", "salinas", "paso", "pismo", "sb", "lax"], True),
     ("2026-12-25", "oahu", "Natal em Waikiki",
      "Dia todo a pé pela orla. Quase tudo fechado na ilha.", ["waikiki"], False),
@@ -282,43 +282,48 @@ ROTEIRO = [
   ]},
 
  {"dia": "2026-12-24", "regiao": "ca", "titulo": "Volta: Pacific Grove ao LAX",
-  "cabecalho": "564 km pela US 101, cerca de 6 horas de volante sem trânsito",
+  "cabecalho": "564 km pela US 101, com a missa das 8h30 em Paso Robles no caminho",
   "trechos": [
-    ("07:00", "Sair de Pacific Grove", "CA 68 até Salinas. Amanhece às 7h17: os primeiros "
-     "20 minutos são no escuro", "37 km, 35 min"),
-    ("07:35", "Salinas Valley", "US-101 sul. É aqui que mora o único risco de neblina da "
-     "viagem, e é neblina de vale, não de costa", "153 km até Paso Robles"),
-    ("09:05", "Paso Robles", "Banheiro e café, sem sentar", "10 min"),
-    ("09:15", "Paso Robles até Buellton", "US-101 por San Luis Obispo, Cuesta Grade e "
+    ("06:10", "Sair de Pacific Grove", "CA 68 até Salinas, ainda no escuro: amanhece às 7h17. "
+     "Farol baixo se houver neblina", "37 km, 35 min"),
+    ("06:45", "Salinas Valley", "US-101 sul. É aqui que mora o único risco de neblina da viagem, "
+     "e é neblina de vale, não de costa", "153 km, 1h30"),
+    ("08:15", "Chegada a Paso Robles", "St. Rose of Lima fica a poucos minutos da 101. Café antes "
+     "da missa", "15 min"),
+    ("08:30", "Missa em St. Rose of Lima", "A missa do dia, e a razão do horário de saída", "35 min"),
+    ("09:10", "Paso Robles até Buellton", "US-101 por San Luis Obispo, Cuesta Grade e "
      "Santa Maria", "146 km, 1h30"),
-    ("10:45", "Buellton, a parada de comida", "Depois daqui não para mais", "30 min"),
-    ("11:15", "Buellton até Santa Barbara pela orla", "US-101 por Gaviota e Refugio. A CA "
-     "154 corta caminho e economiza uns 20 minutos: é a única troca aceitável se o dia "
-     "apertar e não houver aviso de vento ou chuva na serra", "73 km, 45 min"),
-    ("12:00", "Santa Barbara até Ventura", "US-101 na praia", "44 km, 30 min"),
-    ("12:30", "Ventura até Woodland Hills", "US-101 pelo San Fernando Valley, já com "
+    ("10:40", "Buellton, a parada de comida", "Depois daqui não para mais", "30 min"),
+    ("11:10", "Buellton até Santa Barbara pela orla", "US-101 por Gaviota e Refugio. A CA "
+     "154 corta caminho e economiza uns 20 minutos: só se o dia apertar e não houver aviso "
+     "de vento ou chuva na serra", "73 km, 45 min"),
+    ("11:55", "Santa Barbara até Ventura", "US-101 na praia", "44 km, 30 min"),
+    ("12:25", "Ventura até Woodland Hills", "US-101 pelo San Fernando Valley, já com "
      "trânsito de véspera de Natal", "70 km, 50 min"),
-    ("13:20", "Woodland Hills até o LAX", "I-405 sul pela Sepulveda Pass, o trecho que "
+    ("13:15", "Woodland Hills até o LAX", "I-405 sul pela Sepulveda Pass, o trecho que "
      "mais trava. Não passar pelo centro", "41 km, 45 min"),
-    ("14:05", "Abastecer perto do aeroporto", "A Alamo cobra caro pelo tanque. Posto na "
+    ("14:00", "Abastecer perto do aeroporto", "A Alamo cobra caro pelo tanque. Posto na "
      "Century Blvd ou na Sepulveda", "15 min"),
-    ("14:20", "Devolver o carro", "Locadoras do lado leste do LAX. Devolução marcada para "
-     "15h", "folga de 40 min"),
+    ("14:15", "Devolver o carro", "Locadoras do lado leste do LAX. Devolução marcada para "
+     "15h", "folga de 45 min"),
     ("17:43", "Voo para Honolulu", "Chegada às 21h31, e cerca de 30 minutos de "
      "aplicativo até Waikiki", "—"),
   ],
   "notas": [
-    "Sair às 7h em vez das 8h é a mudança mais importante do roteiro inteiro. Medido: "
-    "564 km e cerca de 6 horas de volante sem trânsito, mais uma parada de comida, o "
-    "abastecimento e o trânsito de véspera de Natal em Los Angeles. Saindo às 8h a "
-    "conta termina depois das 15h da devolução; saindo às 7h sobram uns 40 minutos. "
-    "Do outro lado está um voo para Honolulu às 17h43.",
+    "A missa do dia fica em Paso Robles, às 8h30, na própria US 101, e é ela que marca a "
+    "saída às 6h10. Medido: 564 km e cerca de 6 horas de volante, mais missa, comida, "
+    "abastecimento e o trânsito de véspera de Natal em Los Angeles, e ainda sobram uns 45 "
+    "minutos antes das 15h. Do outro lado está o voo para Honolulu às 17h43.",
+    "A alternativa é a missa das 7h30 na San Carlos Cathedral, em Monterey, saindo às 8h05. "
+    "Ela troca o começo no escuro por dia claro, mas a folga até a devolução do carro some "
+    "e a parada de comida vira drive-thru.",
     "Não existe trecho cênico possível na volta. Voltar pela SR-1 por Malibu dá "
     "quase a mesma distância, mas é mais lento e joga vocês no trânsito de véspera "
     "de Natal em Santa Monica com hora marcada para devolver o carro.",
     "A neblina do Salinas Valley é radiativa, de manhã, e some por volta das 10h. "
-    "Se o painel mostrar visibilidade abaixo de 1,5 km, a conta muda: 40 minutos a "
-    "mais até clarear consomem a folga inteira, e aí o certo é sair às 6h30.",
+    "Se o painel mostrar visibilidade abaixo de 1,5 km no Salinas Valley, a conta muda: "
+    "40 minutos a mais até clarear consomem a folga inteira, e aí o certo é sair às 5h50 "
+    "para não perder nem a missa nem o voo.",
   ]},
 
  {"dia": "2026-12-27", "regiao": "oahu", "titulo": "A volta de Oʻahu",
@@ -529,6 +534,53 @@ IGREJAS = {
         "horarios": "todos os dias 7h · sábado 16h · domingo 7h, 9h, 12h em espanhol e 16h",
         "busca": "St. Michael the Archangel Church, 75-5769 Alii Dr, Kailua-Kona",
         "fonte": "https://saintmichaelparishkona.org/our-parish/mass-times-and-locations/"},
+    "rose": {
+        "nome": "St. Rose of Lima", "lugar": "Paso Robles, na US 101",
+        "horarios": "segunda a sexta 8h30 · sábado 8h e 17h · domingo 8h e 10h, e 13h e 18h em espanhol",
+        "busca": "St. Rose of Lima Catholic Church, Paso Robles, CA",
+        "fonte": "http://saintrosechurch.org/"},
+    "sorrows": {
+        "nome": "Our Lady of Sorrows", "lugar": "Santa Barbara",
+        "horarios": "dias de semana 12h10, segundo o MassTimes (o site da paróquia bloqueia leitura)",
+        "busca": "Our Lady of Sorrows Catholic Church, Santa Barbara, CA",
+        "fonte": "https://masstimes.org/"},
+    "usc": {
+        "nome": "Our Savior e USC Caruso Catholic Center", "lugar": "University Park, Los Angeles",
+        "horarios": "semestre de outono: segunda a sexta 21h · sábado 9h · domingo 10h, 17h e 20h",
+        "busca": "USC Caruso Catholic Center, 844 W 32nd St, Los Angeles",
+        "fonte": "https://www.catholictrojan.org/mass"},
+    "santuariopty": {
+        "nome": "Santuario Nacional del Corazón de María", "lugar": "Ciudad de Panamá",
+        "horarios": "segunda a sexta 6h30, 8h30 e 17h30 (quinta 17h15), e 7h30 às segundas na cripta · "
+                    "sábado 6h30, 8h30, 16h e 18h · domingo 6h30, 8h30, 10h30, 12h30, 16h, 18h e 20h",
+        "busca": "Santuario Nacional del Corazón de María, Ciudad de Panamá",
+        "fonte": "https://santuarionacional.net/sacramentos/"},
+    "stjosephhou": {
+        "nome": "St. Joseph Catholic Church", "lugar": "Houston",
+        "horarios": "segunda, quarta e sexta 12h10 · terça 17h45 · quinta 7h · quarta e quinta 18h30 "
+                    "em espanhol · sábado 17h · domingo 10h15 e 18h30",
+        "busca": "St. Joseph Catholic Church, 1505 Kane St, Houston, TX",
+        "fonte": "http://www.saintjoseph.org/en"},
+    "stjameshou": {
+        "nome": "St. James the Apostle", "lugar": "Spring, perto do aeroporto IAH",
+        "horarios": "terça a sexta 8h · sábado 17h · domingo 7h30, 9h, 11h e 13h em espanhol",
+        "busca": "St. James the Apostle Catholic Church, Spring, TX",
+        "fonte": "http://www.stjta.org/"},
+    "nazarebsb": {
+        "nome": "Paróquia Nossa Senhora de Nazaré", "lugar": "Lago Sul, QI 01, Brasília",
+        "horarios": "terça a quinta 19h30 · sábado 18h30 · domingo 9h30 e 19h30",
+        "busca": "Paróquia Nossa Senhora de Nazaré, SHIS QI 01, Lago Sul, Brasília",
+        "fonte": "https://arqbrasilia.com.br/todas_paroquias/nossa-senhora-de-nazare-lago-sul/"},
+    "domboscobsb": {
+        "nome": "Santuário São João Bosco", "lugar": "Asa Sul, Brasília",
+        "horarios": "segunda a sexta 7h e 18h30 · sábado 12h e 18h · domingo 8h, 11h, 18h e 19h30",
+        "busca": "Santuário Dom Bosco, Brasília",
+        "fonte": "https://www.salesianos.br/institucional/santuario-sao-joao-bosco-horario-das-missas"},
+    "catedralbsb": {
+        "nome": "Catedral Metropolitana Nossa Senhora Aparecida", "lugar": "Esplanada, Brasília",
+        "horarios": "terça a sexta 12h15 · sábado 17h · domingo 8h, 10h30 e 18h",
+        "busca": "Catedral Metropolitana de Brasília",
+        "fonte": "https://catedral.org.br/veja-as-orientacoes-para-participar-da-santa-missa-na-catedral.html"},
     "benedict": {
         "nome": "St. Benedict's Painted Church", "lugar": "Hōnaunau, South Kona",
         "horarios": "terça a sexta 7h · dias de preceito 7h · domingo 8h",
@@ -540,10 +592,29 @@ IGREJAS = {
 # nenhuma cabe, e por que. confirmar: horario de 2025 ou nao publicado.
 MISSAS = [
     {"dia": "2026-12-20", "regiao": "ca", "liturgia": "4º Domingo do Advento", "preceito": True,
-     "sem": "Na paróquia de vocês em Brasília, antes do voo do fim do dia."},
-    {"dia": "2026-12-21", "regiao": "ca", "liturgia": "Advento",
-     "sem": "Não há como. O pouso é às 18h10, e nenhuma paróquia perto do LAX celebra à noite "
-            "em dia de semana."},
+     "badge": "depende do voo",
+     "sem": "Em Brasília, antes do embarque. A escolha depende do horário do voo: para voo "
+            "internacional, o bom é estar no aeroporto três horas antes.",
+     "alts": [{"hora": "19h30", "igreja": "nazarebsb",
+               "nota": "A mais tarde e a mais perto do aeroporto, a 11 km. Serve para voo a partir "
+                       "de 23h45."},
+              {"hora": "18h ou 19h30", "igreja": "domboscobsb", "nota": "No caminho do aeroporto."},
+              {"hora": "18h", "igreja": "catedralbsb", "nota": "Para voo a partir de 22h30."},
+              {"hora": "8h ou 11h", "igreja": "domboscobsb",
+               "nota": "Se o voo sair cedo. Ou a paróquia de vocês."}]},
+    {"dia": "2026-12-21", "regiao": "ca", "liturgia": "Advento", "badge": "depende do voo",
+     "confirmar": True,
+     "sem": "O dia é de conexões. Em cada escala longa dá para sair do aeroporto, ir à missa e "
+            "voltar, e na chegada a Los Angeles ainda há missa às 21h.",
+     "alts": [{"hora": "6h30, 7h30 ou 8h30", "igreja": "santuariopty",
+               "nota": "Escala no Panamá de manhã, de pelo menos 4h30. A 22 km de Tocumen; brasileiro "
+                       "entra sem visto. A capela do aeroporto só celebra às quintas e aos domingos."},
+              {"hora": "12h10", "igreja": "stjosephhou",
+               "nota": "Escala em Houston cobrindo o meio-dia, de pelo menos 5h. A imigração americana "
+                       "já é feita ali; a volta passa de novo pela inspeção de segurança. A 36 km do IAH."},
+              {"hora": "21h", "igreja": "usc",
+               "nota": "Na chegada, a 19 km do LAX. É o horário do semestre, e 21/12 é férias na USC: "
+                       "confirmar em dezembro que a missa se mantém."}]},
     {"dia": "2026-12-22", "regiao": "ca", "liturgia": "Advento",
      "rec": {"hora": "8h", "igreja": "visitation", "dist": "5 km do Holiday Inn LAX",
              "porque": "Café do hotel antes. A missa termina por volta de 8h35 e as locadoras "
@@ -562,8 +633,16 @@ MISSAS = [
                        "melhor visitar a basílica 20 minutos a caminho de Point Lobos, que "
                        "fica colada na SR 1."}]},
     {"dia": "2026-12-24", "regiao": "ca", "liturgia": "Véspera de Natal",
-     "sem": "Nenhuma cabe na Golden Coast: a missa mais cedo do condado é às 7h30 e a saída "
-            "para o LAX tem de ser às 7h. A noite de Natal está na aba Oʻahu."},
+     "rec": {"hora": "8h30", "igreja": "rose", "dist": "190 km da Gosby House Inn",
+             "porque": "Saindo de Pacific Grove às 6h10, a missa cabe no caminho e ainda sobram "
+                       "uns 45 minutos antes de devolver o carro às 15h. O roteiro do dia já está "
+                       "montado assim."},
+     "alts": [{"hora": "7h30", "igreja": "sancarlos",
+               "nota": "A 5 km da pousada e já com dia claro. Mas a saída vai para 8h05, a folga até "
+                       "a devolução do carro some e a parada de comida vira drive-thru."},
+              {"hora": "12h10", "igreja": "sorrows",
+               "nota": "Na hora do almoço, no caminho. Horário do MassTimes, a confirmar: em véspera "
+                       "de Natal a missa do meio-dia pode ser suspensa."}]},
     {"dia": "2027-01-05", "regiao": "ca", "liturgia": "São João Neumann",
      "rec": {"hora": "12h10", "igreja": "olacatedral", "dist": "de aplicativo, sem carro",
              "porque": "Para o programa Griffith Observatory ao pôr do sol: missa na catedral, "
@@ -574,16 +653,23 @@ MISSAS = [
               {"hora": "8h", "igreja": "visitation",
                "nota": "Se o programa for o Getty Center, que abre às 10h. Perto do hotel."},
               {"hora": "7h", "igreja": "olacatedral", "nota": "Também às 7h em St. Monica."}]},
-    {"dia": "2027-01-06", "regiao": "ca", "liturgia": "Tempo do Natal",
-     "sem": "O voo de volta sai à 0h40."},
+    {"dia": "2027-01-06", "regiao": "ca", "liturgia": "Tempo do Natal", "badge": "depende do voo",
+     "sem": "O voo sai do LAX à 0h40, então a missa do dia fica na conexão ou na chegada.",
+     "alts": [{"hora": "8h", "igreja": "stjameshou",
+               "nota": "Escala em Houston de manhã. A uns 7,5 km do aeroporto IAH."},
+              {"hora": "12h10", "igreja": "stjosephhou", "nota": "Escala em Houston cobrindo o meio-dia."},
+              {"hora": "6h30, 8h30 ou 17h30", "igreja": "santuariopty", "nota": "Escala no Panamá."},
+              {"hora": "18h30", "igreja": "domboscobsb", "nota": "Chegando a Brasília no fim da tarde."},
+              {"hora": "19h30", "igreja": "nazarebsb",
+               "nota": "Chegando a Brasília à noite, a 11 km do aeroporto."}]},
 
-    {"dia": "2026-12-24", "regiao": "oahu", "liturgia": "Noite de Natal", "confirmar": True,
-     "sem": "Não recomendada. Vocês pousam às 21h31, e em 2025 as missas da noite em Waikiki "
-            "foram às 17h e às 20h. A única que dá tempo é a Missa do Galo da catedral, mas "
-            "meia-noite em Honolulu são 2h no relógio de vocês, depois de um dia que começa às "
-            "6h na Golden Coast. Melhor o dia 25 às 10h.",
+    {"dia": "2026-12-24", "regiao": "oahu", "liturgia": "Noite de Natal", "badge": "opcional",
+     "confirmar": True,
+     "sem": "A missa do dia 24 é de manhã, em Paso Robles (aba Golden Coast). Se quiserem também a "
+            "Missa do Galo em Honolulu, dá tempo: vocês pousam às 21h31.",
      "alts": [{"hora": "0h (cânticos às 23h30)", "igreja": "catedralhnl",
-               "nota": "Horário de 2025. A 5 km do hotel, de táxi."}]},
+               "nota": "Horário de 2025, a 5 km do hotel, de táxi. Em Waikiki as missas da noite "
+                       "foram às 17h e às 20h, antes do pouso."}]},
     {"dia": "2026-12-25", "regiao": "oahu", "liturgia": "Natal do Senhor", "preceito": True,
      "confirmar": True,
      "rec": {"hora": "10h", "igreja": "augustine", "dist": "2 km a pé do The Ambassador",
@@ -1288,7 +1374,7 @@ def decisoes(prev, mar, kil):
         vis = w["vis"] if w["vis"] is not None else 20
         num = (f"visibilidade mínima 6h-9h {vis:.1f} km, chuva {w['chuva'] or 0:.1f} mm")
         if vis < 1.5:
-            return "ruim", ("Neblina fechada no Salinas Valley. Sair às 6h30 e contar "
+            return "ruim", ("Neblina fechada no Salinas Valley. Sair às 5h50 e contar "
                             "com 40 minutos a mais até clarear."), num
         if vis < 5:
             return "atencao", ("Neblina no vale. Farol baixo e sem pressa nos "
@@ -1296,13 +1382,12 @@ def decisoes(prev, mar, kil):
         return "bom", "Vale limpo. 101 direto até o LAX.", num
 
     add("ca_volta", "Volta: Pacific Grove ao LAX", "2026-12-24", "6h às 9h",
-        "Sair às 6h30 em vez das 7h se a visibilidade no Salinas Valley cair abaixo "
+        "Sair às 5h50 em vez das 6h10 se a visibilidade no Salinas Valley cair abaixo "
         "de 1,5 km.",
         J("salinas", "2026-12-24", 6, 9), av_volta,
-        "São 564 km e cerca de 6 horas de 101 sem trânsito, mais a parada de comida, o "
-        "abastecimento e o trânsito de véspera de Natal em Los Angeles, até a devolução "
-        "às 15h e o voo às 17h43. Saindo às 8h a conta não fecha; saindo às 7h sobram "
-        "uns 40 minutos. Não cabe desvio cênico.")
+        "São 564 km e cerca de 6 horas de 101, com a missa das 8h30 em Paso Robles no "
+        "caminho, até a devolução às 15h e o voo às 17h43. Saindo às 6h10 sobram uns 45 "
+        "minutos. Não cabe desvio cênico.")
 
     # 6. Ida e volta a Bixby Bridge, no dia da peninsula.
     def av_bixby(w):
