@@ -11,26 +11,31 @@ import json as _j
 import re as _re
 from datetime import date
 
-# Favicon: a costa da California a direita (como no mapa), o arco do voo e as
-# duas ilhas do roteiro, Oahu e a Big Island, com um coracao no alto do arco.
-# Fica em data URI url-encoded; o monitor faz unquote para publicar favicon.svg.
+# Favicon: Bixby Bridge ao pôr do sol, escolhido pelo usuário em 13/09/2026 (opção G
+# de sete). Fica em data URI url-encoded; o monitor faz unquote para publicar favicon.svg.
 _FAVICON_SVG = (
     "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>"
-    "<defs><clipPath id='c'><rect width='64' height='64' rx='14'/></clipPath></defs>"
+    '<defs>'
+    "<clipPath id='c'>"
+    "<rect width='64' height='64' rx='14'/>"
+    '</clipPath>'
+    "<linearGradient id='g' x1='0' y1='0' x2='0' y2='1'>"
+    "<stop offset='0' stop-color='#F7B24A'/>"
+    "<stop offset='1' stop-color='#E8730F'/>"
+    '</linearGradient>'
+    '</defs>'
     "<g clip-path='url(#c)'>"
-    "<rect width='64' height='64' fill='#0B3B54'/>"
-    "<path d='M36 0H64V55C61 53 58 50 55.5 47C53 44 51 42.5 49.5 40C48 37.5 47.2 34 45.2 31.5"
-    "C43.2 29 41.5 26 41 22.5C40.5 19 40.4 15 39.4 11.5C38.4 8 37.2 4.5 36 0Z' fill='#F3DDB5'/>"
-    "<path d='M6.4 36.8C5.6 35 7.2 32.8 9.4 32.2C11.8 31.6 15.2 32.8 16.8 34.6C18 36.2 16.4 38.8 14.4 39.8"
-    "C12 41 7.2 38.8 6.4 36.8Z' fill='#F3DDB5'/>"
-    "<path d='M19.8 44.2C22.4 42.6 26.2 43.8 28.8 46.4C31 48.6 33.4 49.8 32.4 52.4C31.4 55 27.8 57.6 25.6 59.8"
-    "C23.6 61.6 21 60.2 20.4 57.6C19.8 54.8 18.2 52.2 18 49.4C17.8 47 18.2 45.2 19.8 44.2Z' fill='#F3DDB5'/>"
-    "<path d='M49 40Q32.5 4 15 31' fill='none' stroke='#F2A93B' stroke-width='4' "
-    "stroke-linecap='round'/>"
-    "<path d='M32.8 25.6C28.6 22.6 27.2 20.3 27.2 18.4C27.2 16.6 28.5 15.4 30.1 15.4"
-    "C31.3 15.4 32.3 16.1 32.8 17.1C33.3 16.1 34.3 15.4 35.5 15.4C37.1 15.4 38.4 16.6 38.4 18.4"
-    "C38.4 20.3 37 22.6 32.8 25.6Z' fill='#E8604A' stroke='#0B3B54' stroke-width='1.6'/>"
-    "</g></svg>")
+    "<rect width='64' height='64' fill='url(#g)'/>"
+    "<circle cx='32' cy='16' r='8' fill='#FFE3A1'/>"
+    "<rect y='56' width='64' height='8' fill='#166C8F'/>"
+    "<line x1='15' y1='33' x2='15' y2='52.5' stroke='#0B3B54' stroke-width='2.6'/>"
+    "<line x1='21' y1='33' x2='21' y2='45.8' stroke='#0B3B54' stroke-width='2.6'/>"
+    "<line x1='43' y1='33' x2='43' y2='45.8' stroke='#0B3B54' stroke-width='2.6'/>"
+    "<line x1='49' y1='33' x2='49' y2='52.5' stroke='#0B3B54' stroke-width='2.6'/>"
+    "<path d='M8 64 Q32 18 56 64' fill='none' stroke='#0B3B54' stroke-width='5'/>"
+    "<rect x='0' y='29' width='64' height='5' fill='#0B3B54'/>"
+    '</g>'
+    '</svg>')
 FAVICON = "data:image/svg+xml;utf8," + (_FAVICON_SVG.replace("%", "%25").replace("<", "%3C")
                                         .replace(">", "%3E").replace("#", "%23"))
 
