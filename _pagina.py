@@ -1,168 +1,315 @@
 """Template da pagina. Separado do monitor para o HTML nao ficar preso no meio
-da logica. Estetica: grade de dados no estilo windguru, cores e titulos da
-California (papel queimado de sol, azul do Pacifico, laranja da papoula)."""
+da logica.
 
-FAVICON = ("data:image/svg+xml;utf8,"
-           "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E"
-           "%3Crect width='64' height='64' rx='13' fill='%230B3B54'/%3E"
-           "%3Ccircle cx='32' cy='26' r='12.5' fill='%23F7A93B'/%3E"
-           "%3Cpath d='M2 41q9-6 17 0t17 0 16-4v27H2z' fill='%23166C8F'/%3E%3C/svg%3E")
+Leitura principal por dia: faixa de datas no topo, cartao do dia escolhido e do
+dia seguinte (missa, horarios, tempo, atencao, mapa). Tudo o que e consulta de
+fundo (grade windguru, Caltrans, avisos completos, El Nino, Kilauea,
+climatologia e decisoes) fica recolhido por regiao no fim da pagina."""
+
+import html as _h
+import json as _j
+import re as _re
+from datetime import date
+
+# Favicon: a costa da California a direita (como no mapa), o arco do voo e as
+# duas ilhas do roteiro, Oahu e a Big Island, com um coracao no alto do arco.
+# Fica em data URI url-encoded; o monitor faz unquote para publicar favicon.svg.
+_FAVICON_SVG = (
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>"
+    "<defs><clipPath id='c'><rect width='64' height='64' rx='14'/></clipPath></defs>"
+    "<g clip-path='url(#c)'>"
+    "<rect width='64' height='64' fill='#0B3B54'/>"
+    "<path d='M36 0H64V55C61 53 58 50 55.5 47C53 44 51 42.5 49.5 40C48 37.5 47.2 34 45.2 31.5"
+    "C43.2 29 41.5 26 41 22.5C40.5 19 40.4 15 39.4 11.5C38.4 8 37.2 4.5 36 0Z' fill='#F3DDB5'/>"
+    "<path d='M6.4 36.8C5.6 35 7.2 32.8 9.4 32.2C11.8 31.6 15.2 32.8 16.8 34.6C18 36.2 16.4 38.8 14.4 39.8"
+    "C12 41 7.2 38.8 6.4 36.8Z' fill='#F3DDB5'/>"
+    "<path d='M19.8 44.2C22.4 42.6 26.2 43.8 28.8 46.4C31 48.6 33.4 49.8 32.4 52.4C31.4 55 27.8 57.6 25.6 59.8"
+    "C23.6 61.6 21 60.2 20.4 57.6C19.8 54.8 18.2 52.2 18 49.4C17.8 47 18.2 45.2 19.8 44.2Z' fill='#F3DDB5'/>"
+    "<path d='M49 40Q32.5 4 15 31' fill='none' stroke='#F2A93B' stroke-width='4' "
+    "stroke-linecap='round'/>"
+    "<path d='M32.8 25.6C28.6 22.6 27.2 20.3 27.2 18.4C27.2 16.6 28.5 15.4 30.1 15.4"
+    "C31.3 15.4 32.3 16.1 32.8 17.1C33.3 16.1 34.3 15.4 35.5 15.4C37.1 15.4 38.4 16.6 38.4 18.4"
+    "C38.4 20.3 37 22.6 32.8 25.6Z' fill='#E8604A' stroke='#0B3B54' stroke-width='1.6'/>"
+    "</g></svg>")
+FAVICON = "data:image/svg+xml;utf8," + (_FAVICON_SVG.replace("%", "%25").replace("<", "%3C")
+                                        .replace(">", "%3E").replace("#", "%23"))
 
 CSS = r"""
 *{box-sizing:border-box}
 :root{
-  --papel:#FBF6EC; --papel2:#F4EBDB; --cartao:#FFFDF8;
-  --tinta:#1C2B31; --tinta2:#5E6D72; --linha:#E2D6C2;
-  --pacifico:#0B3B54; --pacifico2:#166C8F;
-  --poppy:#E8730F; --dourado:#F2A93B; --coral:#D24B36;
-  --sequoia:#8A3B26; --sage:#7C8B68; --neblina:#BFC7CC;
-  --sombra:0 1px 2px rgba(28,43,49,.07),0 8px 24px -12px rgba(28,43,49,.18);
-  --sobre-pacifico:#FFF8EC;
+  --fundo:#F7F5F0; --cartao:#FFFFFF; --tinta:#1C2A30; --tinta2:#57656B;
+  --linha:#E2DCD1; --linha2:#EEE9E1;
+  --azul:#0B3B54; --azul2:#15678A; --sobre-azul:#FFFFFF; --laranja:#B9590B;
+  --r-ca:#D08A2E; --r-oahu:#2F89B5; --r-bi:#B4543F;
+  --ok:#4F7440; --ok-bg:rgba(85,122,69,.13);
+  --at:#8F540F; --at-bg:rgba(226,150,40,.18);
+  --ru:#B23A28; --ru-bg:rgba(200,70,50,.13);
+  --es:#57656B; --es-bg:rgba(90,103,109,.13);
 }
 @media (prefers-color-scheme:dark){:root:not([data-tema="claro"]){
-  --papel:#0C1620; --papel2:#122130; --cartao:#132433;
-  --tinta:#EAE2D4; --tinta2:#9BA8B0; --linha:#26394A;
-  --pacifico:#8FC9E4; --pacifico2:#5FAFD0;
-  --poppy:#F98E2B; --dourado:#F5BB5C; --coral:#E86B54;
-  --sequoia:#C97B5E; --sage:#9DAC88; --neblina:#7C8A93;
-  --sombra:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6);
-  --sobre-pacifico:#0C1620;
+  --fundo:#0E1820; --cartao:#15232E; --tinta:#E9E3D9; --tinta2:#A0ABB2;
+  --linha:#2A3A45; --linha2:#1E2C36;
+  --azul:#8CC8E6; --azul2:#7BBEE0; --sobre-azul:#0E1820; --laranja:#F3A155;
+  --r-ca:#E3A451; --r-oahu:#63B2DA; --r-bi:#DA7F66;
+  --ok:#A5C08F; --ok-bg:rgba(157,172,136,.16);
+  --at:#F2BE6A; --at-bg:rgba(245,187,92,.14);
+  --ru:#EE8672; --ru-bg:rgba(232,107,84,.16);
+  --es:#A0ABB2; --es-bg:rgba(160,171,178,.14);
 }}
 :root[data-tema="escuro"]{
-  --papel:#0C1620; --papel2:#122130; --cartao:#132433;
-  --tinta:#EAE2D4; --tinta2:#9BA8B0; --linha:#26394A;
-  --pacifico:#8FC9E4; --pacifico2:#5FAFD0;
-  --poppy:#F98E2B; --dourado:#F5BB5C; --coral:#E86B54;
-  --sequoia:#C97B5E; --sage:#9DAC88; --neblina:#7C8A93;
-  --sombra:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6);
-  --sobre-pacifico:#0C1620;
+  --fundo:#0E1820; --cartao:#15232E; --tinta:#E9E3D9; --tinta2:#A0ABB2;
+  --linha:#2A3A45; --linha2:#1E2C36;
+  --azul:#8CC8E6; --azul2:#7BBEE0; --sobre-azul:#0E1820; --laranja:#F3A155;
+  --r-ca:#E3A451; --r-oahu:#63B2DA; --r-bi:#DA7F66;
+  --ok:#A5C08F; --ok-bg:rgba(157,172,136,.16);
+  --at:#F2BE6A; --at-bg:rgba(245,187,92,.14);
+  --ru:#EE8672; --ru-bg:rgba(232,107,84,.16);
+  --es:#A0ABB2; --es-bg:rgba(160,171,178,.14);
 }
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--papel);color:var(--tinta);
-  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-.env{max-width:1180px;margin:0 auto;padding:0 18px 72px}
-a{color:var(--pacifico2)}
+body{margin:0;background:var(--fundo);color:var(--tinta);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.env{max-width:1100px;margin:0 auto;padding:0 14px}
+a{color:var(--azul2)}
+.r-ca{--rc:var(--r-ca)} .r-oahu{--rc:var(--r-oahu)} .r-bi{--rc:var(--r-bi)}
 
-/* ---------- cabecalho: faixa de poente sobre o Pacifico ---------- */
-header.capa{position:relative;overflow:hidden;
-  background:linear-gradient(176deg,#0A2E46 0%,#124B64 38%,#8A5A3C 68%,#E8730F 86%,#F2A93B 100%);
-  color:#FFF8EC;padding:40px 0 0}
-header.capa .env{padding-bottom:0}
-.sol{position:absolute;right:9%;top:26px;width:104px;height:104px;border-radius:50%;
-  background:radial-gradient(circle at 50% 50%,#FFE9A8,#F7A93B 58%,rgba(247,169,59,0) 72%);
-  filter:blur(.3px)}
-.marca{font-size:11px;letter-spacing:.34em;text-transform:uppercase;opacity:.82;
-  font-weight:600}
-h1{margin:.16em 0 .1em;font-size:clamp(30px,6.4vw,52px);line-height:1.02;
-  font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-  font-weight:600;letter-spacing:-.015em}
-h1 em{font-style:normal;color:#FFD9A0}
-.sub{font-size:15px;opacity:.9;max-width:44ch;margin:0 0 4px}
-.regua{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:0 0 18px}
-.selo{background:rgba(255,248,236,.13);border:1px solid rgba(255,248,236,.24);
-  border-radius:999px;padding:5px 13px;font-size:12.5px;font-variant-numeric:tabular-nums;
-  backdrop-filter:blur(3px)}
-.selo b{font-weight:700;color:#FFE3B4}
-.ondas{display:block;width:100%;height:34px;margin-bottom:-1px}
+/* ---------- cabecalho baixo ---------- */
+header.topo{border-bottom:1px solid var(--linha);background:var(--cartao)}
+.topo-in{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-top:8px;padding-bottom:8px}
+.marca{min-width:0}
+h1{margin:0;font-size:20px;line-height:1.2;font-weight:700;letter-spacing:-.01em;color:var(--azul)}
+.meta{margin:1px 0 0;font-size:13px;color:var(--tinta2);line-height:1.35}
+.linha1{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 10px}
+.contagem{font-size:14px;font-weight:650;color:var(--laranja);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+button.tema{flex:0 0 auto}
+button.tema{border:1px solid var(--linha);background:transparent;color:var(--tinta2);
+  border-radius:10px;min-width:44px;min-height:44px;font-size:18px;cursor:pointer;padding:0}
 
-/* ---------- secoes ---------- */
-section{margin:38px 0 0}
-h2{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--tinta2);
-  margin:0 0 4px;font-weight:700}
-h2+.leg{margin:0 0 16px;font-size:14px;color:var(--tinta2);max-width:70ch}
-h3{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-weight:600;
-  font-size:21px;margin:0 0 2px;letter-spacing:-.01em}
+/* ---------- faixa de datas ---------- */
+nav.datas{position:sticky;top:0;z-index:20;background:var(--fundo);
+  border-bottom:1px solid var(--linha)}
+.faixa-rola{display:flex;gap:12px;overflow-x:auto;padding:6px 14px 7px;
+  max-width:1100px;margin:0 auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.faixa-rola::-webkit-scrollbar{display:none}
+.grupo{flex:0 0 auto}
+.g-nome{display:block;font-size:11.5px;line-height:16px;font-weight:650;color:var(--tinta2);
+  white-space:nowrap;padding-left:2px}
+.g-nome:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;
+  background:var(--rc);margin-right:5px;vertical-align:0}
+.g-dias{display:flex;gap:3px}
+a.d{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:46px;min-height:48px;border-radius:9px;text-decoration:none;color:var(--tinta);
+  border:1px solid transparent;font-variant-numeric:tabular-nums;line-height:1.1}
+a.d small{font-size:11.5px;color:var(--tinta2)}
+a.d b{font-size:17px;font-weight:650}
+a.d:after{content:"";position:absolute;left:9px;right:9px;bottom:4px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,var(--c1) 50%,var(--c2) 50%)}
+a.d.seguinte{border-color:var(--linha);background:var(--cartao)}
+a.d[aria-current="date"]{background:var(--azul);color:var(--sobre-azul)}
+a.d[aria-current="date"] small{color:inherit;opacity:.85}
+a.d.hoje small{font-weight:700;color:var(--laranja)}
+a.d[aria-current="date"].hoje small{color:inherit}
 
-.grade{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(248px,1fr))}
-.cartao{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;
-  padding:16px;box-shadow:var(--sombra)}
-.cartao.dirige{border-left:4px solid var(--poppy)}
-.cartao .quando{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--poppy);font-weight:700}
-.cartao .txt{font-size:13.5px;color:var(--tinta2);margin:8px 0 0}
-.numerao{display:flex;gap:14px;align-items:baseline;margin:12px 0 2px;flex-wrap:wrap}
-.numerao .t{font-size:30px;font-weight:650;font-variant-numeric:tabular-nums;
-  letter-spacing:-.02em}
-.numerao .u{font-size:13px;color:var(--tinta2)}
-.pares{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13px;
-  margin:10px 0 0}
-.pares dt{color:var(--tinta2)}
-.pares dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}
+/* ---------- cartao do dia ---------- */
+main{padding-top:14px}
+.cartoes{display:grid;gap:14px;align-items:start}
+@media (min-width:1000px){.cartoes{grid-template-columns:1fr 1fr}}
+.dia{background:var(--cartao);border:1px solid var(--linha);border-radius:12px;
+  padding:14px 16px 6px}
+.js .dia{display:none}
+.js .dia.ativo{display:block}
+.dia-sup{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:14px;
+  color:var(--tinta2)}
+.rel{font-weight:750;color:var(--laranja);text-transform:uppercase;letter-spacing:.06em;font-size:13px}
+.rel:empty{display:none}
+.dia-data{font-weight:600;color:var(--tinta)}
+.dia-reg:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;
+  background:var(--rc);margin-right:5px}
+.dia h2{margin:2px 0 0;font-size:22px;line-height:1.25;font-weight:700;letter-spacing:-.01em}
+.bl{border-top:1px solid var(--linha2);margin-top:12px;padding-top:10px}
+.rot-linha{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin:0 0 4px}
+h3.rot{margin:0;font-size:12px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tinta2)}
+.rot-linha .lit{font-size:14px;color:var(--tinta2)}
+.tag{display:inline-block;font-size:12px;font-weight:650;border-radius:5px;padding:0 6px;
+  line-height:20px;background:var(--es-bg);color:var(--es)}
+.tag.t-prec{background:var(--at-bg);color:var(--at)}
 
-.faixa{display:inline-block;border-radius:5px;padding:1px 7px;font-size:11.5px;
-  font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.f-ok{background:rgba(124,139,104,.18);color:var(--sage)}
-.f-at{background:rgba(242,169,59,.2);color:var(--sequoia)}
-.f-ru{background:rgba(210,75,54,.16);color:var(--coral)}
+/* missa */
+.missa{display:flex;align-items:center;gap:12px}
+.missa .hora{flex:0 0 auto;font-size:30px;line-height:1.1;font-weight:750;color:var(--azul);
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.missa .onde{flex:1 1 auto;min-width:0}
+.onde b,.op-n{display:block;font-size:17px;line-height:1.3;font-weight:650}
+.onde span,.op-l{display:block;font-size:15px;color:var(--tinta2);line-height:1.35}
+a.bt-mapa,a.bt{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;min-width:64px;padding:0 14px;border:1px solid var(--linha);border-radius:10px;
+  font-size:15px;font-weight:650;color:var(--azul2);text-decoration:none;background:var(--cartao)}
+p.sem{margin:2px 0 6px;font-size:16px}
+ul.opcoes{list-style:none;margin:0;padding:0}
+li.op{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--linha2)}
+li.op:last-child{border-bottom:0}
+.op-txt{flex:1 1 auto;min-width:0}
+.op-h{display:block;font-size:17px;font-weight:750;color:var(--azul);font-variant-numeric:tabular-nums}
+.op-nota{display:block;font-size:15px;color:var(--tinta);margin-top:2px}
+.extra-rot{margin:10px 0 0;font-size:14px;color:var(--tinta2)}
 
-/* ---------- grade windguru ---------- */
-.abas{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:thin}
+/* detalhes recolhidos dentro do cartao */
+details.mais-info{margin:4px 0 4px}
+details summary{cursor:pointer;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details.mais-info>summary{display:flex;align-items:center;min-height:44px;font-size:15px;
+  font-weight:600;color:var(--azul2)}
+details.mais-info>summary:before,details.sec>summary:before,details.mapa-dia>summary:before{
+  content:"";flex:0 0 auto;width:7px;height:7px;margin:0 10px 0 2px;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:rotate(-45deg)}
+details[open]>summary:before{transform:rotate(45deg)}
+.info{font-size:15px;color:var(--tinta);padding:0 0 8px}
+.info p{margin:0 0 8px}
+.info h4{margin:12px 0 2px;font-size:12px;font-weight:750;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--tinta2)}
+.info ul{margin:0 0 8px;padding-left:18px}
+.info li{margin:0 0 6px}
+.info .fraco{color:var(--tinta2)}
+
+/* o dia */
+p.dia-cab2{margin:0 0 4px;font-size:14px;color:var(--tinta2)}
+ol.horas{list-style:none;margin:0;padding:0}
+ol.horas li{display:flex;gap:10px;padding:3px 0;font-size:16px;line-height:1.4}
+ol.horas .h{flex:0 0 3.1em;font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
+ol.trechos{list-style:none;margin:0 0 8px;padding:0}
+ol.trechos li{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--linha2)}
+ol.trechos li:last-child{border-bottom:0}
+ol.trechos .h{flex:0 0 3.1em;font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
+ol.trechos b{display:block;font-weight:650}
+ol.trechos .como{display:block;color:var(--tinta2)}
+ol.trechos .dur{display:block;font-size:14px;color:var(--tinta2);font-variant-numeric:tabular-nums}
+p.resumo{margin:0;font-size:16px}
+
+/* tempo */
+p.tempo{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;font-size:16px;
+  font-variant-numeric:tabular-nums}
+p.tempo b{font-weight:700}
+.selo{font-size:12px;font-weight:650;border-radius:5px;padding:0 6px;line-height:20px}
+.selo.s-prev{background:var(--ok-bg);color:var(--ok)}
+.selo.s-clim{background:var(--es-bg);color:var(--es)}
+
+/* atencao */
+ul.atencao{list-style:none;margin:0;padding:0}
+ul.atencao li{padding:6px 0 6px 10px;border-left:3px solid var(--at);margin:0 0 6px;font-size:15px}
+ul.atencao li.v-ru{border-left-color:var(--ru)}
+ul.atencao li b{font-weight:650}
+ul.atencao li .faixa{margin-right:6px}
+
+/* links */
+.links{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;padding-bottom:10px}
+details.mapa-dia{flex:0 0 auto}
+details.mapa-dia[open]{flex:1 1 100%}
+details.mapa-dia>summary{display:inline-flex;align-items:center;min-height:44px;padding:0 14px 0 10px;
+  border:1px solid var(--linha);border-radius:10px;font-size:15px;font-weight:650;color:var(--azul2)}
+details.mapa-dia img{display:block;width:100%;height:auto;margin:8px 0 0;border-radius:8px;
+  border:1px solid var(--linha);background:var(--linha2)}
+
+/* ---------- area secundaria ---------- */
+section.detalhes{margin:28px 0 0}
+section.detalhes>h2{margin:0 0 8px;font-size:13px;font-weight:750;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--tinta2)}
+.regs{display:flex;gap:6px;margin:0 0 8px}
+button.reg{flex:1 1 0;min-width:0;min-height:44px;border:1px solid var(--linha);border-radius:10px;
+  background:var(--cartao);color:var(--tinta);font:inherit;font-size:15px;font-weight:650;cursor:pointer;
+  padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.reg:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;
+  background:var(--rc);margin-right:6px;vertical-align:1px}
+button.reg[aria-selected="true"]{border-color:var(--azul);box-shadow:inset 0 0 0 1px var(--azul)}
+.painel{background:var(--cartao);border:1px solid var(--linha);border-radius:12px;padding:0 14px}
+details.sec{border-bottom:1px solid var(--linha2)}
+details.sec:last-child{border-bottom:0}
+details.sec>summary{display:flex;align-items:center;min-height:48px;font-size:16px;font-weight:650}
+details.sec>summary .dica{margin-left:auto;padding-left:10px;font-size:14px;font-weight:400;flex:0 1 auto;
+  color:var(--tinta2);text-align:right}
+.sec-corpo{padding:0 0 14px;min-width:0}
+.sec-corpo .leg{margin:0 0 10px;font-size:14px;color:var(--tinta2)}
+
+.faixa{display:inline-block;border-radius:5px;padding:0 6px;font-size:12px;line-height:20px;
+  font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.f-ok{background:var(--ok-bg);color:var(--ok)}
+.f-at{background:var(--at-bg);color:var(--at)}
+.f-ru{background:var(--ru-bg);color:var(--ru)}
+.f-es{background:var(--es-bg);color:var(--es)}
+
+.item{border:1px solid var(--linha);border-left-width:3px;border-radius:8px;
+  padding:10px 12px;margin:0 0 8px}
+.item.ok{border-left-color:var(--ok)}
+.item.at{border-left-color:var(--at)}
+.item.ru{border-left-color:var(--ru)}
+.item.es{border-left-color:var(--linha)}
+.item .cab{display:flex;justify-content:space-between;gap:8px;align-items:baseline;
+  flex-wrap:wrap;margin-bottom:3px}
+.item .via{font-weight:650;font-size:15px}
+.item p{margin:4px 0 0;font-size:15px;color:var(--tinta)}
+.item .num,.item .regra{font-size:14px;color:var(--tinta2)}
+.item .txt{color:var(--tinta2)}
+.item p.efeito{font-weight:600}
+.vazio{margin:0;font-size:15px;color:var(--tinta2)}
+img.mapa{display:block;width:100%;height:auto;margin:10px 0 4px;border-radius:8px;
+  border:1px solid var(--linha);background:var(--linha2)}
+a.gmaps{display:inline-flex;align-items:center;min-height:44px;font-size:15px;
+  font-weight:650;color:var(--azul2);text-decoration:none}
+
+.abas{display:flex;gap:6px;overflow-x:auto;padding:0 0 8px;scrollbar-width:thin}
 .aba{flex:0 0 auto;border:1px solid var(--linha);background:var(--cartao);
-  color:var(--tinta2);border-radius:999px;padding:11px 16px;font-size:13px;
+  color:var(--tinta2);border-radius:999px;padding:0 14px;font-size:14px;
   cursor:pointer;min-height:44px;font-weight:600;white-space:nowrap}
-.aba[aria-selected="true"]{background:var(--pacifico);border-color:var(--pacifico);
-  color:var(--sobre-pacifico)}
-.rolagem{overflow-x:auto;border:1px solid var(--linha);border-radius:12px;
-  background:var(--cartao);box-shadow:var(--sombra)}
-table.wg{border-collapse:separate;border-spacing:0;font-size:11.5px;
+.aba[aria-selected="true"]{background:var(--azul);border-color:var(--azul);color:var(--sobre-azul)}
+.rolagem{overflow-x:auto;border:1px solid var(--linha);border-radius:8px;background:var(--cartao)}
+table.wg{border-collapse:separate;border-spacing:0;font-size:12px;
   font-variant-numeric:tabular-nums;width:max-content;min-width:100%}
-table.wg th,table.wg td{padding:3px 0;text-align:center;border-bottom:1px solid var(--linha);
-  min-width:34px;height:23px;line-height:1.1}
+table.wg th,table.wg td{padding:3px 0;text-align:center;border-bottom:1px solid var(--linha2);
+  min-width:34px;height:24px;line-height:1.1}
 table.wg th.rot{position:sticky;left:0;z-index:3;background:var(--cartao);
-  text-align:left;padding:3px 10px 3px 12px;min-width:118px;white-space:nowrap;
-  font-weight:600;font-size:11.5px;border-right:1px solid var(--linha);color:var(--tinta2)}
-table.wg tr.dias th{background:var(--papel2);font-size:11.5px;letter-spacing:.06em;
-  text-transform:uppercase;font-weight:700;border-left:1px solid var(--linha);
+  text-align:left;padding:3px 10px;min-width:112px;white-space:nowrap;
+  font-weight:600;border-right:1px solid var(--linha);color:var(--tinta2)}
+table.wg tr.dias th{background:var(--linha2);font-weight:700;border-left:1px solid var(--linha);
   color:var(--tinta);padding:6px 8px}
-table.wg tr.dias th.rot{background:var(--papel2);text-transform:none;letter-spacing:0}
-table.wg tr.dias th.seu{background:var(--poppy);color:#FFF8EC}
+table.wg tr.dias th.rot{background:var(--linha2)}
+table.wg tr.dias th.seu{background:var(--azul);color:var(--sobre-azul)}
 table.wg tr.horas th{color:var(--tinta2);font-weight:600;background:var(--cartao)}
 table.wg td.d0{border-left:1px solid var(--linha)}
-td.seta span{display:inline-block;font-size:13px;line-height:1;color:var(--pacifico)}
-td.forte{font-weight:750}
-td.branco{color:#FFF8EC}
-.legenda{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 0;font-size:12px;
-  color:var(--tinta2)}
-.legenda i{display:inline-block;width:13px;height:13px;border-radius:3px;
-  vertical-align:-2px;margin-right:5px;border:1px solid rgba(0,0,0,.08)}
-
-/* ---------- estradas e avisos ---------- */
-.item{border:1px solid var(--linha);border-left-width:4px;border-radius:11px;
-  background:var(--cartao);padding:12px 15px;margin:0 0 9px;box-shadow:var(--sombra)}
-.item.ok{border-left-color:var(--sage)}
-.item.at{border-left-color:var(--dourado)}
-.item.ru{border-left-color:var(--coral)}
-.item .cab{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
-  flex-wrap:wrap;margin-bottom:3px}
-.item .via{font-weight:700;font-size:13px;letter-spacing:.06em}
-.item p{margin:0;font-size:13.5px;color:var(--tinta2)}
-.vazio{font-size:14px;color:var(--tinta2);font-style:italic}
-
-table.hist{width:100%;border-collapse:collapse;font-size:13.5px;
-  font-variant-numeric:tabular-nums}
-table.hist th,table.hist td{padding:7px 10px;border-bottom:1px solid var(--linha);
-  text-align:right}
-table.hist th:first-child,table.hist td:first-child{text-align:left}
-table.hist thead th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--tinta2);font-weight:700}
-
-footer{margin:48px 0 0;padding:20px 0 0;border-top:1px solid var(--linha);
-  font-size:12.5px;color:var(--tinta2)}
-footer a{color:var(--tinta2);text-decoration:underline}
-.tema{position:fixed;right:14px;bottom:14px;z-index:9;border:1px solid var(--linha);
-  background:var(--cartao);color:var(--tinta2);border-radius:999px;
-  min-width:44px;min-height:44px;padding:0 15px;font-size:13px;cursor:pointer;
-  box-shadow:var(--sombra)}
-@media (max-width:560px){
-  .env{padding:0 13px 72px}
-  .sol{width:68px;height:68px;right:6%;top:20px}
-  .pares{font-size:12.5px}
-}
-"""
-
-CSS += r"""
 table.wg td.pt{color:#1C2B31}
 table.wg td.pt.branco{color:#FFF8EC}
+td.seta span{display:inline-block;font-size:13px;line-height:1;color:var(--azul2)}
+td.forte{font-weight:750}
+.legenda{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 0;font-size:13px;color:var(--tinta2)}
+.legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;
+  vertical-align:-1px;margin-right:4px;border:1px solid rgba(0,0,0,.08)}
+.tab-rola{overflow-x:auto}
+table.hist{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+table.hist th,table.hist td{padding:7px 8px;border-bottom:1px solid var(--linha2);text-align:right;
+  white-space:nowrap}
+table.hist th:first-child,table.hist td:first-child{text-align:left}
+table.hist thead th{font-size:12px;color:var(--tinta2);font-weight:700}
+
+footer{margin:28px 0 0;padding:14px 0 40px;border-top:1px solid var(--linha);
+  font-size:13px;color:var(--tinta2)}
+footer p{margin:0 0 6px}
+footer a{color:var(--tinta2)}
+.nw{white-space:nowrap}
+
+@media (max-width:560px){
+  .env{padding:0 10px}
+  .faixa-rola{padding-left:10px;padding-right:10px}
+  .dia{padding:12px 13px 4px}
+  .dia h2{font-size:20px}
+  .missa .hora{font-size:27px}
+  .meta .longo{display:none}
+}
+@media (max-width:420px){
+  button.reg{font-size:14px;padding:0 4px}
+  button.reg:before{display:none}
+}
 """
 
 JS = r"""
@@ -192,7 +339,7 @@ function corNuvem(p){
   return ["rgb(" + g + "," + (g + 2) + "," + (g + 5) + ")", 0];
 }
 
-const DIAS_SEM = ["dom","seg","ter","qua","qui","sex","sab"];
+const DIAS_SEM = ["dom","seg","ter","qua","qui","sex","sáb"];
 function rotuloDia(iso){
   const d = new Date(iso + "T12:00:00");
   return DIAS_SEM[d.getDay()] + " " + iso.slice(8,10) + "/" + iso.slice(5,7);
@@ -284,53 +431,136 @@ function abre(id){
   try { localStorage.setItem("hm-ponto-" + p.regiao, id); } catch (e) {}
 }
 
-const SLUGS = {"golden-coast": "ca", "oahu": "oahu", "hawaii": "bi"};
+/* A grade so e desenhada quando alguem abre a secao. */
+function iniciaGrade(reg){
+  const g = document.getElementById("grade-" + reg);
+  if (!g || g.dataset.ponto) return;
+  let inicial = null;
+  try { inicial = localStorage.getItem("hm-ponto-" + reg); } catch (e) {}
+  const daRegiao = D.pontos.filter(function(x){ return x.regiao === reg; });
+  if (!daRegiao.some(function(x){ return x.id === inicial; }))
+    inicial = daRegiao.length ? daRegiao[0].id : null;
+  if (inicial) abre(inicial);
+}
 
-/* Durante a viagem a aba abre sozinha na regiao onde voces estao. */
-function regiaoDaData(){
-  const t = Date.now();
+const SLUGS = {"golden-coast": "ca", "oahu": "oahu", "hawaii": "bi"};
+const LISTA = D.dias.map(function(x){ return x.dia; });
+const INICIO = Date.parse("2026-12-20T00:00:00-03:00");
+const FIM = Date.parse("2027-01-07T00:00:00-03:00");
+
+/* Onde voces estao num instante: decide o fuso do "hoje". */
+function regiaoDaData(t){
   if (t >= Date.parse("2027-01-04T14:00:00-10:00")) return "ca";
   if (t >= Date.parse("2026-12-28T10:00:00-10:00")) return "bi";
   if (t >= Date.parse("2026-12-24T17:43:00-08:00")) return "oahu";
   return "ca";
 }
+/* Antes de 21/12 voces ainda estao no Brasil ou em conexao: vale o relogio de Brasilia. */
+function fusoDe(t){
+  if (t < Date.parse("2026-12-21T00:00:00-03:00")) return -3;
+  return regiaoDaData(t) === "ca" ? -8 : -10;
+}
+function hojeLocal(t){
+  return new Date(t + fusoDe(t) * 3600000).toISOString().slice(0, 10);
+}
+function diaPadrao(t){
+  if (t < INICIO) return LISTA[0];
+  const iso = hojeLocal(t);
+  if (iso < LISTA[0]) return LISTA[0];
+  if (iso > LISTA[LISTA.length - 1]) return LISTA[LISTA.length - 1];
+  return LISTA.indexOf(iso) >= 0 ? iso : LISTA[0];
+}
+function hojeNaViagem(t){
+  if (t < INICIO || t >= FIM) return "";
+  const iso = hojeLocal(t);
+  return LISTA.indexOf(iso) >= 0 ? iso : "";
+}
 
-function mostraRegiao(reg, gravar){
+function mostraRegiao(reg){
   document.querySelectorAll(".painel").forEach(function(el){
     el.hidden = el.dataset.reg !== reg;
   });
-  let slug = "golden-coast";
-  document.querySelectorAll(".reg").forEach(function(b){
-    const sim = b.dataset.reg === reg;
-    b.setAttribute("aria-selected", sim ? "true" : "false");
-    if (sim) slug = b.dataset.slug;
+  document.querySelectorAll("button.reg").forEach(function(b){
+    b.setAttribute("aria-selected", b.dataset.reg === reg ? "true" : "false");
   });
-  const g = document.getElementById("grade-" + reg);
-  if (g && !g.dataset.ponto){
-    let inicial = null;
-    try { inicial = localStorage.getItem("hm-ponto-" + reg); } catch (e) {}
-    const daRegiao = D.pontos.filter(function(x){ return x.regiao === reg; });
-    if (!daRegiao.some(function(x){ return x.id === inicial; }))
-      inicial = daRegiao.length ? daRegiao[0].id : null;
-    if (inicial) abre(inicial);
+}
+
+let diaAtual = "";
+function selecionaDia(dia, origem){
+  const i = LISTA.indexOf(dia);
+  if (i < 0) return;
+  diaAtual = dia;
+  const prox = i + 1 < LISTA.length ? LISTA[i + 1] : "";
+  const hoje = hojeNaViagem(Date.now());
+  const amanha = hoje ? LISTA[LISTA.indexOf(hoje) + 1] || "" : "";
+
+  document.querySelectorAll("article.dia").forEach(function(a){
+    const d = a.dataset.dia;
+    const ativo = d === dia || d === prox;
+    a.classList.toggle("ativo", ativo);
+    const rel = a.querySelector(".rel");
+    if (!rel) return;
+    if (!ativo) { rel.textContent = ""; return; }
+    if (d === hoje) rel.textContent = "Hoje";
+    else if (d === amanha) rel.textContent = "Amanhã";
+    else if (d === prox) rel.textContent = "Dia seguinte";
+    else rel.textContent = "";
+  });
+
+  const rola = document.getElementById("faixa");
+  document.querySelectorAll("a.d").forEach(function(b){
+    const d = b.dataset.dia;
+    if (d === dia) b.setAttribute("aria-current", "date");
+    else b.removeAttribute("aria-current");
+    b.classList.toggle("seguinte", d === prox);
+    b.classList.toggle("hoje", d === hoje);
+    const s = b.querySelector("small");
+    if (s) s.textContent = d === hoje ? "hoje" : s.dataset.sem;
+    if (d === dia && rola){
+      rola.scrollLeft = Math.max(0, b.offsetLeft - rola.offsetLeft - rola.clientWidth / 2 + b.offsetWidth / 2);
+    }
+  });
+
+  const card = document.getElementById("d-" + dia);
+  if (card) mostraRegiao(card.dataset.reg);
+
+  if (origem === "toque"){
+    try { history.replaceState(null, "", "#dia-" + dia); } catch (e) {}
+    if (card){
+      const topo = card.getBoundingClientRect().top + window.pageYOffset
+                 - (document.querySelector("nav.datas").offsetHeight + 8);
+      if (window.pageYOffset > topo) window.scrollTo(0, topo);
+    }
   }
-  if (gravar){
-    try { history.replaceState(null, "", "#" + slug); } catch (e) {}
-    try { localStorage.setItem("hm-regiao", reg); } catch (e) {}
+}
+
+function diaDoEndereco(){
+  const h = (location.hash || "").replace("#", "");
+  if (h.indexOf("dia-") === 0 && LISTA.indexOf(h.slice(4)) >= 0) return h.slice(4);
+  const reg = SLUGS[h];
+  if (reg){
+    const padrao = diaPadrao(Date.now());
+    const x = D.dias.find(function(y){ return y.dia === padrao; });
+    if (x && x.reg === reg) return padrao;
+    const primeiro = D.dias.find(function(y){ return y.reg === reg; });
+    return primeiro ? primeiro.dia : "";
   }
+  return "";
 }
 
 function contagem(){
   const el = document.getElementById("contagem");
   if (!el) return;
-  const quando = D.viagem.carro_lax;
-  if (!quando){ el.textContent = "sem data de partida"; return; }
-  const ms = new Date(quando + ":00-08:00") - new Date();
-  if (!isFinite(ms)){ el.textContent = "sem data de partida"; return; }
-  if (ms <= 0){ el.textContent = "a viagem começou"; return; }
-  const dias = Math.floor(ms / 86400000);
-  const horas = Math.floor((ms % 86400000) / 3600000);
-  el.innerHTML = "faltam <b>" + dias + " dias</b> e " + horas + "h para o carro no LAX";
+  const t = Date.now();
+  if (t < INICIO){
+    const dias = Math.ceil((INICIO - t) / 86400000);
+    el.textContent = dias === 1 ? "falta 1 dia" : "faltam " + dias + " dias";
+  } else if (t < FIM){
+    const i = LISTA.indexOf(hojeLocal(t));
+    el.textContent = i >= 0 ? "dia " + (i + 1) + " de " + LISTA.length : "em viagem";
+  } else {
+    el.textContent = "viagem concluída";
+  }
 }
 
 function tema(){
@@ -343,47 +573,49 @@ function tema(){
 }
 
 (function inicia(){
-  try {
-    const t = localStorage.getItem("cd-tema");
-    if (t) document.documentElement.setAttribute("data-tema", t);
-  } catch (e) {}
+  document.querySelectorAll("a.d").forEach(function(b){
+    b.addEventListener("click", function(ev){
+      ev.preventDefault();
+      selecionaDia(b.dataset.dia, "toque");
+    });
+  });
+  document.querySelectorAll("button.reg").forEach(function(b){
+    b.addEventListener("click", function(){ mostraRegiao(b.dataset.reg); });
+  });
   document.querySelectorAll(".aba").forEach(function(b){
     b.addEventListener("click", function(){ abre(b.dataset.p); });
   });
-  document.querySelectorAll(".reg").forEach(function(b){
-    b.addEventListener("click", function(){ mostraRegiao(b.dataset.reg, true); });
+  document.querySelectorAll("details.sec-grade").forEach(function(det){
+    det.addEventListener("toggle", function(){ if (det.open) iniciaGrade(det.dataset.reg); });
+  });
+  /* mapa do trajeto: a imagem so e baixada quando alguem abre */
+  document.querySelectorAll("details.mapa-dia").forEach(function(det){
+    det.addEventListener("toggle", function(){
+      const img = det.querySelector("img[data-src]");
+      if (det.open && img){ img.src = img.dataset.src; img.removeAttribute("data-src"); }
+    });
   });
   const bt = document.getElementById("bt-tema");
   if (bt) bt.addEventListener("click", tema);
-  let reg = SLUGS[(location.hash || "").replace("#", "")];
-  if (!reg){
-    if (Date.now() >= Date.parse("2026-12-20T00:00:00-03:00")) reg = regiaoDaData();
-    else {
-      try { reg = localStorage.getItem("hm-regiao"); } catch (e) {}
-      if (["ca", "oahu", "bi"].indexOf(reg) < 0) reg = "ca";
-    }
-  }
-  mostraRegiao(reg, false);
+
+  selecionaDia(diaDoEndereco() || diaPadrao(Date.now()), "inicio");
   window.addEventListener("hashchange", function(){
-    const r = SLUGS[(location.hash || "").replace("#", "")];
-    if (r) mostraRegiao(r, false);
+    const d = diaDoEndereco();
+    if (d && d !== diaAtual) selecionaDia(d, "endereco");
+  });
+  /* aba reaberta de manha: sem dia escolhido na URL, volta para o dia de hoje */
+  document.addEventListener("visibilitychange", function(){
+    if (document.visibilityState !== "visible") return;
+    contagem();
+    if (!diaDoEndereco()){
+      const d = diaPadrao(Date.now());
+      if (d !== diaAtual) selecionaDia(d, "inicio");
+    }
   });
   contagem();
   setInterval(contagem, 60000);
 })();
 """
-
-
-import html as _h
-import json as _j
-
-ONDAS = ('<svg class="ondas" viewBox="0 0 1200 40" preserveAspectRatio="none" '
-         'aria-hidden="true"><path d="M0 40V22C150 10 300 6 450 14s300 20 450 12 '
-         '250-16 300-18v34z" fill="var(--papel)"/></svg>')
-
-LEGENDA_VENTO = [("até 9", "#AADFF2"), ("12", "#82D2E9"), ("15", "#84D6A6"),
-                 ("18", "#BBDE6B"), ("21", "#ECD84B"), ("25", "#F2A93B"),
-                 ("30", "#E8703A"), ("35+", "#D8402C")]
 
 
 VER = {
@@ -392,16 +624,27 @@ VER = {
     "ruim":    ("ru", "f-ru", "não vá"),
     "espera":  ("es", "f-es", "regra armada"),
 }
+DICA_VER = {"bom": ("pode ir", "podem ir"), "atencao": ("com ressalva", "com ressalva"),
+            "ruim": ("não vá", "não vá"), "espera": ("regra armada", "regras armadas")}
 NOME_REG = {"ca": "Golden Coast", "oahu": "Oʻahu", "bi": "Hawaiʻi"}
 SLUG_REG = {"ca": "golden-coast", "oahu": "oahu", "bi": "hawaii"}
-PERIODO_REG = {"ca": "21 a 24/12 · 04 a 06/01", "oahu": "24 a 28/12", "bi": "28/12 a 04/01"}
 SEMANA = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira",
           "sábado", "domingo"]
+SEMANA_CURTA = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
+# Dias que so tem missa, sem etapa no roteiro: o titulo do cartao sai daqui.
+TITULO_SEM_ETAPA = {"2026-12-20": "Embarque em Brasília", "2027-01-06": "Voo de volta"}
+
+LEGENDA_VENTO = [("até 9", "#AADFF2"), ("12", "#82D2E9"), ("15", "#84D6A6"),
+                 ("18", "#BBDE6B"), ("21", "#ECD84B"), ("25", "#F2A93B"),
+                 ("30", "#E8703A"), ("35+", "#D8402C")]
 
 
-def _semana(dia):
-    from datetime import date
-    return SEMANA[date.fromisoformat(dia).weekday()]
+def _e(t):
+    return _h.escape(str(t))
+
+
+def _br(dia):
+    return dia[8:10] + "/" + dia[5:7]
 
 
 def _gmaps_busca(q):
@@ -409,115 +652,277 @@ def _gmaps_busca(q):
     return "https://www.google.com/maps/search/?api=1&query=" + quote(q)
 
 
-def _missa_do_dia(dia, regiao, missas, igrejas):
-    """Linha curta da missa para o cartao do dia. Prefere a da propria aba."""
-    linhas = [m for m in missas if m["dia"] == dia]
-    m = next((x for x in linhas if x["regiao"] == regiao), linhas[0] if linhas else None)
+def _link(href, texto, cls="bt-mapa", rotulo=""):
+    return ('<a class="' + cls + '" href="' + _e(href) + '" target="_blank" rel="noopener"'
+            + (' aria-label="' + _e(rotulo) + '"' if rotulo else "") + ">" + texto + "</a>")
+
+
+# ---------------------------------------------------------------- dias
+
+def _dias(d):
+    """Lista de dias da viagem: uniao das datas das etapas e das missas.
+    'reg' e onde o dia comeca (a regiao da missa, que e o mais importante do
+    dia); 'reg2' e onde ele termina, que e onde o dia seguinte comeca."""
+    etapa = {e["dia"]: e for e in d["etapas"]}
+    missas = {}
+    for m in d["missas"]:
+        missas.setdefault(m["dia"], []).append(m)
+    perna = {p["dia"]: p for p in d["roteiro"]}
+    out = []
+    for dia in sorted(set(etapa) | set(missas)):
+        ms = missas.get(dia, [])
+        prim = next((m for m in ms if m.get("badge") != "opcional"), ms[0] if ms else None)
+        reg = prim["regiao"] if prim else etapa[dia]["regiao"]
+        out.append({"dia": dia, "reg": reg, "etapa": etapa.get(dia), "missas": ms,
+                    "prim": prim, "perna": perna.get(dia)})
+    for i, x in enumerate(out):
+        x["reg2"] = out[i + 1]["reg"] if i + 1 < len(out) else x["reg"]
+    return out
+
+
+def _faixa(dias):
+    grupos = []
+    for x in dias:
+        if not grupos or grupos[-1][0] != x["reg"]:
+            grupos.append((x["reg"], []))
+        grupos[-1][1].append(x)
+    h = []
+    for reg, xs in grupos:
+        h.append('<div class="grupo r-' + reg + '"><span class="g-nome">' + _e(NOME_REG[reg])
+                 + '</span><div class="g-dias">')
+        for x in xs:
+            wd = date.fromisoformat(x["dia"]).weekday()
+            rot = (SEMANA[wd] + ", " + _br(x["dia"]) + "/" + x["dia"][:4] + ", "
+                   + NOME_REG[x["reg"]]
+                   + ("" if x["reg2"] == x["reg"] else " a " + NOME_REG[x["reg2"]]))
+            h.append('<a class="d" href="#dia-' + x["dia"] + '" data-dia="' + x["dia"]
+                     + '" style="--c1:var(--r-' + x["reg"] + ');--c2:var(--r-' + x["reg2"] + ')"'
+                     + ' aria-label="' + _e(rot) + '"><small data-sem="' + SEMANA_CURTA[wd] + '">'
+                     + SEMANA_CURTA[wd] + "</small><b>" + x["dia"][8:10] + "</b></a>")
+        h.append("</div></div>")
+    return "".join(h)
+
+
+# ---------------------------------------------------------------- cartao
+
+def _horarios_igrejas(chaves, igrejas):
+    usadas = []
+    for k in chaves:
+        if k not in usadas:
+            usadas.append(k)
+    if not usadas:
+        return ""
+    return ("<h4>Horários de cada igreja</h4><ul>"
+            + "".join("<li><b>" + _e(igrejas[k]["nome"]) + ":</b> " + _e(igrejas[k]["horarios"])
+                      + '. <a href="' + _e(igrejas[k]["fonte"]) + '" target="_blank" rel="noopener">'
+                      "site da paróquia</a></li>" for k in usadas)
+            + "</ul>")
+
+
+def _op(hora, ig, nota=""):
+    return ('<li class="op"><div class="op-txt"><span class="op-h">' + _e(hora) + "</span>"
+            '<span class="op-n">' + _e(ig["nome"]) + '</span><span class="op-l">' + _e(ig["lugar"])
+            + "</span>" + ('<span class="op-nota">' + _e(nota) + "</span>" if nota else "")
+            + "</div>" + _link(_gmaps_busca(ig["busca"]), "Mapa", rotulo="Mapa: " + ig["nome"])
+            + "</li>")
+
+
+def _bloco_missa(x, igrejas):
+    m = x["prim"]
     if not m:
         return ""
+    extras = [o for o in x["missas"] if o is not m]
+    tags = '<span class="lit">' + _e(m["liturgia"]) + "</span>"
+    if m.get("preceito"):
+        tags += '<span class="tag t-prec">preceito</span>'
+    if m.get("badge"):
+        tags += '<span class="tag">' + _e(m["badge"]) + "</span>"
+    if m.get("confirmar"):
+        tags += '<span class="tag">confirmar em dezembro</span>'
+    h = ['<section class="bl bl-missa"><div class="rot-linha"><h3 class="rot">Missa</h3>'
+         + tags + "</div>"]
+    info = []
+    chaves = []
+
     if m.get("rec"):
-        ig = igrejas[m["rec"]["igreja"]]
-        txt = f'{m["rec"]["hora"]} · {ig["nome"]}, {ig["lugar"]}'
-    elif m.get("alts"):
-        a0 = m["alts"][0]
-        txt = (m.get("badge") or "opções") + ": " + a0["hora"] + " · " + igrejas[a0["igreja"]]["nome"] \
-            + (" e outras" if len(m["alts"]) > 1 else "")
-    else:
-        txt = m["sem"].split(".")[0]
-    return ('<p class="missa-cartao"><span>missa</span>' + _h.escape(txt) + "</p>")
-
-
-def _card_etapa(e, ponto, prev_dia, dias_para, missa_html=""):
-    """Cartao de um dia do roteiro. Mostra previsao quando a data ja cabe nos
-    16 dias do modelo; fora disso mostra a climatologia, que e o unico numero
-    honesto a essa distancia."""
-    cls = "cartao dirige" if e["dirige"] else "cartao"
-    br = e["dia"][8:10] + "/" + e["dia"][5:7]
-    h = ['<article class="' + cls + '">',
-         '<div class="quando">' + br + " &middot; " + NOME_REG[e["regiao"]]
-         + (" &middot; estrada" if e["dirige"] else "") + "</div>",
-         "<h3>" + _h.escape(e["titulo"]) + "</h3>"]
-    if prev_dia:
-        h.append('<div class="numerao"><span class="t">'
-                 + str(round(prev_dia["tmax"])) + "&deg;</span>"
-                 '<span class="u">máx &middot; mín ' + str(round(prev_dia["tmin"]))
-                 + "&deg;C</span></div>")
-        h.append('<dl class="pares">'
-                 + "<dt>chuva prevista</dt><dd>" + f'{prev_dia["mm"]:.1f} mm</dd>'
-                 + "<dt>chance de chuva</dt><dd>" + str(round(prev_dia["prob"])) + "%</dd>"
-                 + "<dt>rajada máxima</dt><dd>" + str(round(prev_dia["rajada"])) + " nós</dd>"
-                 + "<dt>sol</dt><dd>" + prev_dia["sol"] + "</dd></dl>"
-                 '<p class="txt"><span class="faixa f-ok">previsão do modelo</span></p>')
-    else:
-        n = ponto["normal"]
-        h.append('<div class="numerao"><span class="t">' + str(round(n["tmax"]))
-                 + '&deg;</span><span class="u">máx &middot; mín '
-                 + str(round(n["tmin"])) + "&deg;C, normal de 30 anos</span></div>")
-        h.append('<dl class="pares">'
-                 + "<dt>dias com chuva</dt><dd>" + str(n["pct"]) + "% dos casos</dd>"
-                 + "<dt>chuva forte (&gt;5 mm)</dt><dd>" + str(n["forte"]) + "% dos casos</dd>"
-                 + "<dt>poente em " + _h.escape(ponto["nome"][:18]) + "</dt><dd>"
-                 + (ponto.get("por_do_sol") or "-") + "</dd>"
-                 + "<dt>previsão entra em</dt><dd>"
-                 + str(max(0, dias_para - 16)) + " dias</dd></dl>"
-                 '<p class="txt"><span class="faixa f-at">climatologia, não previsão</span></p>')
-    h.append('<p class="txt">' + _h.escape(e["resumo"]) + "</p>" + missa_html + "</article>")
-    return "".join(h)
-
-
-def _bloco_missas(missas, igrejas):
-    h = []
-    for m in missas:
-        br = m["dia"][8:10] + "/" + m["dia"][5:7]
-        selos = ""
-        if m.get("badge"):
-            selos += '<span class="faixa f-ok">' + _h.escape(m["badge"]) + "</span>"
-        if m.get("preceito"):
-            selos += '<span class="faixa f-at">preceito</span>'
-        if m.get("confirmar"):
-            selos += '<span class="faixa f-es">confirmar em dezembro</span>'
-        cls = "item missa " + ("ok" if m.get("rec") else ("at" if m.get("alts") else "es"))
-        h.append('<article class="' + cls + '"><div class="cab"><span class="via">' + br
-                 + " · " + _semana(m["dia"]) + " · " + _h.escape(m["liturgia"])
-                 + '</span><span class="selos">' + selos + "</span></div>")
-        if m.get("rec"):
-            r = m["rec"]
-            ig = igrejas[r["igreja"]]
-            h.append('<div class="missa-rec"><span class="hora">' + _h.escape(r["hora"])
-                     + '</span><div><b>' + _h.escape(ig["nome"]) + "</b><span>"
-                     + _h.escape(ig["lugar"]) + " · " + _h.escape(r["dist"]) + "</span></div>"
-                     + '<a class="gmaps" href="' + _h.escape(_gmaps_busca(ig["busca"]))
-                     + '" target="_blank" rel="noopener">mapa</a></div>')
-            h.append('<p class="txt">' + _h.escape(r["porque"]) + "</p>")
+        r = m["rec"]
+        ig = igrejas[r["igreja"]]
+        chaves.append(r["igreja"])
+        h.append('<div class="missa"><span class="hora">' + _e(r["hora"]) + '</span>'
+                 '<div class="onde"><b>' + _e(ig["nome"]) + "</b><span>" + _e(ig["lugar"])
+                 + "</span></div>" + _link(_gmaps_busca(ig["busca"]), "Mapa",
+                                           rotulo="Mapa: " + ig["nome"]) + "</div>")
+        if m.get("aviso"):
+            h.append('<p class="sem aviso-missa">' + _e(m["aviso"]) + "</p>")
+        info.append("<p>" + _e(r["dist"][:1].upper() + r["dist"][1:]) + ". " + _e(r["porque"]) + "</p>")
         if m.get("sem"):
-            h.append('<p class="txt">' + _h.escape(m["sem"]) + "</p>")
+            info.append("<p>" + _e(m["sem"]) + "</p>")
         if m.get("alts"):
-            h.append('<p class="alts-tit">' + ("Outras possíveis" if m.get("rec") else "Onde")
-                     + '</p><ul class="alts">')
-            for a in m["alts"]:
-                ig = igrejas[a["igreja"]]
-                h.append('<li><b>' + _h.escape(a["hora"]) + "</b> " + _h.escape(ig["nome"])
-                         + ", " + _h.escape(ig["lugar"]) + ". " + _h.escape(a["nota"])
-                         + ' <a href="' + _h.escape(_gmaps_busca(ig["busca"]))
-                         + '" target="_blank" rel="noopener">mapa</a></li>')
-            h.append("</ul>")
-        if m.get("descartadas"):
-            h.append('<p class="regra">' + _h.escape(m["descartadas"]) + "</p>")
-        usadas = []
-        for k in ([m["rec"]["igreja"]] if m.get("rec") else []) + [a["igreja"] for a in m.get("alts", [])]:
-            if k not in usadas:
-                usadas.append(k)
-        if usadas:
-            h.append('<details class="grade-missas"><summary>Horários de cada igreja</summary><ul>')
-            for k in usadas:
-                ig = igrejas[k]
-                h.append("<li><b>" + _h.escape(ig["nome"]) + ":</b> " + _h.escape(ig["horarios"])
-                         + '. <a href="' + _h.escape(ig["fonte"])
-                         + '" target="_blank" rel="noopener">site da paróquia</a></li>')
-            h.append("</ul></details>")
-        h.append("</article>")
+            info.append('<h4>Outras possíveis</h4><ul class="opcoes">'
+                        + "".join(_op(a["hora"], igrejas[a["igreja"]], a["nota"]) for a in m["alts"])
+                        + "</ul>")
+            chaves += [a["igreja"] for a in m["alts"]]
+    else:
+        if m.get("sem"):
+            frase = m["sem"].split(". ")[0].rstrip(".") + "."
+            h.append('<p class="sem">' + _e(frase) + "</p>")
+            info.append("<p>" + _e(m["sem"]) + "</p>")
+        if m.get("alts"):
+            h.append('<ul class="opcoes">'
+                     + "".join(_op(a["hora"], igrejas[a["igreja"]]) for a in m["alts"]) + "</ul>")
+            info.append("<ul>" + "".join("<li><b>" + _e(a["hora"]) + ", "
+                                         + _e(igrejas[a["igreja"]]["nome"]) + ":</b> " + _e(a["nota"])
+                                         + "</li>" for a in m["alts"]) + "</ul>")
+            chaves += [a["igreja"] for a in m["alts"]]
+    if m.get("descartadas"):
+        info.append('<p class="fraco">' + _e(m["descartadas"]) + "</p>")
+
+    for o in extras:
+        rot = (o.get("badge") or "também").capitalize() + ": " + o["liturgia"]
+        h.append('<p class="extra-rot">' + _e(rot) + "</p>")
+        itens = ([(o["rec"]["hora"], o["rec"]["igreja"], "")] if o.get("rec") else []) \
+            + [(a["hora"], a["igreja"], "") for a in o.get("alts", [])]
+        h.append('<ul class="opcoes">' + "".join(_op(hr, igrejas[k]) for hr, k, _ in itens) + "</ul>")
+        info.append("<h4>" + _e(rot) + "</h4>")
+        if o.get("sem"):
+            info.append("<p>" + _e(o["sem"]) + "</p>")
+        notas = [(a["hora"], a["igreja"], a["nota"]) for a in o.get("alts", [])]
+        if notas:
+            info.append("<ul>" + "".join("<li><b>" + _e(hr) + ", " + _e(igrejas[k]["nome"]) + ":</b> "
+                                         + _e(n) + "</li>" for hr, k, n in notas) + "</ul>")
+        chaves += [k for _, k, _ in itens]
+
+    info.append(_horarios_igrejas(chaves, igrejas))
+    resumo = ("Por que esta, e outras missas" if m.get("rec") and m.get("alts") else
+              "Por que esta" if m.get("rec") else "Como escolher")
+    h.append('<details class="mais-info"><summary>' + resumo + '</summary><div class="info">'
+             + "".join(info) + "</div></details></section>")
     return "".join(h)
 
+
+def _bloco_o_dia(x):
+    p, e = x["perna"], x["etapa"]
+    if p:
+        h = ['<section class="bl bl-dia"><div class="rot-linha"><h3 class="rot">O dia</h3></div>',
+             '<p class="dia-cab2">' + _e(p["cabecalho"][:1].upper() + p["cabecalho"][1:]) + "</p>",
+             '<ol class="horas">']
+        for hora, oque, _como, _dur in p["trechos"]:
+            h.append('<li><span class="h">' + _e(hora) + "</span><span>" + _e(oque) + "</span></li>")
+        h.append('</ol><details class="mais-info"><summary>Como ir e observações</summary>'
+                 '<div class="info"><ol class="trechos">')
+        for hora, oque, como, dur in p["trechos"]:
+            dur_ok = dur.strip() not in ("", "—", "-")
+            h.append('<li><span class="h">' + _e(hora) + "</span><div><b>" + _e(oque) + "</b>"
+                     '<span class="como">' + _e(como) + "</span>"
+                     + ('<span class="dur">' + _e(dur) + "</span>" if dur_ok else "") + "</div></li>")
+        h.append("</ol>")
+        if p.get("notas"):
+            h.append("<h4>Observações</h4><ul>" + "".join("<li>" + _e(n) + "</li>" for n in p["notas"])
+                     + "</ul>")
+        h.append("</div></details></section>")
+        return "".join(h)
+    if e:
+        return ('<section class="bl bl-dia"><div class="rot-linha"><h3 class="rot">O dia</h3></div>'
+                '<p class="resumo">' + _e(e["resumo"]) + "</p></section>")
+    return ""
+
+
+def _bloco_tempo(x, d):
+    e = x["etapa"]
+    if not e:
+        return ""
+    ponto = d["por_id"].get(e["pontos"][-1])
+    pv = d["prev_por_dia"].get(x["dia"])
+    if pv:
+        partes = ["máx <b>" + str(round(pv["tmax"])) + "°</b>",
+                  "mín " + str(round(pv["tmin"])) + "°",
+                  "chuva <b>" + str(round(pv["prob"])) + "%</b>"
+                  + (" (" + f'{pv["mm"]:.1f}'.replace(".", ",") + " mm)" if pv["mm"] >= 0.1 else "")]
+        if pv.get("rajada") and pv["rajada"] >= 25:
+            partes.append("rajada " + str(round(pv["rajada"])) + " nós")
+        sol = (pv.get("sol") or "").split(" / ")[-1]
+        if sol:
+            partes.append("pôr do sol " + _e(sol))
+        selo = '<span class="selo s-prev">previsão</span>'
+    elif ponto:
+        n = ponto["normal"]
+        partes = ["máx <b>" + str(round(n["tmax"])) + "°</b>",
+                  "mín " + str(round(n["tmin"])) + "°",
+                  "chuva em " + str(n["pct"]) + "% dos dias"]
+        if ponto.get("por_do_sol"):
+            partes.append("pôr do sol " + _e(ponto["por_do_sol"]))
+        selo = '<span class="selo s-clim">climatologia</span>'
+    else:
+        return ""
+    lugar = ('<span class="lit">' + _e(ponto["nome"]) + "</span>") if ponto else ""
+    return ('<section class="bl bl-tempo"><div class="rot-linha"><h3 class="rot">Tempo</h3>'
+            + lugar + selo + '</div><p class="tempo">'
+            + "".join("<span>" + p + "</span>" for p in partes) + "</p></section>")
+
+
+def _bloco_atencao(x, d):
+    dia = x["dia"]
+    regs = {x["reg"], x["reg2"]}
+    if x["etapa"]:
+        regs.add(x["etapa"]["regiao"])
+    itens = []
+    for dec in d["decisoes"]:
+        if dec["dia"] == dia and dec["veredito"] in ("ruim", "atencao"):
+            cls, faixa, rotulo = VER[dec["veredito"]]
+            itens.append('<li class="v-' + cls + '"><span class="faixa ' + faixa + '">' + rotulo
+                         + "</span><b>" + _e(dec["titulo"]) + ".</b> " + _e(dec["motivo"]) + "</li>")
+    for a in d["alertas"]:
+        fim = (a.get("fim") or "")[:10]
+        if not regs & set(a.get("regioes", [])) or (fim and fim < dia):
+            continue
+        # o mapa diz em que dias o trajeto cruza a area ("em 22/12 e 24/12"): fora deles, nao e do dia
+        datas = _re.findall(r"\b\d{2}/\d{2}\b(?!/)", a.get("efeito") or "")
+        if datas and _br(dia) not in datas:
+            continue
+        grave = a.get("severidade") in ("Severe", "Extreme")
+        itens.append('<li class="v-' + ("ru" if grave else "at") + '"><span class="faixa f-'
+                     + ("ru" if grave else "at") + '">aviso</span><b>' + _e(a["evento"]) + ".</b> "
+                     + _e(a.get("efeito") or a.get("onde") or "") + "</li>")
+    if not itens:
+        return ""
+    return ('<section class="bl bl-atencao"><div class="rot-linha"><h3 class="rot">Atenção</h3></div>'
+            '<ul class="atencao">' + "".join(itens) + "</ul></section>")
+
+
+def _bloco_links(x):
+    p = x["perna"]
+    if not p or not (p.get("mapa_link") or p.get("mapa_url")):
+        return ""
+    h = ['<div class="bl links">']
+    if p.get("mapa_link"):
+        h.append(_link(p["mapa_link"], "Trajeto no Google Maps", cls="bt"))
+    if p.get("mapa_url"):
+        h.append('<details class="mapa-dia"><summary>Mapa</summary><img data-src="' + _e(p["mapa_url"])
+                 + '" alt="Mapa do trajeto de ' + _br(x["dia"]) + '" width="1200" height="900"></details>')
+    h.append("</div>")
+    return "".join(h)
+
+
+def _cartao_dia(x, d):
+    dia = x["dia"]
+    e = x["etapa"]
+    titulo = e["titulo"] if e else TITULO_SEM_ETAPA.get(dia, "")
+    wd = date.fromisoformat(dia).weekday()
+    regs = NOME_REG[x["reg"]] + ("" if x["reg2"] == x["reg"] else " a " + NOME_REG[x["reg2"]])
+    return ('<article class="dia" id="d-' + dia + '" data-dia="' + dia + '" data-reg="' + x["reg"] + '">'
+            '<header><p class="dia-sup"><span class="rel"></span><span class="dia-data">'
+            + SEMANA[wd] + ", " + _br(dia) + '</span><span class="dia-reg r-' + x["reg"] + '">'
+            + _e(regs) + "</span></p>"
+            + ("<h2>" + _e(titulo) + "</h2>" if titulo else "") + "</header>"
+            + _bloco_missa(x, d["igrejas"])
+            + _bloco_o_dia(x)
+            + _bloco_tempo(x, d)
+            + _bloco_atencao(x, d)
+            + _bloco_links(x)
+            + "</article>")
+
+
+# ---------------------------------------------------------------- area secundaria
 
 def _bloco_decisoes(decs):
     h = []
@@ -525,26 +930,25 @@ def _bloco_decisoes(decs):
         cls, faixa, rotulo = VER[d["veredito"]]
         h.append('<article class="item ' + cls + '">'
                  '<div class="cab"><span class="via">'
-                 + d["dia"][8:10] + "/" + d["dia"][5:7] + " &middot; "
-                 + _h.escape(d["titulo"]) + " &middot; " + _h.escape(d["quando"])
+                 + _br(d["dia"]) + " &middot; " + _e(d["titulo"]) + " &middot; " + _e(d["quando"])
                  + '</span><span class="faixa ' + faixa + '">' + rotulo + "</span></div>"
-                 "<p><b>" + _h.escape(d["motivo"]) + "</b></p>"
-                 + ('<p class="num">' + _h.escape(d["numeros"]) + "</p>"
-                    if d["numeros"] else "")
-                 + '<p class="regra">Gatilho: ' + _h.escape(d["regra"]) + "</p>"
-                 '<p class="txt">' + _h.escape(d["recomenda"]) + "</p></article>")
+                 "<p><b>" + _e(d["motivo"]) + "</b></p>"
+                 + ('<p class="num">' + _e(d["numeros"]) + "</p>" if d["numeros"] else "")
+                 + '<p class="regra">Gatilho: ' + _e(d["regra"]) + "</p>"
+                 '<p class="txt">' + _e(d["recomenda"]) + "</p></article>")
     return "".join(h)
 
 
 def _bloco_mapa(url, link, efeito, alt):
+    txt = ('<p class="efeito">' + _e(efeito) + "</p>") if efeito else ""
     if not url:
-        return ('<p class="efeito">' + _h.escape(efeito) + "</p>") if efeito else ""
-    return ((('<p class="efeito">' + _h.escape(efeito) + "</p>") if efeito else "")
+        return txt
+    return (txt
             # no celular o mapa sai com ~320 px; o toque abre a imagem inteira para ampliar
-            + '<a class="mapa" href="' + _h.escape(url) + '" target="_blank" rel="noopener">'
-            + '<img class="mapa" loading="lazy" src="' + _h.escape(url) + '" alt="'
-            + _h.escape(alt) + '" width="1200" height="900"></a>'
-            + (('<a class="gmaps" href="' + _h.escape(link) + '" target="_blank" rel="noopener">'
+            + '<a href="' + _e(url) + '" target="_blank" rel="noopener">'
+            + '<img class="mapa" loading="lazy" src="' + _e(url) + '" alt="'
+            + _e(alt) + '" width="1200" height="900"></a>'
+            + (('<a class="gmaps" href="' + _e(link) + '" target="_blank" rel="noopener">'
                 "Abrir no Google Maps</a>") if link else ""))
 
 
@@ -567,8 +971,8 @@ def _bloco_estradas(vias):
             else:
                 cls, faixa = "at", '<span class="faixa f-at">restrição</span>'
             h.append('<div class="item ' + cls + '"><div class="cab"><span class="via">'
-                     + v["rodovia"] + " &middot; " + _h.escape(i["area"].title())
-                     + "</span>" + faixa + "</div><p>" + _h.escape(i["texto"])
+                     + v["rodovia"] + " &middot; " + _e(i["area"].title())
+                     + "</span>" + faixa + "</div><p>" + _e(i["texto"])
                      + "</p>" + _bloco_mapa(i.get("mapa_url"), i.get("mapa_link"),
                                             i.get("efeito", ""), "Mapa: " + i["texto"][:120])
                      + "</div>")
@@ -576,20 +980,17 @@ def _bloco_estradas(vias):
 
 
 def _bloco_avisos(alertas):
-    if not alertas:
-        return ('<p class="vazio">Nenhum aviso ativo do National Weather Service '
-                'em nenhum ponto do roteiro, nem na California nem no Hawaii.</p>')
     h = []
     for a in alertas:
         grave = a["severidade"] in ("Severe", "Extreme")
         cls = "ru" if grave else "at"
         h.append('<div class="item ' + cls + '"><div class="cab"><span class="via">'
-                 + _h.escape(a["evento"]) + " &middot; "
+                 + _e(a["evento"]) + " &middot; "
                  + ", ".join(NOME_REG.get(r, r) for r in a["regioes"])
-                 + '</span><span class="faixa f-' + ("ru" if grave else "at") + '">'
-                 + _h.escape(a["severidade"] or "aviso") + "</span></div><p>"
-                 + _h.escape(a["manchete"] or a["descricao"][:300]) + "</p>"
-                 '<p class="num">' + _h.escape(a["onde"]) + "</p>"
+                 + '</span><span class="faixa f-' + cls + '">'
+                 + _e(a["severidade"] or "aviso") + "</span></div><p>"
+                 + _e(a["manchete"] or a["descricao"][:300]) + "</p>"
+                 '<p class="num">' + _e(a["onde"]) + "</p>"
                  + _bloco_mapa(a.get("mapa_url"), a.get("mapa_link"), a.get("efeito", ""),
                                "Mapa do aviso " + a["evento"]) + "</div>")
     return "".join(h)
@@ -602,10 +1003,9 @@ def _bloco_pacifico(e, k):
     elif e.get("status"):
         h.append('<div class="item at"><div class="cab">'
                  '<span class="via">El Niño &middot; Climate Prediction Center, NOAA</span>'
-                 '<span class="faixa f-at">' + _h.escape(e["status"]) + "</span></div>"
-                 "<p>" + _h.escape(e.get("sinopse") or "") + "</p>"
-                 '<p class="num">Boletim de '
-                 + _h.escape(e.get("emitido") or "data não lida")
+                 '<span class="faixa f-at">' + _e(e["status"]) + "</span></div>"
+                 "<p>" + _e(e.get("sinopse") or "") + "</p>"
+                 '<p class="num">Boletim de ' + _e(e.get("emitido") or "data não lida")
                  + ". O CPC concentra o sinal de chuva acima da média na costa da "
                    "California com pico entre janeiro e março de 2027, ou seja, "
                    "depois da viagem.</p></div>")
@@ -613,12 +1013,11 @@ def _bloco_pacifico(e, k):
         h.append('<p class="vazio">Boletim ENSO indisponível nesta rodada.</p>')
     if k and k.get("cor"):
         ativo = k["cor"] in ("ORANGE", "RED")
-        h.append('<div class="item ' + ("ru" if k["cor"] == "RED" else
-                                        ("at" if ativo else "ok"))
+        h.append('<div class="item ' + ("ru" if k["cor"] == "RED" else ("at" if ativo else "ok"))
                  + '"><div class="cab"><span class="via">Kilauea &middot; '
                    'Hawaiian Volcano Observatory, USGS</span>'
                    '<span class="faixa f-' + ("at" if ativo else "ok") + '">'
-                 + _h.escape(k["cor"] + " / " + k["nivel"]) + "</span></div><p>"
+                 + _e(k["cor"] + " / " + k["nivel"]) + "</span></div><p>"
                  + ("Fonte de lava ativa ou episódio em curso. Vale a subida noturna "
                     "ao mirante da cratera." if ativo else
                     "Sem episódio ativo agora. A cratera vale de dia; o brilho "
@@ -627,6 +1026,96 @@ def _bloco_pacifico(e, k):
                    'dedicado: <a href="../kilauea/">/kilauea/</a></p></div>')
     return "".join(h)
 
+
+LEG = {
+    "grade": "De 3 em 3 horas, sete dias, hora local. Azul e verde é calmo, amarelo e laranja é "
+             "vento, vermelho é tempestade; violeta na última linha é visibilidade baixa. As datas "
+             "em azul são dias do roteiro.",
+    "estrada_bi": "Não há boletim como o da Caltrans. A estrada que fecha é a Mauna Kea Access Road, "
+                  "até o Mauna Kea Summit, e fecha por gelo: a regra do cume, em Ir ou não ir, "
+                  "antecipa isso pelo nível de congelamento.",
+    "hist": {
+        "ca": "Médias de 21 a 24 de dezembro, 1995 a 2025, e o pôr do sol na semana do solstício.",
+        "oahu": "Médias de 26/12 a 05/01, 2000 a 2025, e o pôr do sol.",
+        "bi": "Médias de 26/12 a 05/01, 2000 a 2025, e o pôr do sol. O Mauna Kea Summit fica "
+              "abaixo de zero à noite nesta janela.",
+    },
+}
+
+
+def _plural(n, um, varios):
+    return str(n) + " " + (um if n == 1 else varios)
+
+
+def _painel(d, reg, aberto):
+    secoes = []
+
+    def sec(titulo, dica, corpo, extra_cls="", attrs=""):
+        secoes.append('<details class="' + ("sec " + extra_cls).strip() + '"' + attrs + "><summary>" + titulo
+                      + ('<span class="dica">' + dica + "</span>" if dica else "")
+                      + '</summary><div class="sec-corpo">' + corpo + "</div></details>")
+
+    meus = [p for p in d["pontos"] if p["regiao"] == reg]
+    abas = "".join('<button class="aba" role="tab" aria-selected="false" data-p="' + p["id"]
+                   + '" title="' + _e(p["papel"]) + '">' + _e(p["nome"]) + "</button>" for p in meus)
+    leg_vento = "".join('<span><i style="background:' + c + '"></i>' + t + "</span>"
+                        for t, c in LEGENDA_VENTO)
+    sec("Previsão em grade", "7 dias",
+        '<p class="leg">' + _e(LEG["grade"]) + "</p>"
+        '<div class="abas" role="tablist" data-reg="' + reg + '">' + abas + "</div>"
+        '<div class="rolagem" id="grade-' + reg + '"></div>'
+        '<div class="legenda"><span>vento e rajada, em nós:</span>' + leg_vento + "</div>",
+        "sec-grade", ' data-reg="' + reg + '"')
+
+    if reg == "ca":
+        fech = sum(1 for v in d["estradas"] for i in v["itens"]
+                   if i["na_rota"] and i["fechado"] and not i.get("livre"))
+        sec("Estrada, Caltrans", _plural(fech, "fechamento", "fechamentos") if fech
+            else ("sem fechamento" if d["estradas"] else "indisponível"),
+            _bloco_estradas(d["estradas"]))
+    if reg == "bi":
+        sec("Estrada", "Mauna Kea Access Road", '<p class="vazio">' + _e(LEG["estrada_bi"]) + "</p>")
+
+    avisos = [a for a in d["alertas"] if reg in a.get("regioes", [])]
+    sec("Avisos oficiais", _plural(len(avisos), "ativo", "ativos") if avisos else "nenhum",
+        _bloco_avisos(avisos) if avisos else
+        '<p class="vazio">Nenhum aviso ativo do National Weather Service nos pontos de '
+        + _e(NOME_REG[reg]) + ".</p>")
+
+    if reg == "ca":
+        es = d.get("enso") or {}
+        sec("El Niño", _e(es.get("status") or ""), _bloco_pacifico(es, None))
+    if reg == "bi":
+        k = d.get("kilauea") or {}
+        sec("Kilauea", _e((k.get("cor", "") + " / " + k.get("nivel", "")) if k.get("cor") else ""),
+            _bloco_pacifico(None, k))
+
+    decs = [x for x in d["decisoes"] if x.get("regiao") == reg]
+    if decs:
+        cont = {}
+        for x in decs:
+            cont[x["veredito"]] = cont.get(x["veredito"], 0) + 1
+        dica = ", ".join(str(cont[v]) + " " + (DICA_VER[v][0] if cont[v] == 1 else DICA_VER[v][1])
+                         for v in ("ruim", "atencao", "bom", "espera") if cont.get(v))
+        sec("Ir ou não ir", _e(dica), _bloco_decisoes(decs))
+
+    linhas = []
+    for p in meus:
+        n = p["normal"]
+        linhas.append("<tr><td>" + _e(p["nome"]) + "</td><td>" + f'{n["tmax"]:.1f}'
+                      + "</td><td>" + f'{n["tmin"]:.1f}' + "</td><td>" + f'{n["mm"]:.1f}'
+                      + "</td><td>" + str(n["pct"]) + "%</td><td>" + str(n["forte"])
+                      + "%</td><td>" + (p.get("por_do_sol") or "-") + "</td></tr>")
+    sec("Climatologia", "médias de 25 a 30 anos",
+        '<p class="leg">' + _e(LEG["hist"][reg]) + "</p>"
+        '<div class="tab-rola"><table class="hist"><thead><tr>'
+        "<th>ponto</th><th>máx</th><th>mín</th><th>mm/dia</th><th>dias com chuva</th>"
+        "<th>&gt;5 mm</th><th>pôr do sol</th></tr></thead><tbody>" + "".join(linhas)
+        + "</tbody></table></div>")
+
+    return ('<div class="painel r-' + reg + '" id="p-' + SLUG_REG[reg] + '" role="tabpanel" data-reg="'
+            + reg + '" aria-labelledby="t-' + reg + '"' + ("" if aberto else " hidden") + ">"
+            + "".join(secoes) + "</div>")
 
 
 CAMPOS_GRADE = ("time", "wind_speed_10m", "wind_gusts_10m", "wind_direction_10m",
@@ -656,164 +1145,45 @@ def _enxuga(hourly, dias, passo=3):
     return out
 
 
+def _gerado(txt):
+    """'13/09/2026T05:15' vira ('13/09', '05:15')."""
+    data, _, hora = txt.partition("T")
+    return data[:5], hora
+
+
 def monta(d):
     """Devolve (html, js) para o monitor validar o JS antes de publicar."""
+    dias = _dias(d)
     dados = {
         "gerado": d["gerado"], "viagem": d["viagem"], "dias_grade": d["dias_grade"],
         "dias_viagem": d["dias_viagem"],
+        "dias": [{"dia": x["dia"], "reg": x["reg"], "reg2": x["reg2"]} for x in dias],
         "pontos": [{"id": p["id"], "nome": p["nome"], "regiao": p["regiao"],
                     "hourly": _enxuga(p["hourly"], d["dias_grade"])}
                    for p in d["pontos"]],
     }
     js = JS.replace("DADOS", _j.dumps(dados, ensure_ascii=False, separators=(",", ":")), 1)
 
-    nav = "".join(
-        '<button class="reg" role="tab" id="t-' + r + '" data-reg="' + r + '" data-slug="'
-        + SLUG_REG[r] + '" aria-controls="p-' + SLUG_REG[r] + '" aria-selected="false"><b>'
-        + _h.escape(NOME_REG[r]) + "</b><small>" + PERIODO_REG[r] + "</small></button>"
-        for r in ("ca", "oahu", "bi"))
-    paineis = "".join(_painel(d, r) for r in ("ca", "oahu", "bi"))
+    regs_nav = "".join(
+        '<button class="reg r-' + r + '" role="tab" id="t-' + r + '" data-reg="' + r
+        + '" aria-controls="p-' + SLUG_REG[r] + '" aria-selected="' + ("true" if r == "ca" else "false")
+        + '">' + _e(NOME_REG[r]) + "</button>" for r in ("ca", "oahu", "bi"))
+    paineis = "".join(_painel(d, r, r == "ca") for r in ("ca", "oahu", "bi"))
+    cartoes = "".join(_cartao_dia(x, d) for x in dias)
+    g_data, g_hora = _gerado(d["gerado"])
+    b_data, b_hora = _gerado(d["gerado_brt"])
 
     return (HTML
             .replace("{{CSS}}", CSS)
             .replace("{{FAVICON}}", FAVICON)
-            .replace("{{NAV}}", nav)
+            .replace("{{FAIXA}}", _faixa(dias))
+            .replace("{{CARTOES}}", cartoes)
+            .replace("{{REGS}}", regs_nav)
             .replace("{{PAINEIS}}", paineis)
-            .replace("{{GERADO_PST}}", d["gerado"].replace("T", " às "))
-            .replace("{{GERADO_BRT}}", d["gerado_brt"].replace("T", " às "))
+            .replace("{{GERADO}}", g_data + " às " + g_hora)
+            .replace("{{GERADO_BRT}}", (b_data + " " if b_data != g_data else "") + b_hora)
             .replace("{{JS}}", js)), js
 
-
-LEG = {
-    "dia": {
-        "ca": "Enquanto a viagem estiver a mais de 16 dias, nenhum modelo prevê o dia. O cartão "
-              "mostra a climatologia de 21 a 24 de dezembro, calculada sobre 1995 a 2025, e avisa "
-              "quando a previsão de verdade entra.",
-        "oahu": "Climatologia de 26/12 a 05/01, calculada sobre 2000 a 2025, até a previsão do "
-                "modelo alcançar os dias de vocês.",
-        "bi": "Climatologia de 26/12 a 05/01, calculada sobre 2000 a 2025. Hilo chove em 72% dos "
-              "dias desta janela, a maior taxa da viagem.",
-    },
-    "missa": "A missa que encaixa no dia sem atrapalhar o resto, com as outras possíveis. "
-             "Horários conferidos nos sites das próprias paróquias em 13/09/2026. Natal e Ano "
-             "Novo de 2026 ainda não foram publicados: onde aparece 2025, é o horário do ano "
-             "passado, a confirmar no começo de dezembro.",
-    "dec": "Cada decisão está amarrada a um número que o modelo entrega, não a uma impressão. "
-           "Enquanto o dia não cabe na previsão, a regra fica armada e o painel mostra o gatilho.",
-    "trecho": {
-        "ca": "Os três dias de estrada na Golden Coast, com a rodovia exata, a distância medida "
-              "no roteador e o horário. É a semana do solstício: o sol se põe antes das 17h.",
-        "oahu": "O único dia com carro na ilha, com a volta completa e o sentido que depende da "
-                "chuva da manhã.",
-        "bi": "Os três dias de estrada na ilha: o parque do vulcão, a Hamakua Coast com o Mauna "
-              "Kea Summit, e a travessia pelo sul até Kona.",
-    },
-    "enso": "A três meses da viagem, o único sinal com valor preditivo para a costa é o estado "
-            "do El Niño, que inclina a estação inteira para mais ou menos chuva.",
-    "vulcao": "O nível de alerta do Kilauea decide se existe lava para ver. A cratera só vale à "
-              "noite nas três noites em Hilo; depois de Kona, a ida custa 2h15 por trecho.",
-    "grade": "Grade de 3 em 3 horas, sete dias, hora local. A cor diz o valor antes do número: "
-             "azul e verde é calmo, amarelo e laranja é vento, vermelho é tempestade. Violeta na "
-             "última linha é visibilidade baixa. As colunas laranja são os dias do roteiro.",
-    "estrada_ca": "Boletim da Caltrans para a SR 1 e a US 101, recortado nos condados do roteiro, "
-                  "com mapa de onde começa e termina cada restrição.",
-    "estrada_bi": "Não existe boletim de estradas como o da Caltrans. A estrada que fecha é a Mauna "
-                  "Kea Access Road, até o Mauna Kea Summit, e ela fecha por gelo: a regra do cume, "
-                  "em Ir ou não ir, antecipa isso pelo nível de congelamento.",
-    "avisos": "Alertas ativos do National Weather Service nos pontos desta aba, com mapa da área.",
-    "hist": {
-        "ca": "Médias de 21 a 24 de dezembro, 1995 a 2025, e a hora do poente na semana do "
-              "solstício, a de dias mais curtos do ano.",
-        "oahu": "Médias de 26/12 a 05/01, 2000 a 2025, e a hora do poente.",
-        "bi": "Médias de 26/12 a 05/01, 2000 a 2025, e a hora do poente. O Mauna Kea Summit fica "
-              "abaixo de zero à noite nesta janela.",
-    },
-}
-
-
-def _painel(d, reg):
-    secoes = []
-
-    def sec(titulo, leg, corpo):
-        secoes.append("<section><h2>" + titulo + "</h2>"
-                      + ('<p class="leg">' + _h.escape(leg) + "</p>" if leg else "")
-                      + corpo + "</section>")
-
-    etapas = [e for e in d["etapas"] if e["regiao"] == reg and e["pontos"][-1] in d["por_id"]]
-    cards = "".join(_card_etapa(e, d["por_id"][e["pontos"][-1]], d["prev_por_dia"].get(e["dia"]),
-                                d["dias_para"],
-                                _missa_do_dia(e["dia"], reg, d["missas"], d["igrejas"]))
-                    for e in etapas)
-    sec("Dia por dia", LEG["dia"][reg], '<div class="grade">' + cards + "</div>")
-    sec("A missa de cada dia", LEG["missa"],
-        _bloco_missas([m for m in d["missas"] if m["regiao"] == reg], d["igrejas"]))
-    decs = [x for x in d["decisoes"] if x.get("regiao") == reg]
-    if decs:
-        sec("Ir ou não ir", LEG["dec"], _bloco_decisoes(decs))
-    pernas = [p for p in d["roteiro"] if p["regiao"] == reg]
-    if pernas:
-        sec("Trecho por trecho", LEG["trecho"][reg], _bloco_roteiro(pernas))
-    if reg == "ca":
-        sec("O Pacífico", LEG["enso"], _bloco_pacifico(d.get("enso") or {}, None))
-    if reg == "bi":
-        sec("O vulcão", LEG["vulcao"], _bloco_pacifico(None, d.get("kilauea")))
-
-    meus = [p for p in d["pontos"] if p["regiao"] == reg]
-    abas = "".join('<button class="aba" role="tab" aria-selected="false" data-p="' + p["id"]
-                   + '" title="' + _h.escape(p["papel"]) + '">' + _h.escape(p["nome"])
-                   + "</button>" for p in meus)
-    leg_vento = "".join('<span><i style="background:' + c + '"></i>' + t + "</span>"
-                        for t, c in LEGENDA_VENTO)
-    sec("Ponto por ponto", LEG["grade"],
-        '<div class="abas" role="tablist" data-reg="' + reg + '">' + abas + "</div>"
-        '<div class="rolagem" id="grade-' + reg + '"></div>'
-        '<div class="legenda"><span>vento e rajada, em nós:</span>' + leg_vento + "</div>")
-
-    if reg == "ca":
-        sec("A estrada", LEG["estrada_ca"], _bloco_estradas(d["estradas"]))
-    if reg == "bi":
-        sec("A estrada", LEG["estrada_bi"], "")
-    avisos = [a for a in d["alertas"] if reg in a.get("regioes", [])]
-    sec("Avisos oficiais", LEG["avisos"], _bloco_avisos(avisos) if avisos else
-        '<p class="vazio">Nenhum aviso ativo do National Weather Service nos pontos de '
-        + _h.escape(NOME_REG[reg]) + ".</p>")
-
-    linhas = []
-    for p in meus:
-        n = p["normal"]
-        linhas.append("<tr><td>" + _h.escape(p["nome"]) + "</td><td>" + f'{n["tmax"]:.1f}'
-                      + "</td><td>" + f'{n["tmin"]:.1f}' + "</td><td>" + f'{n["mm"]:.1f}'
-                      + "</td><td>" + str(n["pct"]) + "%</td><td>" + str(n["forte"])
-                      + "%</td><td>" + (p.get("por_do_sol") or "-") + "</td></tr>")
-    sec("O que a história diz", LEG["hist"][reg],
-        '<div class="rolagem" style="padding:2px 14px 8px"><table class="hist"><thead><tr>'
-        "<th>ponto</th><th>máx</th><th>mín</th><th>mm/dia</th><th>dias com chuva</th>"
-        "<th>&gt;5 mm</th><th>poente</th></tr></thead><tbody>" + "".join(linhas)
-        + "</tbody></table></div>")
-
-    return ('<div class="painel" id="p-' + SLUG_REG[reg] + '" role="tabpanel" data-reg="' + reg
-            + '" aria-labelledby="t-' + reg + '" hidden>' + "".join(secoes) + "</div>")
-
-
-
-CSS += r"""
-.f-es{background:rgba(94,109,114,.15);color:var(--tinta2)}
-.item.es{border-left-color:var(--neblina)}
-.item .num{margin:5px 0 0;font-size:12.5px;color:var(--tinta2);
-  font-variant-numeric:tabular-nums}
-.item .regra{margin:7px 0 0;font-size:12.5px;color:var(--tinta2);
-  padding-left:11px;border-left:2px solid var(--linha)}
-.item .txt{margin:8px 0 0;font-size:13.5px;color:var(--tinta)}
-.item h3{font-size:17px}
-.abas .grupo{flex:0 0 auto;align-self:center;font-size:11px;font-weight:700;
-  letter-spacing:.16em;text-transform:uppercase;color:var(--tinta2);
-  padding:0 6px 0 10px;white-space:nowrap}
-.abas .grupo:first-child{padding-left:0}
-table.hist tr.sec th{text-align:left;font-size:11px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--poppy);padding-top:14px;font-weight:700;
-  border-bottom:1px solid var(--linha)}
-.duplo{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-"""
 
 HTML = """<!DOCTYPE html>
 <html lang="pt-BR" data-tema="">
@@ -823,43 +1193,39 @@ HTML = """<!DOCTYPE html>
 <meta name="robots" content="noindex">
 <title>Honeymoon &middot; Rafael e Ana Cecília</title>
 <link rel="icon" href="{{FAVICON}}">
+<script>document.documentElement.classList.add("js");try{var t=localStorage.getItem("cd-tema");if(t)document.documentElement.setAttribute("data-tema",t)}catch(e){}</script>
 <style>{{CSS}}</style>
 </head>
 <body>
-<header class="capa">
-  <div class="sol" aria-hidden="true"></div>
-  <div class="env">
-    <div class="marca">Rafael e Ana Cecília &middot; 20/12/2026 a 06/01/2027</div>
-    <h1>Honey<em>moon</em></h1>
-    <p class="sub">O tempo, a estrada, o mar e a missa de cada dia, na Golden Coast,
-    em Oʻahu e em Hawaiʻi.</p>
-    <div class="regua">
-      <span class="selo" id="contagem">calculando</span>
-      <span class="selo">atualizado <b>{{GERADO_PST}}</b> na costa</span>
-      <span class="selo">{{GERADO_BRT}} em Brasília</span>
-    </div>
+<header class="topo"><div class="env topo-in">
+  <div class="marca">
+    <div class="linha1"><h1>Honeymoon</h1><span class="contagem" id="contagem"></span></div>
+    <p class="meta">atualizado {{GERADO}} na costa<span class="longo">, {{GERADO_BRT}} em Brasília</span></p>
   </div>
-  """ + ONDAS + """
-</header>
-<nav class="regioes" aria-label="Regiões da viagem"><div class="env" role="tablist">{{NAV}}</div></nav>
+  <button class="tema" id="bt-tema" aria-label="Alternar tema claro ou escuro" title="tema">&#9680;</button>
+</div></header>
+<nav class="datas" aria-label="Dias da viagem"><div class="faixa-rola" id="faixa">{{FAIXA}}</div></nav>
 
-<div class="env">
-{{PAINEIS}}
+<main class="env">
+<div class="cartoes">{{CARTOES}}</div>
+
+<section class="detalhes" id="detalhes">
+  <h2>Mais detalhes, por região</h2>
+  <div class="regs" role="tablist" aria-label="Regiões">{{REGS}}</div>
+  {{PAINEIS}}
+</section>
+
 <footer>
-  <p>Missas: horários conferidos nos sites das paróquias e nos diretórios oficiais das
-  dioceses de Los Angeles, Monterey e Honolulu em 13/09/2026, com link para cada fonte.</p>
-  <p>Previsão e reanálise: <a href="https://open-meteo.com/">Open-Meteo</a>
-  (ICON, GFS e ERA5), com elevação forçada em cada ponto. Ondas: Open-Meteo Marine. Avisos:
-  <a href="https://api.weather.gov/">National Weather Service</a>. Estradas:
+  <p>Rafael e Ana Cecília, 20/12/2026 a 06/01/2027. Golden Coast em PST
+  <span class="nw">(UTC-8)</span>; Oʻahu e Hawaiʻi em HST <span class="nw">(UTC-10)</span>.</p>
+  <p>Missas conferidas nos sites das paróquias e nos diretórios das dioceses de Los Angeles,
+  Monterey e Honolulu em 13/09/2026. Tempo: <a href="https://open-meteo.com/">Open-Meteo</a>.
+  Avisos: <a href="https://api.weather.gov/">National Weather Service</a>. Estradas:
   <a href="https://roads.dot.ca.gov/">Caltrans</a>. El Niño:
-  <a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml">Climate
-  Prediction Center</a>. Vulcão:
-  <a href="https://www.usgs.gov/observatories/hvo">Hawaiian Volcano Observatory</a>.</p>
-  <p>Página gerada pelo GitHub Actions e publicada no PythonAnywhere. Horário da Golden Coast
-  é PST (UTC-8); de Oʻahu e Hawaiʻi, HST (UTC-10).</p>
+  <a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml">CPC</a>.
+  Vulcão: <a href="https://www.usgs.gov/observatories/hvo">USGS HVO</a>.</p>
 </footer>
-</div>
-<button class="tema" id="bt-tema">tema</button>
+</main>
 <script>{{JS}}</script>
 </body>
 </html>
@@ -867,119 +1233,6 @@ HTML = """<!DOCTYPE html>
 
 
 CSS += r"""
-.perna{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;
-  padding:18px 18px 6px;margin:0 0 14px;box-shadow:var(--sombra)}
-.perna>.cab{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
-  flex-wrap:wrap;border-bottom:1px solid var(--linha);padding-bottom:11px;
-  margin-bottom:4px}
-.perna .data{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--poppy);font-weight:700}
-.perna .resumo{font-size:12.5px;color:var(--tinta2);font-variant-numeric:tabular-nums}
-table.pernas{width:100%;border-collapse:collapse;font-size:13.5px}
-table.pernas td{padding:9px 8px 9px 0;border-bottom:1px solid var(--linha);
-  vertical-align:baseline}
-table.pernas tr:last-child td{border-bottom:0}
-table.pernas td.h{width:58px;font-weight:700;font-variant-numeric:tabular-nums;
-  color:var(--pacifico2);white-space:nowrap}
-table.pernas td.q b{display:block;font-weight:650}
-table.pernas td.q span{color:var(--tinta2);font-size:13px}
-table.pernas td.dur{width:96px;text-align:right;color:var(--tinta2);font-size:12.5px;
-  white-space:nowrap;font-variant-numeric:tabular-nums}
-.perna ul{margin:12px 0 14px;padding-left:0;list-style:none}
-.perna ul li{position:relative;padding:0 0 9px 18px;font-size:13.5px;
-  color:var(--tinta)}
-.perna ul li:before{content:"";position:absolute;left:0;top:.55em;width:6px;
-  height:6px;border-radius:50%;background:var(--dourado)}
-@media (max-width:560px){
-  .perna{padding:15px 14px 4px}
-  table.pernas td.dur{display:none}
-  table.pernas td.h{width:50px;font-size:12.5px}
-}
-"""
-
-
-def _bloco_roteiro(pernas):
-    h = []
-    for p in pernas:
-        br = p["dia"][8:10] + "/" + p["dia"][5:7]
-        h.append('<article class="perna"><div class="cab"><div>'
-                 '<div class="data">' + br + " &middot; "
-                 + NOME_REG[p["regiao"]] + "</div><h3>"
-                 + _h.escape(p["titulo"]) + '</h3></div>'
-                 '<div class="resumo">' + _h.escape(p["cabecalho"]) + "</div></div>")
-        h.append(_bloco_mapa(p.get("mapa_url"), p.get("mapa_link"), "",
-                             "Mapa do trajeto de " + br))
-        h.append('<table class="pernas">')
-        for hora, oque, como, dur in p["trechos"]:
-            h.append('<tr><td class="h">' + _h.escape(hora) + '</td>'
-                     '<td class="q"><b>' + _h.escape(oque) + "</b><span>"
-                     + _h.escape(como) + '</span></td>'
-                     '<td class="dur">' + _h.escape(dur) + "</td></tr>")
-        h.append("</table>")
-        if p.get("notas"):
-            h.append("<ul>" + "".join("<li>" + _h.escape(n) + "</li>"
-                                      for n in p["notas"]) + "</ul>")
-        h.append("</article>")
-    return "".join(h)
-
-
-CSS += r"""
-img.mapa{display:block;width:100%;height:auto;margin:12px 0 6px;border-radius:10px;
-  border:1px solid var(--linha);background:var(--papel2)}
-a.gmaps{display:inline-flex;align-items:center;min-height:44px;font-size:13.5px;
-  font-weight:650;color:var(--pacifico2);text-decoration:none}
-a.gmaps:after{content:" \2192";margin-left:4px}
-.item p.efeito,.perna p.efeito{margin:8px 0 0;font-size:13.5px;color:var(--tinta);
-  font-weight:600}
-"""
-
-
-CSS += r"""
-nav.regioes{position:sticky;top:0;z-index:20;background:var(--papel);
-  border-bottom:1px solid var(--linha);box-shadow:0 6px 16px -14px rgba(28,43,49,.5)}
-nav.regioes .env{display:flex;gap:8px;padding-top:9px;padding-bottom:9px}
-.reg{flex:1 1 auto;min-width:0;min-height:54px;border:1px solid var(--linha);
-  background:var(--cartao);border-radius:12px;padding:6px 12px;text-align:left;
-  cursor:pointer;color:var(--tinta);font:inherit}
-.reg b{display:block;font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-  font-size:18px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis}
-.reg small{display:block;font-size:11.5px;color:var(--tinta2);white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-.reg[aria-selected="true"]{background:var(--pacifico);border-color:var(--pacifico);
-  color:var(--sobre-pacifico)}
-.reg[aria-selected="true"] small{color:inherit;opacity:.82}
-.painel>section:first-child{margin-top:26px}
-.item.missa .selos{display:flex;gap:6px;flex-wrap:wrap}
-.missa-rec{display:flex;align-items:center;gap:14px;margin:10px 0 2px}
-.missa-rec .hora{font-size:26px;font-weight:700;color:var(--pacifico2);
-  font-variant-numeric:tabular-nums;min-width:74px;letter-spacing:-.02em}
-.missa-rec div{flex:1;min-width:0}
-.missa-rec b{display:block;font-size:15.5px}
-.missa-rec div span{display:block;font-size:13px;color:var(--tinta2)}
-.missa-rec a.gmaps{flex:0 0 auto}
-.alts-tit{margin:12px 0 4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--tinta2);font-weight:700}
-ul.alts{margin:0;padding-left:18px;font-size:13.5px;color:var(--tinta)}
-ul.alts li{margin:0 0 5px}
-ul.alts a,details.grade-missas a{color:var(--pacifico2)}
-details.grade-missas{margin:10px 0 0;font-size:13px;color:var(--tinta2)}
-details.grade-missas summary{cursor:pointer;min-height:44px;display:flex;align-items:center;
-  font-weight:600;color:var(--pacifico2)}
-details.grade-missas ul{margin:0 0 6px;padding-left:18px}
-details.grade-missas li{margin:0 0 5px}
-p.missa-cartao{margin:10px 0 0;padding-top:9px;border-top:1px dashed var(--linha);
-  font-size:13px;color:var(--tinta)}
-p.missa-cartao span{display:inline-block;margin-right:7px;font-size:10.5px;font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--sequoia)}
-@media (max-width:560px){
-  nav.regioes .env{gap:6px}
-  .reg{padding:6px 8px}
-  .reg b{font-size:15px;overflow:visible;text-overflow:clip}
-  .reg small{font-size:10.5px}
-  .missa-rec .hora{font-size:21px;min-width:58px}
-  .missa-rec{flex-wrap:wrap;row-gap:0}
-  .missa-rec div{flex:1 1 calc(100% - 80px)}
-  .missa-rec a.gmaps{margin-left:72px;min-height:36px}
-}
+p.aviso-missa{margin:8px 0 0;padding:8px 10px;border-left:3px solid var(--laranja, #E8730F);
+  background:color-mix(in srgb, #E8730F 9%, transparent);font-weight:600}
 """

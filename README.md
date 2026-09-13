@@ -13,7 +13,7 @@ Califórnia (Los Angeles a Carmel), Oahu e Big Island.
 - `state/` guarda o que já foi avisado, para o push ser sempre delta, os hashes
   dos mapas publicados e o cache de geografia (`geo.json`).
 
-Publicado em <https://rafaelcortopassi.pythonanywhere.com/honeymoon/>, com três abas (Golden Coast, Oʻahu e Hawaiʻi) e a missa de cada dia. O endereço antigo `/california/` ficou só com um redirecionamento, para os links já enviados.
+Publicado em <https://rafaelcortopassi.pythonanywhere.com/honeymoon/>, lido por dia: faixa de datas de 20/12 a 06/01, cartão do dia escolhido e do seguinte (missa, o dia, tempo, atenção, links) e o resto recolhido em "Mais detalhes, por região" (Golden Coast, Oʻahu e Hawaiʻi). `#dia-AAAA-MM-DD` na URL abre o dia. O endereço antigo `/california/` ficou só com um redirecionamento, para os links já enviados.
 
 ## Rodar à mão
 
@@ -69,3 +69,12 @@ Mauna Kea Summit), como nas placas e no Google Maps.
 - Mudar `VERSAO` em `_cartografia.py` força redesenhar e reenviar todos.
 - Testar sem incomodar: `python3 monitor.py --forca --sem-publicar --sem-avisar`
   grava os mapas em `mapas/`. No Actions, disparar com `avisar=false`.
+
+## Missa de cada dia
+
+`MISSAS` e `IGREJAS` no `monitor.py`. Todo dia de 20/12 a 06/01 tem uma missa
+recomendada, casada com os voos reais (agenda pessoal do usuário): Panamá em
+21/12 na escala de 5h35, Houston em 06/01 entre 5h52 e 9h34. O campo `aviso`
+aparece visível no cartão (ex.: só sair do aeroporto se o voo pousar no horário);
+`sem` e `alts` ficam em "Por que esta". A missa manda no dia: em 24/12 a saída de
+Pacific Grove é às 6h10 para a missa das 8h30 em Paso Robles.

@@ -154,7 +154,8 @@ PONTOS = [
 # dia, regiao, titulo, resumo, pontos (o ultimo e o destino), dirige
 ETAPAS = [
     ("2026-12-21", "ca", "Chegada a Los Angeles",
-     "Pouso às 18h10, transfer do Holiday Inn. Sem carro.", ["lax"], False),
+     "Voos: Brasília 2h, Panamá 6h a 11h35, Houston 14h54 a 16h30, Los Angeles 18h10. "
+     "Transfer do Holiday Inn. Sem carro.", ["lax"], False),
     ("2026-12-22", "ca", "Los Angeles a Pacific Grove",
      "Carro às 9h no LAX. PCH até Malibu, 101 pela orla até Santa Barbara, "
      "101 pelo interior até Pacific Grove. Recepção fecha às 18h.",
@@ -177,7 +178,8 @@ ETAPAS = [
      "Kualoa e North Shore.",
      ["hanauma", "makapuu", "lanikai", "kualoa", "northshore", "haleiwa"], True),
     ("2026-12-28", "bi", "Oʻahu a Hilo",
-     "Devolução às 10h no HNL. Jeep 4x4 às 16h no aeroporto de Hilo.",
+     "Carro devolvido às 10h no HNL, voo para Hilo às 14h17, pouso às 15h13. Jeep 4x4 "
+     "às 16h no aeroporto de Hilo.",
      ["hilo"], True),
     ("2026-12-29", "bi", "Hawaii Volcanoes National Park",
      "Crater Rim, Nāhuku, Chain of Craters. Voltar ao anoitecer se houver "
@@ -197,9 +199,11 @@ ETAPAS = [
     ("2027-01-03", "bi", "Praias de Kona e Kohala",
      "Magic Sands, Kua Bay ou Hāpuna. Ritmo livre.", ["hapuna", "kona"], True),
     ("2027-01-04", "ca", "Kona a Los Angeles",
-     "Carro de volta às 14h em Kona. Transfer do hotel no LAX.", ["kona", "lax"], True),
+     "Carro de volta às 14h em Kona, voo às 16h24, pouso em Los Angeles às 23h50. "
+     "Transfer do Holiday Inn.", ["kona", "lax"], True),
     ("2027-01-05", "ca", "Último dia em Los Angeles",
-     "Dia livre a pé ou de aplicativo. Saída para o aeroporto às 20h.",
+     "Dia livre a pé ou de aplicativo. Saída para o aeroporto às 20h: voo para Houston "
+     "à 0h40 de 06/01, Panamá e Brasília.",
      ["lax"], False),
 ]
 
@@ -581,6 +585,12 @@ IGREJAS = {
         "horarios": "terça a sexta 12h15 · sábado 17h · domingo 8h, 10h30 e 18h",
         "busca": "Catedral Metropolitana de Brasília",
         "fonte": "https://catedral.org.br/veja-as-orientacoes-para-participar-da-santa-missa-na-catedral.html"},
+    "stgregoryhou": {
+        "nome": "St. Gregory the Great", "lugar": "Houston, 20 km do aeroporto IAH",
+        "horarios": "quarta a sexta 7h e terça 18h, segundo o MassTimes e o CatholicMassTime "
+                    "(o site da paróquia bloqueia leitura)",
+        "busca": "St. Gregory the Great Catholic Church, 10500 Nold Rd, Houston, TX",
+        "fonte": "https://masstimes.org/"},
     "benedict": {
         "nome": "St. Benedict's Painted Church", "lugar": "Hōnaunau, South Kona",
         "horarios": "terça a sexta 7h · dias de preceito 7h · domingo 8h",
@@ -592,29 +602,28 @@ IGREJAS = {
 # nenhuma cabe, e por que. confirmar: horario de 2025 ou nao publicado.
 MISSAS = [
     {"dia": "2026-12-20", "regiao": "ca", "liturgia": "4º Domingo do Advento", "preceito": True,
-     "badge": "depende do voo",
-     "sem": "Em Brasília, antes do embarque. A escolha depende do horário do voo: para voo "
-            "internacional, o bom é estar no aeroporto três horas antes.",
-     "alts": [{"hora": "19h30", "igreja": "nazarebsb",
-               "nota": "A mais tarde e a mais perto do aeroporto, a 11 km. Serve para voo a partir "
-                       "de 23h45."},
-              {"hora": "18h ou 19h30", "igreja": "domboscobsb", "nota": "No caminho do aeroporto."},
-              {"hora": "18h", "igreja": "catedralbsb", "nota": "Para voo a partir de 22h30."},
-              {"hora": "8h ou 11h", "igreja": "domboscobsb",
-               "nota": "Se o voo sair cedo. Ou a paróquia de vocês."}]},
-    {"dia": "2026-12-21", "regiao": "ca", "liturgia": "Advento", "badge": "depende do voo",
-     "confirmar": True,
-     "sem": "O dia é de conexões. Em cada escala longa dá para sair do aeroporto, ir à missa e "
-            "voltar, e na chegada a Los Angeles ainda há missa às 21h.",
-     "alts": [{"hora": "6h30, 7h30 ou 8h30", "igreja": "santuariopty",
-               "nota": "Escala no Panamá de manhã, de pelo menos 4h30. A 22 km de Tocumen; brasileiro "
-                       "entra sem visto. A capela do aeroporto só celebra às quintas e aos domingos."},
-              {"hora": "12h10", "igreja": "stjosephhou",
-               "nota": "Escala em Houston cobrindo o meio-dia, de pelo menos 5h. A imigração americana "
-                       "já é feita ali; a volta passa de novo pela inspeção de segurança. A 36 km do IAH."},
+     "rec": {"hora": "19h30", "igreja": "nazarebsb", "dist": "11 km do aeroporto de Brasília",
+             "porque": "O voo para o Panamá sai às 2h de 21/12. Missa, jantar e aeroporto às 23h, "
+                       "com folga."},
+     "sem": "Se preferirem manter a missa das 7h que já está na agenda de vocês, o resto do "
+            "domingo fica livre para as malas.",
+     "alts": [{"hora": "18h ou 19h30", "igreja": "domboscobsb", "nota": "No caminho do aeroporto."},
+              {"hora": "18h", "igreja": "catedralbsb", "nota": ""}]},
+    {"dia": "2026-12-21", "regiao": "ca", "liturgia": "Advento",
+     "rec": {"hora": "8h30", "igreja": "santuariopty", "dist": "22 km do aeroporto de Tocumen",
+             "porque": "Escala no Panamá das 6h às 11h35. Pouso, imigração (brasileiro entra sem "
+                       "visto), táxi de 40 a 50 minutos no trânsito da manhã, missa, e volta a "
+                       "Tocumen por volta de 9h50 para despachar e embarcar para Houston."},
+     "aviso": "Voltar a Tocumen até 9h50 para despachar e embarcar às 11h35.",
+     "sem": "Os localizadores da ida são diferentes (Brasília-Panamá e Panamá-Houston): se a "
+            "bagagem não vier despachada direto, as malas saem com vocês na imigração, e o "
+            "despacho para Houston abre por volta de 8h35. Em Houston, das 14h54 às 16h30, não "
+            "dá para sair do aeroporto.",
+     "alts": [{"hora": "7h30", "igreja": "santuariopty",
+               "nota": "Na cripta, só às segundas. Se a imigração for rápida, dá mais folga na volta."},
               {"hora": "21h", "igreja": "usc",
-               "nota": "Na chegada, a 19 km do LAX. É o horário do semestre, e 21/12 é férias na USC: "
-                       "confirmar em dezembro que a missa se mantém."}]},
+               "nota": "Plano B, na chegada a Los Angeles (pouso às 18h10). É o horário do semestre, "
+                       "e 21/12 é férias na USC: confirmar em dezembro."}]},
     {"dia": "2026-12-22", "regiao": "ca", "liturgia": "Advento",
      "rec": {"hora": "8h", "igreja": "visitation", "dist": "5 km do Holiday Inn LAX",
              "porque": "Café do hotel antes. A missa termina por volta de 8h35 e as locadoras "
@@ -653,16 +662,14 @@ MISSAS = [
               {"hora": "8h", "igreja": "visitation",
                "nota": "Se o programa for o Getty Center, que abre às 10h. Perto do hotel."},
               {"hora": "7h", "igreja": "olacatedral", "nota": "Também às 7h em St. Monica."}]},
-    {"dia": "2027-01-06", "regiao": "ca", "liturgia": "Tempo do Natal", "badge": "depende do voo",
-     "sem": "O voo sai do LAX à 0h40, então a missa do dia fica na conexão ou na chegada.",
-     "alts": [{"hora": "8h", "igreja": "stjameshou",
-               "nota": "Escala em Houston de manhã. A uns 7,5 km do aeroporto IAH."},
-              {"hora": "12h10", "igreja": "stjosephhou", "nota": "Escala em Houston cobrindo o meio-dia."},
-              {"hora": "6h30, 8h30 ou 17h30", "igreja": "santuariopty", "nota": "Escala no Panamá."},
-              {"hora": "18h30", "igreja": "domboscobsb", "nota": "Chegando a Brasília no fim da tarde."},
-              {"hora": "19h30", "igreja": "nazarebsb",
-               "nota": "Chegando a Brasília à noite, a 11 km do aeroporto."}]},
-
+    {"dia": "2027-01-06", "regiao": "ca", "liturgia": "Tempo do Natal", "confirmar": True,
+     "rec": {"hora": "7h", "igreja": "stgregoryhou", "dist": "20 km do aeroporto IAH",
+             "porque": "Pouso em Houston às 5h52 vindo de Los Angeles e embarque para o Panamá às "
+                       "9h34. Aplicativo às 6h15, missa às 7h, volta ao aeroporto por volta de 8h05 "
+                       "para passar de novo pela segurança. É a única missa possível no dia: no "
+                       "Panamá a escala é de 1h42 e a chegada a Brasília já é 07/01."},
+     "aviso": "Só sair do aeroporto se o voo pousar no horário. Com mais de 20 minutos de atraso, "
+              "a volta para o voo das 9h34 fica arriscada."},
     {"dia": "2026-12-24", "regiao": "oahu", "liturgia": "Noite de Natal", "badge": "opcional",
      "confirmar": True,
      "sem": "A missa do dia 24 é de manhã, em Paso Robles (aba Golden Coast). Se quiserem também a "
