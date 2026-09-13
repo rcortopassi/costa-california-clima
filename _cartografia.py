@@ -401,10 +401,12 @@ def mapa_resumo(regiao, itens, rotas):
     leg += [("inicio", "início"), ("fim", "fim")]
     return {"tipo": "resumo", "regiao": regiao, "titulo": f"Mapa de {NOME_REG[regiao]}",
             "toca": bool(tocam), "link": "",
-            "efeito": (f"{len(tocam)} deles no seu trajeto." if tocam else "Nenhum toca o seu trajeto."),
+            "efeito": (("1 deles está" if len(tocam) == 1 else f"{len(tocam)} deles estão")
+                       + " no seu trajeto." if tocam else "Nenhum toca o seu trajeto."),
             "spec": {"kicker": f"Resumo · {NOME_REG[regiao]}",
                      "titulo": " e ".join(partes) + " perto do seu trajeto",
-                     "subtitulo": (f"{len(tocam)} deles tocam o trajeto." if tocam
+                     "subtitulo": (("1 deles toca" if len(tocam) == 1 else f"{len(tocam)} deles tocam")
+                                   + " o trajeto de vocês." if tocam
                                    else "Nenhum deles toca o trajeto de vocês."),
                      "rotas": [{"linha": r["linha"]} for r in legs],
                      "trechos": trechos, "areas": areas, "marcos": marcos,
