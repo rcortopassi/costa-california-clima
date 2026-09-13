@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-13T02:44:43+00:00",
+ "rodada_utc": "2026-09-13T12:05:53+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "via:-6420877876578995145",
@@ -20,8 +20,7 @@
   "trajeto_sul_3112": "1d81e507a3",
   "via_d8fee71d3c0f": "fae3862d5f",
   "via_3f401545f646": "fd1b4de74e",
-  "nws_2ea0222bf8e5": "7eabea9e34",
-  "nws_97570656f40c": "334596dab8",
-  "resumo_ca": "7cfe6e5c6e"
+  "nws_da696082ff14": "aa61ae6870",
+  "resumo_ca": "ae73b62e63"
  }
 }
