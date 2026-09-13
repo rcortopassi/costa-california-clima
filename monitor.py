@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Costa Dourada - monitor do clima da rota Los Angeles <-> Carmel.
+"""Honeymoon - clima, estrada, mar e missa de cada dia da viagem de dezembro de 2026.
 
 Roda no GitHub Actions de 6 em 6 horas, publica a pagina no PythonAnywhere e
 manda o resumo por Telegram/ntfy. So stdlib.
@@ -56,7 +56,7 @@ _carrega_env_local()
 PA_TOKEN = os.environ.get("PA_TOKEN", "")
 PA_USER = os.environ.get("PA_USER", "rafaelcortopassi")
 PA_API = "https://www.pythonanywhere.com"
-PA_DIR = "california"
+PA_DIR = "honeymoon"
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT", "")
@@ -80,9 +80,9 @@ VIAGEM = {
 }
 
 REGIOES = [
-    ("ca", "California", "America/Los_Angeles", -8),
-    ("oahu", "Oahu", "Pacific/Honolulu", -10),
-    ("bi", "Big Island", "Pacific/Honolulu", -10),
+    ("ca", "Golden Coast", "America/Los_Angeles", -8),
+    ("oahu", "Oʻahu", "Pacific/Honolulu", -10),
+    ("bi", "Hawaiʻi", "Pacific/Honolulu", -10),
 ]
 
 # id, nome, lat, lon, elevacao forcada (None = modelo decide), regiao, papel,
@@ -172,11 +172,11 @@ ETAPAS = [
     ("2026-12-26", "oahu", "Diamond Head e Pearl Harbor",
      "Trilha no começo da manhã, Pearl Harbor depois. Sem carro.",
      ["diamond", "waikiki"], False),
-    ("2026-12-27", "oahu", "Volta a Oahu de carro",
+    ("2026-12-27", "oahu", "Volta a Oʻahu de carro",
      "Carro às 10h no centro. Único dia com carro na ilha: Hanauma, costa leste, "
      "Kualoa e North Shore.",
      ["hanauma", "makapuu", "lanikai", "kualoa", "northshore", "haleiwa"], True),
-    ("2026-12-28", "bi", "Oahu a Hilo",
+    ("2026-12-28", "bi", "Oʻahu a Hilo",
      "Devolução às 10h no HNL. Jeep 4x4 às 16h no aeroporto de Hilo.",
      ["hilo"], True),
     ("2026-12-29", "bi", "Hawaii Volcanoes National Park",
@@ -196,7 +196,7 @@ ETAPAS = [
      ["kealakekua", "kona"], False),
     ("2027-01-03", "bi", "Praias de Kona e Kohala",
      "Magic Sands, Kua Bay ou Hāpuna. Ritmo livre.", ["hapuna", "kona"], True),
-    ("2027-01-04", "ca", "Big Island a Los Angeles",
+    ("2027-01-04", "ca", "Kona a Los Angeles",
      "Carro de volta às 14h em Kona. Transfer do hotel no LAX.", ["kona", "lax"], True),
     ("2027-01-05", "ca", "Último dia em Los Angeles",
      "Dia livre a pé ou de aplicativo. Saída para o aeroporto às 20h.",
@@ -321,7 +321,7 @@ ROTEIRO = [
     "mais até clarear consomem a folga inteira, e aí o certo é sair às 6h30.",
   ]},
 
- {"dia": "2026-12-27", "regiao": "oahu", "titulo": "A volta de Oahu",
+ {"dia": "2026-12-27", "regiao": "oahu", "titulo": "A volta de Oʻahu",
   "cabecalho": "cerca de 180 km, o único dia com carro na ilha, poente às 17:58",
   "trechos": [
     ("10:00", "Retirar o carro", "1778 Ala Moana Blvd, a poucos minutos do hotel a "
@@ -461,6 +461,192 @@ ROTEIRO = [
   ]},
 ]
 
+# ---------------------------------------------------------------- missas
+# Conferido em 13/09/2026 nos sites das proprias paroquias (e, onde o site
+# bloqueia leitura, no diretorio oficial da diocese). Agregadores erraram quatro
+# vezes: vigilia de Kona (e 16h, nao 17h), Little Blue Church de Keauhou (esta
+# fechada), catedral de Monterey (7h30, nao 7h45) e os dias de semana de
+# Waikiki. Natal e Ano Novo de 2026 ainda nao foram publicados: onde aparece
+# "2025", e o horario do ano passado, a confirmar em dezembro.
+IGREJAS = {
+    "visitation": {
+        "nome": "Church of the Visitation", "lugar": "Westchester, Los Angeles",
+        "horarios": "segunda a sexta 8h · sábado 17h · domingo 8h, 9h30 e 11h",
+        "busca": "Church of the Visitation, 6561 W 88th St, Los Angeles",
+        "fonte": "https://www.visitationchurch-la.com/"},
+    "sancarlos": {
+        "nome": "San Carlos Cathedral (Royal Presidio Chapel)", "lugar": "Monterey",
+        "horarios": "segunda a sexta 7h30 e 12h (exceto feriados) · sábado 16h · "
+                    "domingo 7h30, 9h, 10h30, 12h em espanhol e 17h30",
+        "busca": "San Carlos Cathedral, 500 Church St, Monterey, CA",
+        "fonte": "https://sancarloscathedral.org/mass-schedule/"},
+    "angela": {
+        "nome": "St. Angela Merici", "lugar": "Pacific Grove",
+        "horarios": "terça a sexta 8h30 · sábado 17h · domingo 8h, 10h e 12h",
+        "busca": "St. Angela Merici Catholic Church, Pacific Grove, CA",
+        "fonte": "https://stangelamericipacificgrove.org/mass-times"},
+    "carmel": {
+        "nome": "Carmel Mission Basilica", "lugar": "Carmel-by-the-Sea",
+        "horarios": "quarta a sexta 12h · sábado 17h30 · domingo 9h e 11h",
+        "busca": "Carmel Mission Basilica, 3080 Rio Rd, Carmel, CA",
+        "fonte": "https://carmelmission.org/mass-and-events/"},
+    "olacatedral": {
+        "nome": "Cathedral of Our Lady of the Angels", "lugar": "Downtown Los Angeles",
+        "horarios": "segunda a sexta 7h e 12h10 · domingo 8h, 10h e 12h30 em espanhol",
+        "busca": "Cathedral of Our Lady of the Angels, 555 W Temple St, Los Angeles",
+        "fonte": "https://olacathedral.org/mass-schedule"},
+    "monica": {
+        "nome": "St. Monica", "lugar": "Santa Monica",
+        "horarios": "segunda a sexta 7h e 12h10 · em feriado, uma missa só, às 9h30",
+        "busca": "St. Monica Catholic Community, 725 California Ave, Santa Monica",
+        "fonte": "https://stmonica.net/"},
+    "augustine": {
+        "nome": "St. Augustine by-the-Sea", "lugar": "Waikiki",
+        "horarios": "terça a sábado 7h (segunda é só culto de comunhão) · sábado 17h · "
+                    "domingo 6h, 8h, 10h e 17h",
+        "busca": "St. Augustine by-the-Sea, 130 Ohua Ave, Honolulu",
+        "fonte": "https://staugustinebythesea.com/"},
+    "catedralhnl": {
+        "nome": "Cathedral Basilica of Our Lady of Peace",
+        "lugar": "Kamiano Center, 1159 Fort Street Mall, Downtown Honolulu",
+        "horarios": "segunda a sexta 6h30 e 12h · sábado 7h, 12h e 17h · "
+                    "domingo 8h, 10h, 12h e 17h (missas no Kamiano Center, ao lado da catedral)",
+        "busca": "Kamiano Center, 1159 Fort Street Mall, Honolulu",
+        "fonte": "https://honolulucathedral.org/mass-schedule/"},
+    "theresa": {
+        "nome": "Co-Cathedral of St. Theresa", "lugar": "Honolulu",
+        "horarios": "segunda a quinta 6h30 · sexta e sábado 8h · sábado 17h · "
+                    "domingo 6h15, 8h, 10h30 e 18h",
+        "busca": "Co-Cathedral of Saint Theresa, 712 N School St, Honolulu",
+        "fonte": "https://www.catholichawaii.org/parish-listing/co-cathedral-of-saint-theresa/?viewFull=true"},
+    "joseph": {
+        "nome": "St. Joseph", "lugar": "Hilo",
+        "horarios": "segunda a sexta 6h e 12h15 · sábado 7h e 17h · domingo 7h, 9h, 11h45 e 18h",
+        "busca": "St. Joseph Catholic Church, 43 Kapiolani St, Hilo",
+        "fonte": "https://stjoehilo.com/"},
+    "michael": {
+        "nome": "St. Michael the Archangel", "lugar": "Aliʻi Drive, Kailua-Kona",
+        "horarios": "todos os dias 7h · sábado 16h · domingo 7h, 9h, 12h em espanhol e 16h",
+        "busca": "St. Michael the Archangel Church, 75-5769 Alii Dr, Kailua-Kona",
+        "fonte": "https://saintmichaelparishkona.org/our-parish/mass-times-and-locations/"},
+    "benedict": {
+        "nome": "St. Benedict's Painted Church", "lugar": "Hōnaunau, South Kona",
+        "horarios": "terça a sexta 7h · dias de preceito 7h · domingo 8h",
+        "busca": "St. Benedict's Painted Church, Captain Cook, HI",
+        "fonte": "https://www.catholichawaii.org/parish-listing/saint-benedict/?viewFull=true"},
+}
+
+# rec: a que encaixa melhor no dia. alts: as outras possiveis. sem: quando
+# nenhuma cabe, e por que. confirmar: horario de 2025 ou nao publicado.
+MISSAS = [
+    {"dia": "2026-12-20", "regiao": "ca", "liturgia": "4º Domingo do Advento", "preceito": True,
+     "sem": "Na paróquia de vocês em Brasília, antes do voo do fim do dia."},
+    {"dia": "2026-12-21", "regiao": "ca", "liturgia": "Advento",
+     "sem": "Não há como. O pouso é às 18h10, e nenhuma paróquia perto do LAX celebra à noite "
+            "em dia de semana."},
+    {"dia": "2026-12-22", "regiao": "ca", "liturgia": "Advento",
+     "rec": {"hora": "8h", "igreja": "visitation", "dist": "5 km do Holiday Inn LAX",
+             "porque": "Café do hotel antes. A missa termina por volta de 8h35 e as locadoras "
+                       "ficam a 10 minutos de aplicativo: dá para pegar o carro às 9h."},
+     "descartadas": "Old Mission Santa Barbara só celebra às 8h, quando vocês ainda estão em "
+                    "Los Angeles. Não há missa ao meio-dia em Santa Barbara nem à noite em "
+                    "Pacific Grove."},
+    {"dia": "2026-12-23", "regiao": "ca", "liturgia": "Advento",
+     "rec": {"hora": "7h30", "igreja": "sancarlos", "dist": "5 km da Gosby House Inn",
+             "porque": "Igreja fundada por São Junípero Serra em 1770. Dá tempo de voltar para o "
+                       "café da pousada e pegar a fila do aquário às 9h45."},
+     "alts": [{"hora": "8h30", "igreja": "angela",
+               "nota": "A 1 km, dá para ir a pé, mas aperta a fila do aquário."},
+              {"hora": "12h", "igreja": "carmel",
+               "nota": "Onde está sepultado São Junípero Serra. Obriga a refazer a tarde; "
+                       "melhor visitar a basílica 20 minutos a caminho de Point Lobos, que "
+                       "fica colada na SR 1."}]},
+    {"dia": "2026-12-24", "regiao": "ca", "liturgia": "Véspera de Natal",
+     "sem": "Nenhuma cabe na Golden Coast: a missa mais cedo do condado é às 7h30 e a saída "
+            "para o LAX tem de ser às 7h. A noite de Natal está na aba Oʻahu."},
+    {"dia": "2027-01-05", "regiao": "ca", "liturgia": "São João Neumann",
+     "rec": {"hora": "12h10", "igreja": "olacatedral", "dist": "de aplicativo, sem carro",
+             "porque": "Para o programa Griffith Observatory ao pôr do sol: missa na catedral, "
+                       "almoço no Grand Central Market e Griffith à tarde, tudo do mesmo lado "
+                       "da cidade."},
+     "alts": [{"hora": "12h10", "igreja": "monica",
+               "nota": "Se o programa for Santa Monica e Venice Beach."},
+              {"hora": "8h", "igreja": "visitation",
+               "nota": "Se o programa for o Getty Center, que abre às 10h. Perto do hotel."},
+              {"hora": "7h", "igreja": "olacatedral", "nota": "Também às 7h em St. Monica."}]},
+    {"dia": "2027-01-06", "regiao": "ca", "liturgia": "Tempo do Natal",
+     "sem": "O voo de volta sai à 0h40."},
+
+    {"dia": "2026-12-24", "regiao": "oahu", "liturgia": "Noite de Natal", "confirmar": True,
+     "sem": "Não recomendada. Vocês pousam às 21h31, e em 2025 as missas da noite em Waikiki "
+            "foram às 17h e às 20h. A única que dá tempo é a Missa do Galo da catedral, mas "
+            "meia-noite em Honolulu são 2h no relógio de vocês, depois de um dia que começa às "
+            "6h na Golden Coast. Melhor o dia 25 às 10h.",
+     "alts": [{"hora": "0h (cânticos às 23h30)", "igreja": "catedralhnl",
+               "nota": "Horário de 2025. A 5 km do hotel, de táxi."}]},
+    {"dia": "2026-12-25", "regiao": "oahu", "liturgia": "Natal do Senhor", "preceito": True,
+     "confirmar": True,
+     "rec": {"hora": "10h", "igreja": "augustine", "dist": "2 km a pé do The Ambassador",
+             "porque": "Fica no caminho do Kapiʻolani Park, que já é o plano do dia de Natal."},
+     "alts": [{"hora": "6h, 8h ou 17h", "igreja": "augustine",
+               "nota": "Horários de 2025, a confirmar em dezembro."}]},
+    {"dia": "2026-12-26", "regiao": "oahu", "liturgia": "Santo Estêvão",
+     "rec": {"hora": "17h", "igreja": "augustine", "dist": "2 km a pé",
+             "porque": "Vigília da Sagrada Família, na volta de Pearl Harbor. Já vale pelo "
+                       "domingo e mantém o Diamond Head às 6h."},
+     "alts": [{"hora": "7h", "igreja": "augustine",
+               "nota": "Só se o Diamond Head ficar para as 8h: às 7h vocês estariam na trilha."}]},
+    {"dia": "2026-12-27", "regiao": "oahu", "liturgia": "Sagrada Família", "preceito": True,
+     "rec": {"hora": "8h", "igreja": "augustine", "dist": "2 km a pé",
+             "porque": "Antes de pegar o carro às 10h na Ala Moana Blvd. O preceito já está "
+                       "cumprido na vigília; esta é a missa do dia."},
+     "alts": [{"hora": "6h", "igreja": "augustine", "nota": "Se preferirem começar mais cedo."}]},
+    {"dia": "2026-12-28", "regiao": "oahu", "liturgia": "Santos Inocentes",
+     "rec": {"hora": "6h30", "igreja": "catedralhnl", "dist": "5 km, já de carro e com as malas",
+             "porque": "St. Augustine não tem missa às segundas. A catedral fica no caminho do "
+                       "aeroporto, onde o carro é devolvido às 10h, e foi nela que São Damião de "
+                       "Molokai foi ordenado. Em Hilo não há missa à tarde."},
+     "alts": [{"hora": "6h30", "igreja": "theresa",
+               "nota": "Mais perto da H-1, também no caminho do aeroporto."}]},
+
+    {"dia": "2026-12-29", "regiao": "bi", "liturgia": "Oitava do Natal",
+     "rec": {"hora": "6h", "igreja": "joseph", "dist": "3 km do Castle Hilo Hawaiian",
+             "porque": "Café depois e saída para o Hawaii Volcanoes National Park às 8h30. "
+                       "Seis da manhã em Hilo são oito no relógio que vocês trazem da Golden Coast."},
+     "alts": [{"hora": "12h15", "igreja": "joseph",
+               "nota": "Só se o dia no parque for encurtado."}]},
+    {"dia": "2026-12-30", "regiao": "bi", "liturgia": "Oitava do Natal",
+     "rec": {"hora": "6h", "igreja": "joseph", "dist": "3 km",
+             "porque": "É o único horário que cabe no dia mais longo: Hamakua Coast, Waimea e "
+                       "Mauna Kea Summit, com volta a Hilo por volta de 20h."}},
+    {"dia": "2026-12-31", "regiao": "bi", "liturgia": "Oitava do Natal",
+     "rec": {"hora": "6h", "igreja": "joseph", "dist": "3 km",
+             "porque": "Antes da saída para Kona pelo sul, às 9h."}},
+    {"dia": "2027-01-01", "regiao": "bi", "liturgia": "Santa Maria, Mãe de Deus",
+     "preceito": True, "confirmar": True,
+     "rec": {"hora": "7h", "igreja": "benedict", "dist": "14 km ao sul do Outrigger",
+             "porque": "St. Michael não publicou horário de 1º de janeiro nem em 2025. A Painted "
+                       "Church celebra às 7h em dia de preceito, com vista para a Kealakekua Bay."},
+     "alts": [{"hora": "a confirmar", "igreja": "michael",
+               "nota": "Se houver missa mais tarde, combina melhor com o dia sem despertador."}]},
+    {"dia": "2027-01-02", "regiao": "bi", "liturgia": "São Basílio e São Gregório",
+     "rec": {"hora": "7h", "igreja": "michael", "dist": "12 km pela Aliʻi Drive",
+             "porque": "Dá tempo de voltar para o catamarã e deixa a noite livre para o snorkel "
+                       "com arraias-manta em qualquer horário."},
+     "alts": [{"hora": "16h", "igreja": "michael",
+               "nota": "Vigília da Epifania, já vale pelo domingo. Pede o snorkel das 20h15."}]},
+    {"dia": "2027-01-03", "regiao": "bi", "liturgia": "Epifania do Senhor", "preceito": True,
+     "rec": {"hora": "16h", "igreja": "michael", "dist": "12 km",
+             "porque": "Praia de manhã, com luz melhor e mar mais calmo. A missa é no centro "
+                       "histórico de Kailua-Kona, onde o roteiro já fecha o dia, com o pôr do sol "
+                       "e o jantar na Aliʻi Drive em seguida."},
+     "alts": [{"hora": "7h ou 9h", "igreja": "michael", "nota": "Antes de ir para a praia."}]},
+    {"dia": "2027-01-04", "regiao": "bi", "liturgia": "Santa Isabel Ana Seton",
+     "rec": {"hora": "7h", "igreja": "michael", "dist": "12 km",
+             "porque": "Café depois e a manhã livre até entregar o carro às 14h no aeroporto de Kona."}},
+]
+
+
 # ---------------------------------------------------------------- rotas
 # Paradas na ORDEM em que voces passam, com coordenadas conferidas no
 # OpenStreetMap em 13/09/2026 (o Hōlei Sea Arch estava 4 km fora no chute).
@@ -501,7 +687,7 @@ ROTAS = {
                       (34.4100, -119.6858, "Santa Barbara"), (34.2805, -119.2945, "Ventura")]},
     "oahu_2712": {
         "dia": "2026-12-27", "regiao": "oahu", "trajeto": True,
-        "titulo": "A volta de Oahu",
+        "titulo": "A volta de Oʻahu",
         "resumo": "SR 72 pela costa leste, SR 83 pela Windward Coast e North Shore, H-2 e H-1 na volta",
         "paradas": [(21.2855, -157.8375, "Alamo, Ala Moana Blvd"), (21.2696, -157.6938, "Hanauma Bay"),
                     (21.3110, -157.6490, "Makapuʻu Point"), (21.3966, -157.7259, "Kailua Beach Park"),
@@ -1070,7 +1256,7 @@ def decisoes(prev, mar, kil):
         return "bom", ("Windward Coast igual ou melhor que o North Shore. Seguir o "
                        "sentido normal: leste primeiro, North Shore no fim."), num
 
-    add("oahu_sentido", "Sentido da volta de Oahu", "2026-12-27", "manhã",
+    add("oahu_sentido", "Sentido da volta de Oʻahu", "2026-12-27", "manhã",
         "Inverte o laço se a Windward Coast tiver 1,5 mm mais de chuva que o North "
         "Shore entre 8h e 13h.",
         lan, av_oahu,
@@ -1357,7 +1543,12 @@ def main():
         "prev_por_dia": prev_por_dia, "estradas": vias, "alertas": alertas,
         "enso": es, "kilauea": kil,
         "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO,
+        "missas": MISSAS, "igrejas": IGREJAS,
     }
+
+    for dec in d["decisoes"]:
+        rid = ROTA_DA_DECISAO.get(dec["id"])
+        dec["regiao"] = ROTAS[rid]["regiao"] if rid in ROTAS else "ca"
 
     # ---- mapas: um por dia de estrada e um por aviso que tenha lugar. Falha
     # aqui nao pode calar o aviso: sem mapa, o texto sai do mesmo jeito.
@@ -1510,7 +1701,7 @@ def main():
     if "--sem-avisar" in sys.argv:
         print("--sem-avisar: nada enviado")
     elif urgentes:
-        titulo = "Costa Dourada: " + urgentes[0]["texto"][:60]
+        titulo = "Honeymoon: " + urgentes[0]["texto"][:60]
         anexo = next((url_mapa(u["mapa"], True) for u in urgentes if u["mapa"] and url_mapa(u["mapa"])), "")
         textos = "\n".join(u["texto"] for u in urgentes)
         push_ntfy(titulo, textos + "\n\n" + corpo, prioridade="high", tags="warning", anexo=anexo)
@@ -1519,7 +1710,7 @@ def main():
             if u["mapa"] in imagens:
                 push_telegram_foto(imagens[u["mapa"]], legenda(u["mapa"], u["extra"]), urgente=True)
     else:
-        push_telegram(f"Costa Dourada, faltam {dias_para} dias", corpo, urgente=False)
+        push_telegram(f"Honeymoon, faltam {dias_para} dias", corpo, urgente=False)
         for mid in sorted(enviar):
             if mid in imagens:
                 push_telegram_foto(imagens[mid], legenda(mid), urgente=False)

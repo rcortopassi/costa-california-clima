@@ -1,4 +1,4 @@
-# Costa Dourada
+# Honeymoon
 
 Monitor de clima, mar e estrada da viagem de 20/12/2026 a 06/01/2027: costa da
 Califórnia (Los Angeles a Carmel), Oahu e Big Island.
@@ -13,7 +13,7 @@ Califórnia (Los Angeles a Carmel), Oahu e Big Island.
 - `state/` guarda o que já foi avisado, para o push ser sempre delta, os hashes
   dos mapas publicados e o cache de geografia (`geo.json`).
 
-Publicado em <https://rafaelcortopassi.pythonanywhere.com/california/>.
+Publicado em <https://rafaelcortopassi.pythonanywhere.com/honeymoon/>, com três abas (Golden Coast, Oʻahu e Hawaiʻi) e a missa de cada dia. O endereço antigo `/california/` ficou só com um redirecionamento, para os links já enviados.
 
 ## Rodar à mão
 

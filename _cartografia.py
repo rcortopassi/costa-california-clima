@@ -14,11 +14,11 @@ from urllib.parse import quote
 
 import _geo
 
-VERSAO = "7"      # mudar isto forca redesenhar todos os mapas numa rodada
+VERSAO = "8"   # 8: nomes das abas e mudanca para /honeymoon/      # mudar isto forca redesenhar todos os mapas numa rodada
 
 SEMANA = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira",
           "sexta-feira", "sábado", "domingo"]
-NOME_REG = {"ca": "California", "oahu": "Oahu", "bi": "Big Island"}
+NOME_REG = {"ca": "Golden Coast", "oahu": "Oʻahu", "bi": "Hawaiʻi"}
 MOTIVOS = [("wildfire", "Incêndio"), ("fire", "Incêndio"), ("slide", "Deslizamento"),
            ("slip", "Deslizamento"), ("flood", "Alagamento"), ("snow", "Neve"),
            ("ice", "Gelo"), ("collision", "Acidente"), ("accident", "Acidente"),

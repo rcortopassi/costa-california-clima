@@ -274,11 +274,50 @@ function montaGrade(p){
 function abre(id){
   const p = D.pontos.find(function(x){ return x.id === id; });
   if (!p) return;
-  document.getElementById("grade").innerHTML = montaGrade(p);
-  document.querySelectorAll(".aba").forEach(function(b){
+  const alvo = document.getElementById("grade-" + p.regiao);
+  if (!alvo) return;
+  alvo.innerHTML = montaGrade(p);
+  alvo.dataset.ponto = id;
+  document.querySelectorAll('.abas[data-reg="' + p.regiao + '"] .aba').forEach(function(b){
     b.setAttribute("aria-selected", b.dataset.p === id ? "true" : "false");
   });
-  try { localStorage.setItem("cd-ponto", id); } catch (e) {}
+  try { localStorage.setItem("hm-ponto-" + p.regiao, id); } catch (e) {}
+}
+
+const SLUGS = {"golden-coast": "ca", "oahu": "oahu", "hawaii": "bi"};
+
+/* Durante a viagem a aba abre sozinha na regiao onde voces estao. */
+function regiaoDaData(){
+  const t = Date.now();
+  if (t >= Date.parse("2027-01-04T14:00:00-10:00")) return "ca";
+  if (t >= Date.parse("2026-12-28T10:00:00-10:00")) return "bi";
+  if (t >= Date.parse("2026-12-24T17:43:00-08:00")) return "oahu";
+  return "ca";
+}
+
+function mostraRegiao(reg, gravar){
+  document.querySelectorAll(".painel").forEach(function(el){
+    el.hidden = el.dataset.reg !== reg;
+  });
+  let slug = "golden-coast";
+  document.querySelectorAll(".reg").forEach(function(b){
+    const sim = b.dataset.reg === reg;
+    b.setAttribute("aria-selected", sim ? "true" : "false");
+    if (sim) slug = b.dataset.slug;
+  });
+  const g = document.getElementById("grade-" + reg);
+  if (g && !g.dataset.ponto){
+    let inicial = null;
+    try { inicial = localStorage.getItem("hm-ponto-" + reg); } catch (e) {}
+    const daRegiao = D.pontos.filter(function(x){ return x.regiao === reg; });
+    if (!daRegiao.some(function(x){ return x.id === inicial; }))
+      inicial = daRegiao.length ? daRegiao[0].id : null;
+    if (inicial) abre(inicial);
+  }
+  if (gravar){
+    try { history.replaceState(null, "", "#" + slug); } catch (e) {}
+    try { localStorage.setItem("hm-regiao", reg); } catch (e) {}
+  }
 }
 
 function contagem(){
@@ -311,14 +350,24 @@ function tema(){
   document.querySelectorAll(".aba").forEach(function(b){
     b.addEventListener("click", function(){ abre(b.dataset.p); });
   });
+  document.querySelectorAll(".reg").forEach(function(b){
+    b.addEventListener("click", function(){ mostraRegiao(b.dataset.reg, true); });
+  });
   const bt = document.getElementById("bt-tema");
   if (bt) bt.addEventListener("click", tema);
-  let inicial = D.pontos[0].id;
-  try {
-    const salvo = localStorage.getItem("cd-ponto");
-    if (salvo && D.pontos.some(function(x){ return x.id === salvo; })) inicial = salvo;
-  } catch (e) {}
-  abre(inicial);
+  let reg = SLUGS[(location.hash || "").replace("#", "")];
+  if (!reg){
+    if (Date.now() >= Date.parse("2026-12-20T00:00:00-03:00")) reg = regiaoDaData();
+    else {
+      try { reg = localStorage.getItem("hm-regiao"); } catch (e) {}
+      if (["ca", "oahu", "bi"].indexOf(reg) < 0) reg = "ca";
+    }
+  }
+  mostraRegiao(reg, false);
+  window.addEventListener("hashchange", function(){
+    const r = SLUGS[(location.hash || "").replace("#", "")];
+    if (r) mostraRegiao(r, false);
+  });
   contagem();
   setInterval(contagem, 60000);
 })();
@@ -343,10 +392,39 @@ VER = {
     "ruim":    ("ru", "f-ru", "não vá"),
     "espera":  ("es", "f-es", "regra armada"),
 }
-NOME_REG = {"ca": "California", "oahu": "Oahu", "bi": "Big Island"}
+NOME_REG = {"ca": "Golden Coast", "oahu": "Oʻahu", "bi": "Hawaiʻi"}
+SLUG_REG = {"ca": "golden-coast", "oahu": "oahu", "bi": "hawaii"}
+PERIODO_REG = {"ca": "21 a 24/12 · 04 a 06/01", "oahu": "24 a 28/12", "bi": "28/12 a 04/01"}
+SEMANA = ["segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira",
+          "sábado", "domingo"]
 
 
-def _card_etapa(e, ponto, prev_dia, dias_para):
+def _semana(dia):
+    from datetime import date
+    return SEMANA[date.fromisoformat(dia).weekday()]
+
+
+def _gmaps_busca(q):
+    from urllib.parse import quote
+    return "https://www.google.com/maps/search/?api=1&query=" + quote(q)
+
+
+def _missa_do_dia(dia, regiao, missas, igrejas):
+    """Linha curta da missa para o cartao do dia. Prefere a da propria aba."""
+    linhas = [m for m in missas if m["dia"] == dia]
+    m = next((x for x in linhas if x["regiao"] == regiao), linhas[0] if linhas else None)
+    if not m:
+        return ""
+    if m.get("rec"):
+        ig = igrejas[m["rec"]["igreja"]]
+        txt = f'{m["rec"]["hora"]} · {ig["nome"]}, {ig["lugar"]}'
+    else:
+        txt = "sem missa possível neste dia" if "Não há" in m["sem"] or "Nenhuma" in m["sem"] \
+            else m["sem"].split(".")[0]
+    return ('<p class="missa-cartao"><span>missa</span>' + _h.escape(txt) + "</p>")
+
+
+def _card_etapa(e, ponto, prev_dia, dias_para, missa_html=""):
     """Cartao de um dia do roteiro. Mostra previsao quando a data ja cabe nos
     16 dias do modelo; fora disso mostra a climatologia, que e o unico numero
     honesto a essa distancia."""
@@ -380,7 +458,58 @@ def _card_etapa(e, ponto, prev_dia, dias_para):
                  + "<dt>previsão entra em</dt><dd>"
                  + str(max(0, dias_para - 16)) + " dias</dd></dl>"
                  '<p class="txt"><span class="faixa f-at">climatologia, não previsão</span></p>')
-    h.append('<p class="txt">' + _h.escape(e["resumo"]) + "</p></article>")
+    h.append('<p class="txt">' + _h.escape(e["resumo"]) + "</p>" + missa_html + "</article>")
+    return "".join(h)
+
+
+def _bloco_missas(missas, igrejas):
+    h = []
+    for m in missas:
+        br = m["dia"][8:10] + "/" + m["dia"][5:7]
+        selos = ""
+        if m.get("preceito"):
+            selos += '<span class="faixa f-at">preceito</span>'
+        if m.get("confirmar"):
+            selos += '<span class="faixa f-es">confirmar em dezembro</span>'
+        cls = "item missa " + ("ok" if m.get("rec") else "es")
+        h.append('<article class="' + cls + '"><div class="cab"><span class="via">' + br
+                 + " · " + _semana(m["dia"]) + " · " + _h.escape(m["liturgia"])
+                 + '</span><span class="selos">' + selos + "</span></div>")
+        if m.get("rec"):
+            r = m["rec"]
+            ig = igrejas[r["igreja"]]
+            h.append('<div class="missa-rec"><span class="hora">' + _h.escape(r["hora"])
+                     + '</span><div><b>' + _h.escape(ig["nome"]) + "</b><span>"
+                     + _h.escape(ig["lugar"]) + " · " + _h.escape(r["dist"]) + "</span></div>"
+                     + '<a class="gmaps" href="' + _h.escape(_gmaps_busca(ig["busca"]))
+                     + '" target="_blank" rel="noopener">mapa</a></div>')
+            h.append('<p class="txt">' + _h.escape(r["porque"]) + "</p>")
+        if m.get("sem"):
+            h.append('<p class="txt">' + _h.escape(m["sem"]) + "</p>")
+        if m.get("alts"):
+            h.append('<p class="alts-tit">Outras possíveis</p><ul class="alts">')
+            for a in m["alts"]:
+                ig = igrejas[a["igreja"]]
+                h.append('<li><b>' + _h.escape(a["hora"]) + "</b> " + _h.escape(ig["nome"])
+                         + ", " + _h.escape(ig["lugar"]) + ". " + _h.escape(a["nota"])
+                         + ' <a href="' + _h.escape(_gmaps_busca(ig["busca"]))
+                         + '" target="_blank" rel="noopener">mapa</a></li>')
+            h.append("</ul>")
+        if m.get("descartadas"):
+            h.append('<p class="regra">' + _h.escape(m["descartadas"]) + "</p>")
+        usadas = []
+        for k in ([m["rec"]["igreja"]] if m.get("rec") else []) + [a["igreja"] for a in m.get("alts", [])]:
+            if k not in usadas:
+                usadas.append(k)
+        if usadas:
+            h.append('<details class="grade-missas"><summary>Horários de cada igreja</summary><ul>')
+            for k in usadas:
+                ig = igrejas[k]
+                h.append("<li><b>" + _h.escape(ig["nome"]) + ":</b> " + _h.escape(ig["horarios"])
+                         + '. <a href="' + _h.escape(ig["fonte"])
+                         + '" target="_blank" rel="noopener">site da paróquia</a></li>')
+            h.append("</ul></details>")
+        h.append("</article>")
     return "".join(h)
 
 
@@ -462,7 +591,9 @@ def _bloco_avisos(alertas):
 
 def _bloco_pacifico(e, k):
     h = []
-    if e and e.get("status"):
+    if e is None:
+        pass
+    elif e.get("status"):
         h.append('<div class="item at"><div class="cab">'
                  '<span class="via">El Niño &middot; Climate Prediction Center, NOAA</span>'
                  '<span class="faixa f-at">' + _h.escape(e["status"]) + "</span></div>"
@@ -524,60 +655,139 @@ def monta(d):
     dados = {
         "gerado": d["gerado"], "viagem": d["viagem"], "dias_grade": d["dias_grade"],
         "dias_viagem": d["dias_viagem"],
-        "pontos": [{"id": p["id"], "nome": p["nome"],
+        "pontos": [{"id": p["id"], "nome": p["nome"], "regiao": p["regiao"],
                     "hourly": _enxuga(p["hourly"], d["dias_grade"])}
                    for p in d["pontos"]],
     }
     js = JS.replace("DADOS", _j.dumps(dados, ensure_ascii=False, separators=(",", ":")), 1)
 
-    abas = []
-    for r in d["regioes"]:
-        meus = [p for p in d["pontos"] if p["regiao"] == r["id"]]
-        if not meus:
-            continue
-        abas.append('<span class="grupo">' + _h.escape(r["nome"]) + "</span>")
-        abas += ['<button class="aba" role="tab" aria-selected="false" data-p="'
-                 + p["id"] + '" title="' + _h.escape(p["papel"]) + '">'
-                 + _h.escape(p["nome"]) + "</button>" for p in meus]
-
-    cards = "".join(_card_etapa(e, d["por_id"][e["pontos"][-1]],
-                                d["prev_por_dia"].get(e["dia"]), d["dias_para"])
-                    for e in d["etapas"] if e["pontos"][-1] in d["por_id"])
-
-    leg = "".join('<span><i style="background:' + c + '"></i>' + t + "</span>"
-                  for t, c in LEGENDA_VENTO)
-
-    hist = []
-    for r in d["regioes"]:
-        meus = [p for p in d["pontos"] if p["regiao"] == r["id"]]
-        if not meus:
-            continue
-        hist.append('<tr class="sec"><th colspan="7">' + _h.escape(r["nome"])
-                    + "</th></tr>")
-        for p in meus:
-            n = p["normal"]
-            hist.append("<tr><td>" + _h.escape(p["nome"]) + "</td><td>"
-                        + f'{n["tmax"]:.1f}' + "</td><td>" + f'{n["tmin"]:.1f}'
-                        + "</td><td>" + f'{n["mm"]:.1f}' + "</td><td>"
-                        + str(n["pct"]) + "%</td><td>" + str(n["forte"])
-                        + "%</td><td>" + (p.get("por_do_sol") or "-") + "</td></tr>")
+    nav = "".join(
+        '<button class="reg" role="tab" id="t-' + r + '" data-reg="' + r + '" data-slug="'
+        + SLUG_REG[r] + '" aria-controls="p-' + SLUG_REG[r] + '" aria-selected="false"><b>'
+        + _h.escape(NOME_REG[r]) + "</b><small>" + PERIODO_REG[r] + "</small></button>"
+        for r in ("ca", "oahu", "bi"))
+    paineis = "".join(_painel(d, r) for r in ("ca", "oahu", "bi"))
 
     return (HTML
             .replace("{{CSS}}", CSS)
             .replace("{{FAVICON}}", FAVICON)
-            .replace("{{ABAS}}", "".join(abas))
-            .replace("{{CARDS}}", cards)
-            .replace("{{DECISOES}}", _bloco_decisoes(d["decisoes"]))
-            .replace("{{ROTEIRO}}", _bloco_roteiro(d["roteiro"]))
-            .replace("{{LEGENDA}}", leg)
-            .replace("{{ESTRADAS}}", _bloco_estradas(d["estradas"]))
-            .replace("{{AVISOS}}", _bloco_avisos(d["alertas"]))
-            .replace("{{PACIFICO}}", _bloco_pacifico(d.get("enso"), d.get("kilauea")))
-            .replace("{{HIST}}", "".join(hist))
+            .replace("{{NAV}}", nav)
+            .replace("{{PAINEIS}}", paineis)
             .replace("{{GERADO_PST}}", d["gerado"].replace("T", " às "))
             .replace("{{GERADO_BRT}}", d["gerado_brt"].replace("T", " às "))
-            .replace("{{N_PONTOS}}", str(len(d["pontos"])))
             .replace("{{JS}}", js)), js
+
+
+LEG = {
+    "dia": {
+        "ca": "Enquanto a viagem estiver a mais de 16 dias, nenhum modelo prevê o dia. O cartão "
+              "mostra a climatologia de 21 a 24 de dezembro, calculada sobre 1995 a 2025, e avisa "
+              "quando a previsão de verdade entra.",
+        "oahu": "Climatologia de 26/12 a 05/01, calculada sobre 2000 a 2025, até a previsão do "
+                "modelo alcançar os dias de vocês.",
+        "bi": "Climatologia de 26/12 a 05/01, calculada sobre 2000 a 2025. Hilo chove em 72% dos "
+              "dias desta janela, a maior taxa da viagem.",
+    },
+    "missa": "A missa que encaixa no dia sem atrapalhar o resto, com as outras possíveis. "
+             "Horários conferidos nos sites das próprias paróquias em 13/09/2026. Natal e Ano "
+             "Novo de 2026 ainda não foram publicados: onde aparece 2025, é o horário do ano "
+             "passado, a confirmar no começo de dezembro.",
+    "dec": "Cada decisão está amarrada a um número que o modelo entrega, não a uma impressão. "
+           "Enquanto o dia não cabe na previsão, a regra fica armada e o painel mostra o gatilho.",
+    "trecho": {
+        "ca": "Os três dias de estrada na Golden Coast, com a rodovia exata, a distância medida "
+              "no roteador e o horário. É a semana do solstício: o sol se põe antes das 17h.",
+        "oahu": "O único dia com carro na ilha, com a volta completa e o sentido que depende da "
+                "chuva da manhã.",
+        "bi": "Os três dias de estrada na ilha: o parque do vulcão, a Hamakua Coast com o Mauna "
+              "Kea Summit, e a travessia pelo sul até Kona.",
+    },
+    "enso": "A três meses da viagem, o único sinal com valor preditivo para a costa é o estado "
+            "do El Niño, que inclina a estação inteira para mais ou menos chuva.",
+    "vulcao": "O nível de alerta do Kilauea decide se existe lava para ver. A cratera só vale à "
+              "noite nas três noites em Hilo; depois de Kona, a ida custa 2h15 por trecho.",
+    "grade": "Grade de 3 em 3 horas, sete dias, hora local. A cor diz o valor antes do número: "
+             "azul e verde é calmo, amarelo e laranja é vento, vermelho é tempestade. Violeta na "
+             "última linha é visibilidade baixa. As colunas laranja são os dias do roteiro.",
+    "estrada_ca": "Boletim da Caltrans para a SR 1 e a US 101, recortado nos condados do roteiro, "
+                  "com mapa de onde começa e termina cada restrição.",
+    "estrada_bi": "Não existe boletim de estradas como o da Caltrans. A estrada que fecha é a Mauna "
+                  "Kea Access Road, até o Mauna Kea Summit, e ela fecha por gelo: a regra do cume, "
+                  "em Ir ou não ir, antecipa isso pelo nível de congelamento.",
+    "avisos": "Alertas ativos do National Weather Service nos pontos desta aba, com mapa da área.",
+    "hist": {
+        "ca": "Médias de 21 a 24 de dezembro, 1995 a 2025, e a hora do poente na semana do "
+              "solstício, a de dias mais curtos do ano.",
+        "oahu": "Médias de 26/12 a 05/01, 2000 a 2025, e a hora do poente.",
+        "bi": "Médias de 26/12 a 05/01, 2000 a 2025, e a hora do poente. O Mauna Kea Summit fica "
+              "abaixo de zero à noite nesta janela.",
+    },
+}
+
+
+def _painel(d, reg):
+    secoes = []
+
+    def sec(titulo, leg, corpo):
+        secoes.append("<section><h2>" + titulo + "</h2>"
+                      + ('<p class="leg">' + _h.escape(leg) + "</p>" if leg else "")
+                      + corpo + "</section>")
+
+    etapas = [e for e in d["etapas"] if e["regiao"] == reg and e["pontos"][-1] in d["por_id"]]
+    cards = "".join(_card_etapa(e, d["por_id"][e["pontos"][-1]], d["prev_por_dia"].get(e["dia"]),
+                                d["dias_para"],
+                                _missa_do_dia(e["dia"], reg, d["missas"], d["igrejas"]))
+                    for e in etapas)
+    sec("Dia por dia", LEG["dia"][reg], '<div class="grade">' + cards + "</div>")
+    sec("A missa de cada dia", LEG["missa"],
+        _bloco_missas([m for m in d["missas"] if m["regiao"] == reg], d["igrejas"]))
+    decs = [x for x in d["decisoes"] if x.get("regiao") == reg]
+    if decs:
+        sec("Ir ou não ir", LEG["dec"], _bloco_decisoes(decs))
+    pernas = [p for p in d["roteiro"] if p["regiao"] == reg]
+    if pernas:
+        sec("Trecho por trecho", LEG["trecho"][reg], _bloco_roteiro(pernas))
+    if reg == "ca":
+        sec("O Pacífico", LEG["enso"], _bloco_pacifico(d.get("enso") or {}, None))
+    if reg == "bi":
+        sec("O vulcão", LEG["vulcao"], _bloco_pacifico(None, d.get("kilauea")))
+
+    meus = [p for p in d["pontos"] if p["regiao"] == reg]
+    abas = "".join('<button class="aba" role="tab" aria-selected="false" data-p="' + p["id"]
+                   + '" title="' + _h.escape(p["papel"]) + '">' + _h.escape(p["nome"])
+                   + "</button>" for p in meus)
+    leg_vento = "".join('<span><i style="background:' + c + '"></i>' + t + "</span>"
+                        for t, c in LEGENDA_VENTO)
+    sec("Ponto por ponto", LEG["grade"],
+        '<div class="abas" role="tablist" data-reg="' + reg + '">' + abas + "</div>"
+        '<div class="rolagem" id="grade-' + reg + '"></div>'
+        '<div class="legenda"><span>vento e rajada, em nós:</span>' + leg_vento + "</div>")
+
+    if reg == "ca":
+        sec("A estrada", LEG["estrada_ca"], _bloco_estradas(d["estradas"]))
+    if reg == "bi":
+        sec("A estrada", LEG["estrada_bi"], "")
+    avisos = [a for a in d["alertas"] if reg in a.get("regioes", [])]
+    sec("Avisos oficiais", LEG["avisos"], _bloco_avisos(avisos) if avisos else
+        '<p class="vazio">Nenhum aviso ativo do National Weather Service nos pontos de '
+        + _h.escape(NOME_REG[reg]) + ".</p>")
+
+    linhas = []
+    for p in meus:
+        n = p["normal"]
+        linhas.append("<tr><td>" + _h.escape(p["nome"]) + "</td><td>" + f'{n["tmax"]:.1f}'
+                      + "</td><td>" + f'{n["tmin"]:.1f}' + "</td><td>" + f'{n["mm"]:.1f}'
+                      + "</td><td>" + str(n["pct"]) + "%</td><td>" + str(n["forte"])
+                      + "%</td><td>" + (p.get("por_do_sol") or "-") + "</td></tr>")
+    sec("O que a história diz", LEG["hist"][reg],
+        '<div class="rolagem" style="padding:2px 14px 8px"><table class="hist"><thead><tr>'
+        "<th>ponto</th><th>máx</th><th>mín</th><th>mm/dia</th><th>dias com chuva</th>"
+        "<th>&gt;5 mm</th><th>poente</th></tr></thead><tbody>" + "".join(linhas)
+        + "</tbody></table></div>")
+
+    return ('<div class="painel" id="p-' + SLUG_REG[reg] + '" role="tabpanel" data-reg="' + reg
+            + '" aria-labelledby="t-' + reg + '" hidden>' + "".join(secoes) + "</div>")
+
 
 
 CSS += r"""
@@ -605,7 +815,7 @@ HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Costa Dourada &middot; clima e estrada da lua de mel</title>
+<title>Honeymoon &middot; Rafael e Ana Cecília</title>
 <link rel="icon" href="{{FAVICON}}">
 <style>{{CSS}}</style>
 </head>
@@ -614,9 +824,9 @@ HTML = """<!DOCTYPE html>
   <div class="sol" aria-hidden="true"></div>
   <div class="env">
     <div class="marca">Rafael e Ana Cecília &middot; 20/12/2026 a 06/01/2027</div>
-    <h1>Costa <em>Dourada</em></h1>
-    <p class="sub">O tempo, a luz, o mar e a estrada nos {{N_PONTOS}} pontos do
-    roteiro: costa da California, Oahu e Big Island.</p>
+    <h1>Honey<em>moon</em></h1>
+    <p class="sub">O tempo, a estrada, o mar e a missa de cada dia, na Golden Coast,
+    em Oʻahu e em Hawaiʻi.</p>
     <div class="regua">
       <span class="selo" id="contagem">calculando</span>
       <span class="selo">atualizado <b>{{GERADO_PST}}</b> na costa</span>
@@ -625,93 +835,22 @@ HTML = """<!DOCTYPE html>
   </div>
   """ + ONDAS + """
 </header>
+<nav class="regioes" aria-label="Regiões da viagem"><div class="env" role="tablist">{{NAV}}</div></nav>
 
 <div class="env">
-
-<section>
-  <h2>Ir ou não ir</h2>
-  <p class="leg">Cada decisão do roteiro está amarrada a um número que o modelo
-  entrega, não a uma impressão. Enquanto o dia não cabe na previsão, a regra
-  fica armada e o painel mostra o gatilho em vez de um palpite.</p>
-  {{DECISOES}}
-</section>
-
-<section>
-  <h2>Dia por dia</h2>
-  <p class="leg">Enquanto a viagem estiver a mais de 16 dias, nenhum modelo
-  prevê o dia. O cartão então mostra a climatologia da janela real de cada
-  ilha, calculada sobre 1995 a 2025 na California e 2000 a 2025 no Hawaii, e
-  avisa quando a previsão de verdade entra.</p>
-  <div class="grade">{{CARDS}}</div>
-</section>
-
-<section>
-  <h2>Trecho por trecho</h2>
-  <p class="leg">Os quatro dias de estrada, com a rodovia exata, a distância e o
-  horário. Os poentes foram calculados para a data e a coordenada de cada
-  ponto: na California é a semana do solstício e o sol se põe antes das 17h,
-  quase uma hora mais cedo do que no fim de janeiro.</p>
-  {{ROTEIRO}}
-</section>
-
-<section>
-  <h2>O Pacífico e o vulcão</h2>
-  <p class="leg">A esta distância, os dois sinais com valor preditivo são o
-  estado do El Niño, que inclina a estação inteira, e o nível de alerta do
-  Kilauea, que decide se existe lava para ver.</p>
-  <div class="duplo">{{PACIFICO}}</div>
-</section>
-
-<section>
-  <h2>Ponto por ponto</h2>
-  <p class="leg">Grade de 3 em 3 horas, sete dias, hora local de cada ilha. A
-  cor diz o valor antes do número: azul e verde é calmo, amarelo e laranja é
-  vento, vermelho é tempestade. Violeta na última linha é visibilidade baixa.
-  As colunas laranja são os dias do roteiro.</p>
-  <div class="abas" role="tablist">{{ABAS}}</div>
-  <div class="rolagem" id="grade"></div>
-  <div class="legenda"><span>vento e rajada, em nós:</span>{{LEGENDA}}</div>
-</section>
-
-<section>
-  <h2>A estrada</h2>
-  <p class="leg">Boletim da Caltrans para a SR 1 e a US 101, recortado nos
-  condados do roteiro. O que acontece de Santa Cruz para o norte fica de fora
-  de propósito. No Hawaii não existe boletim equivalente: a estrada que fecha é
-  a Mauna Kea Access Road, até o Mauna Kea Summit, e ela fecha por gelo, o que a grade acima antecipa.</p>
-  {{ESTRADAS}}
-</section>
-
-<section>
-  <h2>Avisos oficiais</h2>
-  <p class="leg">Alertas ativos do National Weather Service em qualquer ponto
-  do roteiro, na California e no Hawaii.</p>
-  {{AVISOS}}
-</section>
-
-<section>
-  <h2>O que a história diz</h2>
-  <p class="leg">Médias da janela de cada ilha e a hora do poente. Na
-  California é a semana do solstício, a de dias mais curtos do ano.</p>
-  <div class="rolagem" style="padding:2px 14px 8px">
-  <table class="hist">
-    <thead><tr><th>ponto</th><th>máx</th><th>mín</th><th>mm/dia</th>
-    <th>dias com chuva</th><th>&gt;5 mm</th><th>poente</th></tr></thead>
-    <tbody>{{HIST}}</tbody>
-  </table></div>
-</section>
-
+{{PAINEIS}}
 <footer>
+  <p>Missas: horários conferidos nos sites das paróquias e nos diretórios oficiais das
+  dioceses de Los Angeles, Monterey e Honolulu em 13/09/2026, com link para cada fonte.</p>
   <p>Previsão e reanálise: <a href="https://open-meteo.com/">Open-Meteo</a>
-  (ICON, GFS e ERA5), com elevação forçada em cada ponto, sem o quê o cume do
-  Mauna Kea viraria uma colina. Ondas: Open-Meteo Marine. Avisos:
+  (ICON, GFS e ERA5), com elevação forçada em cada ponto. Ondas: Open-Meteo Marine. Avisos:
   <a href="https://api.weather.gov/">National Weather Service</a>. Estradas:
   <a href="https://roads.dot.ca.gov/">Caltrans</a>. El Niño:
   <a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml">Climate
   Prediction Center</a>. Vulcão:
   <a href="https://www.usgs.gov/observatories/hvo">Hawaiian Volcano Observatory</a>.</p>
-  <p>Página gerada de 6 em 6 horas pelo GitHub Actions e publicada no
-  PythonAnywhere. Horário da California é PST (UTC-8), do Hawaii é HST (UTC-10).</p>
+  <p>Página gerada pelo GitHub Actions e publicada no PythonAnywhere. Horário da Golden Coast
+  é PST (UTC-8); de Oʻahu e Hawaiʻi, HST (UTC-10).</p>
 </footer>
 </div>
 <button class="tema" id="bt-tema">tema</button>
@@ -786,4 +925,55 @@ a.gmaps{display:inline-flex;align-items:center;min-height:44px;font-size:13.5px;
 a.gmaps:after{content:" \2192";margin-left:4px}
 .item p.efeito,.perna p.efeito{margin:8px 0 0;font-size:13.5px;color:var(--tinta);
   font-weight:600}
+"""
+
+
+CSS += r"""
+nav.regioes{position:sticky;top:0;z-index:20;background:var(--papel);
+  border-bottom:1px solid var(--linha);box-shadow:0 6px 16px -14px rgba(28,43,49,.5)}
+nav.regioes .env{display:flex;gap:8px;padding-top:9px;padding-bottom:9px}
+.reg{flex:1 1 auto;min-width:0;min-height:54px;border:1px solid var(--linha);
+  background:var(--cartao);border-radius:12px;padding:6px 12px;text-align:left;
+  cursor:pointer;color:var(--tinta);font:inherit}
+.reg b{display:block;font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  font-size:18px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.reg small{display:block;font-size:11.5px;color:var(--tinta2);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.reg[aria-selected="true"]{background:var(--pacifico);border-color:var(--pacifico);
+  color:var(--sobre-pacifico)}
+.reg[aria-selected="true"] small{color:inherit;opacity:.82}
+.painel>section:first-child{margin-top:26px}
+.item.missa .selos{display:flex;gap:6px;flex-wrap:wrap}
+.missa-rec{display:flex;align-items:center;gap:14px;margin:10px 0 2px}
+.missa-rec .hora{font-size:26px;font-weight:700;color:var(--pacifico2);
+  font-variant-numeric:tabular-nums;min-width:74px;letter-spacing:-.02em}
+.missa-rec div{flex:1;min-width:0}
+.missa-rec b{display:block;font-size:15.5px}
+.missa-rec div span{display:block;font-size:13px;color:var(--tinta2)}
+.missa-rec a.gmaps{flex:0 0 auto}
+.alts-tit{margin:12px 0 4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tinta2);font-weight:700}
+ul.alts{margin:0;padding-left:18px;font-size:13.5px;color:var(--tinta)}
+ul.alts li{margin:0 0 5px}
+ul.alts a,details.grade-missas a{color:var(--pacifico2)}
+details.grade-missas{margin:10px 0 0;font-size:13px;color:var(--tinta2)}
+details.grade-missas summary{cursor:pointer;min-height:44px;display:flex;align-items:center;
+  font-weight:600;color:var(--pacifico2)}
+details.grade-missas ul{margin:0 0 6px;padding-left:18px}
+details.grade-missas li{margin:0 0 5px}
+p.missa-cartao{margin:10px 0 0;padding-top:9px;border-top:1px dashed var(--linha);
+  font-size:13px;color:var(--tinta)}
+p.missa-cartao span{display:inline-block;margin-right:7px;font-size:10.5px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--sequoia)}
+@media (max-width:560px){
+  nav.regioes .env{gap:6px}
+  .reg{padding:6px 8px}
+  .reg b{font-size:15px;overflow:visible;text-overflow:clip}
+  .reg small{font-size:10.5px}
+  .missa-rec .hora{font-size:21px;min-width:58px}
+  .missa-rec{flex-wrap:wrap;row-gap:0}
+  .missa-rec div{flex:1 1 calc(100% - 80px)}
+  .missa-rec a.gmaps{margin-left:72px;min-height:36px}
+}
 """
