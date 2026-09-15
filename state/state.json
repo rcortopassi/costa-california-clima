@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-15T11:54:01+00:00",
+ "rodada_utc": "2026-09-15T17:09:01+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "via:-6420877876578995145",
@@ -9,7 +9,7 @@
   "via:6638256350534922170",
   "via:d8fee71d3c0f"
  ],
- "dias_para": 98,
+ "dias_para": 97,
  "mapas": {
   "trajeto_ida_2212": "3d57a04c04",
   "trajeto_peninsula_2312": "c2071b3421",
