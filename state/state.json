@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-16T13:35:08+00:00",
+ "rodada_utc": "2026-09-16T21:26:53+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "via:-6420877876578995145",
@@ -9,7 +9,7 @@
   "via:6638256350534922170",
   "via:d8fee71d3c0f"
  ],
- "dias_para": 97,
+ "dias_para": 96,
  "mapas": {
   "trajeto_ida_2212": "3d57a04c04",
   "trajeto_peninsula_2312": "c2071b3421",
@@ -19,6 +19,7 @@
   "trajeto_hamakua_3012": "06a1d9e86f",
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
-  "resumo_ca": "5283d4871e"
+  "via_f02109a51c54": "c97b0d6e68",
+  "resumo_ca": "630081d4d9"
  }
 }
