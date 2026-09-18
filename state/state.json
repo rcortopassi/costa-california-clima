@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-18T07:28:55+00:00",
+ "rodada_utc": "2026-09-18T13:01:23+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0e2b6a9e0b5751903ff2e2982181acae7f3226f0.001.1",
@@ -24,11 +24,6 @@
   "trajeto_hamakua_3012": "06a1d9e86f",
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
-  "nws_d64cb20948ea": "a8609163ec",
-  "nws_f2ac7c23d1ee": "5ec274129d",
-  "nws_3e5a6b809ac3": "719d6ad79c",
-  "resumo_ca": "5283d4871e",
-  "resumo_oahu": "243e349644",
-  "resumo_bi": "5f9812ffb5"
+  "resumo_ca": "5283d4871e"
  }
 }
