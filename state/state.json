@@ -1,8 +1,9 @@
 {
- "rodada_utc": "2026-09-23T00:44:15+00:00",
+ "rodada_utc": "2026-09-23T07:50:33+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0e2b6a9e0b5751903ff2e2982181acae7f3226f0.001.1",
+  "urn:oid:2.49.0.1.840.0.59599f54f3e9e47644ed14ad1fd6294e24114766.001.1",
   "urn:oid:2.49.0.1.840.0.cd5e07b644c2fb83e2ef2cf2067d094ddb255fbf.001.1",
   "urn:oid:2.49.0.1.840.0.e430d9b6ba91319e4d463fc108a9c7181b66e0bf.001.1",
   "urn:oid:2.49.0.1.840.0.e430d9b6ba91319e4d463fc108a9c7181b66e0bf.002.1",
@@ -23,6 +24,10 @@
   "trajeto_oahu_2712": "861140772e",
   "trajeto_kilauea_2912": "4065a7b6e7",
   "trajeto_hamakua_3012": "06a1d9e86f",
-  "trajeto_sul_3112": "c6195b0dfa"
+  "trajeto_sul_3112": "c6195b0dfa",
+  "via_3f401545f646": "bbe8f22578",
+  "nws_58cb6efbfe03": "8a8515abcb",
+  "resumo_ca": "5283d4871e",
+  "resumo_bi": "7a3bd03e62"
  }
 }
