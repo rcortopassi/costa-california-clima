@@ -404,5 +404,12 @@
   "kilauea": "ORANGE",
   "avisos": 15,
   "urgentes": 2
+ },
+ {
+  "utc": "2026-09-27T14:09:43+00:00",
+  "dias_para": 86,
+  "kilauea": "ORANGE",
+  "avisos": 12,
+  "urgentes": 0
  }
 ]
