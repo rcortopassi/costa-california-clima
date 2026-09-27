@@ -236,6 +236,11 @@ details.sec>summary{display:flex;align-items:center;min-height:48px;font-size:16
 details.sec>summary .dica{margin-left:auto;padding-left:10px;font-size:14px;font-weight:400;flex:0 1 auto;
   color:var(--tinta2);text-align:right}
 .sec-corpo{padding:0 0 14px;min-width:0}
+.kil-full{margin-top:12px}
+.kil-moldura{border:1px solid var(--linha);border-radius:10px;overflow:hidden;
+ background:#14110d;box-shadow:0 2px 10px rgba(60,40,20,.12)}
+.kil-moldura iframe{display:block;width:100%;height:min(1180px,88vh);border:0}
+@media (max-width:640px){.kil-moldura iframe{height:min(980px,80vh)}}
 .sec-corpo .leg{margin:0 0 10px;font-size:14px;color:var(--tinta2)}
 
 .faixa{display:inline-block;border-radius:5px;padding:0 6px;font-size:12px;line-height:20px;
@@ -592,6 +597,13 @@ function tema(){
   });
   document.querySelectorAll("details.sec-grade").forEach(function(det){
     det.addEventListener("toggle", function(){ if (det.open) iniciaGrade(det.dataset.reg); });
+  });
+  /* monitor do Kilauea: a pagina inteira so e baixada quando alguem abre */
+  document.querySelectorAll("details.kil-full").forEach(function(det){
+    det.addEventListener("toggle", function(){
+      const f = det.querySelector("iframe[data-src]");
+      if (det.open && f){ f.src = f.dataset.src; f.removeAttribute("data-src"); }
+    });
   });
   /* mapa do trajeto: a imagem so e baixada quando alguem abre */
   document.querySelectorAll("details.mapa-dia").forEach(function(det){
@@ -1027,8 +1039,25 @@ def _bloco_pacifico(e, k):
                     "ao mirante da cratera." if ativo else
                     "Sem episódio ativo agora. A cratera vale de dia; o brilho "
                     "noturno só existe em erupção.")
-                 + '</p><p class="num">Detalhe completo, fotos e mapa no monitor '
-                   'dedicado: <a href="../kilauea/">/kilauea/</a></p></div>')
+                 + '</p></div>')
+    if k is not None:
+        # O monitor do Kilauea e um site completo (status, cameras ao vivo,
+        # fotos e mapa das bocas) e se atualiza sozinho de 5 em 5 minutos.
+        # Embutir a pagina inteira evita manter o mesmo conteudo em dois
+        # projetos, que divergiriam. Mesma origem, sem X-Frame-Options.
+        # O src so entra quando alguem abre a secao (ver JS: details.kil-full).
+        h.append('<div class="kil-full">'
+                 '<p class="leg">Abaixo vai o monitor do Kilauea inteiro, o mesmo de '
+                 '<a href="../kilauea/" target="_blank" rel="noopener">/kilauea/</a>: '
+                 'status e fase da erupção, câmeras ao vivo do USGS, fotos do último '
+                 'episódio e o mapa das bocas, mirantes e estacionamentos. '
+                 'Ele se atualiza sozinho de 5 em 5 minutos.</p>'
+                 '<div class="kil-moldura">'
+                 '<iframe data-src="../kilauea/" title="Monitor do Kilauea" '
+                 'loading="lazy" referrerpolicy="same-origin"></iframe></div>'
+                 '<p class="num">Se ficar apertado nesta janela, '
+                 '<a href="../kilauea/" target="_blank" rel="noopener">abra em uma aba '
+                 'separada</a>.</p></div>')
     return "".join(h)
 
 
@@ -1093,7 +1122,7 @@ def _painel(d, reg, aberto):
     if reg == "bi":
         k = d.get("kilauea") or {}
         sec("Kilauea", _e((k.get("cor", "") + " / " + k.get("nivel", "")) if k.get("cor") else ""),
-            _bloco_pacifico(None, k))
+            _bloco_pacifico(None, k), "kil-full")
 
     decs = [x for x in d["decisoes"] if x.get("regiao") == reg]
     if decs:
