@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-27T14:09:43+00:00",
+ "rodada_utc": "2026-09-27T23:09:22+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -172,6 +172,7 @@
   "urn:oid:2.49.0.1.840.0.e4252018d6318bfb2a7a9a9d020c61228bd36409.008.1",
   "urn:oid:2.49.0.1.840.0.e430d9b6ba91319e4d463fc108a9c7181b66e0bf.001.1",
   "urn:oid:2.49.0.1.840.0.e430d9b6ba91319e4d463fc108a9c7181b66e0bf.002.1",
+  "urn:oid:2.49.0.1.840.0.fcd74ce29a63dcdce14e9c7a21f98f098224d2b6.001.1",
   "via:-6420877876578995145",
   "via:-7673635007394386922",
   "via:-9183819857089647446",
@@ -182,7 +183,7 @@
   "via:ddca993b5d17",
   "via:ea5b61cc9ed3"
  ],
- "dias_para": 86,
+ "dias_para": 85,
  "mapas": {
   "trajeto_ida_2212": "3d57a04c04",
   "trajeto_peninsula_2312": "c2071b3421",
@@ -192,20 +193,18 @@
   "trajeto_hamakua_3012": "06a1d9e86f",
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
-  "nws_f9cb1fd9c513": "3164811a63",
-  "nws_7baf341fdb74": "12766b9214",
-  "nws_488f827f4fc6": "7c8cda2eaa",
-  "nws_d1e890733671": "3424f58d9d",
-  "nws_8bd576819b45": "35e38e9757",
-  "nws_115d0eac8410": "ce75edbb25",
+  "nws_4100509b52ec": "dc7c827331",
+  "nws_5e66c7ef36a3": "3164811a63",
+  "nws_c343299c1754": "7c8cda2eaa",
+  "nws_909113ed7c23": "12766b9214",
+  "nws_c566cded2815": "3424f58d9d",
+  "nws_d334e734e19e": "92eebef8f2",
+  "nws_62f80204acf9": "daa8628286",
   "nws_8b5646efbf31": "cbfbf8b9d0",
   "nws_c95fa529535a": "563200c4df",
   "nws_9d9628992355": "0206cc5aff",
-  "nws_5f9b0367d53f": "daa8628286",
-  "nws_870f76a06175": "69575effe9",
-  "nws_86c57215b247": "df8d7cfd7c",
-  "resumo_ca": "108354d5e4",
-  "resumo_oahu": "af2ef29fe4",
-  "resumo_bi": "c83942b1b0"
+  "resumo_ca": "8ce3585d2d",
+  "resumo_oahu": "62e2effb66",
+  "resumo_bi": "1f227922e4"
  }
 }
