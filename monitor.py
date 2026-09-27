@@ -1642,6 +1642,21 @@ def main():
         rid = ROTA_DA_DECISAO.get(dec["id"])
         dec["regiao"] = ROTAS[rid]["regiao"] if rid in ROTAS else "ca"
 
+    # Cotacao do dolar (e do canadense) para o cartao no cabecalho. Publicada a
+    # parte, pelo repositorio precos-zfold8 (LaunchAgent do Mac de hora em hora
+    # e o workflow cotacao-wise de 3 em 3h de rede de seguranca), que desde
+    # 26/09/2026 escreve aqui em vez de no painel de precos, apagado nessa
+    # data. Buscada ao vivo so para a pagina nascer com um valor de reserva; a
+    # propria pagina refaz o fetch de mesma origem assim que carrega.
+    try:
+        d["wise"] = fetch_json(
+            "https://rafaelcortopassi.pythonanywhere.com/honeymoon/wise.json",
+            timeout=15, tentativas=1)
+    except Exception as e:
+        print(f"aviso: wise.json indisponivel ({type(e).__name__}); "
+              f"cartao do dolar nasce sem valor de reserva")
+        d["wise"] = {"pares": {}}
+
     # ---- mapas: um por dia de estrada e um por aviso que tenha lugar. Falha
     # aqui nao pode calar o aviso: sem mapa, o texto sai do mesmo jeito.
     geo = _le(GEO, {})

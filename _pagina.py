@@ -92,6 +92,29 @@ button.tema{flex:0 0 auto}
 button.tema{border:1px solid var(--linha);background:transparent;color:var(--tinta2);
   border-radius:10px;min-width:44px;min-height:44px;font-size:18px;cursor:pointer;padding:0}
 
+/* ---------- cambio (dolar e canadense, cotacao da Wise) ----------
+   Cartao independente do painel de preco de celulares, decomissionado em
+   26/09/2026: mesma fonte (Wise, de hora em hora) e mesma leitura (par, seta
+   e variacao), so a pele muda para a linguagem desta pagina. Fica numa faixa
+   fina abaixo do cabecalho, e nao dentro dele, porque a linha1 ja disputa
+   espaco com o titulo e a contagem; aqui tem a largura toda para respirar. */
+.cambio-faixa{background:var(--cartao);border-bottom:1px solid var(--linha)}
+.cambio{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:6px 0;
+  font-size:13px;color:var(--tinta2)}
+.cambio .par{display:inline-flex;align-items:baseline;gap:6px}
+.cambio .rot{color:var(--tinta2)}
+.cambio .vl{font-weight:650;color:var(--tinta);font-variant-numeric:tabular-nums}
+.cambio .var{font-size:12px;font-weight:700;white-space:nowrap}
+.cambio .var.up{color:var(--ru)} .cambio .var.dn{color:var(--ok)} .cambio .var.eq{color:var(--tinta2)}
+.cambio .fx{display:block;vertical-align:middle;overflow:visible}
+.cambio .sep{width:1px;height:14px;background:var(--linha)}
+.cambio .fonte{color:var(--tinta2);font-size:12px}
+.cambio .fonte a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+@media (max-width:560px){
+  .cambio{font-size:12.5px;gap:4px 10px}
+  .cambio .sep{display:none}
+}
+
 /* ---------- faixa de datas ---------- */
 nav.datas{position:sticky;top:0;z-index:20;background:var(--fundo);
   border-bottom:1px solid var(--linha)}
@@ -582,6 +605,80 @@ function tema(){
   try { localStorage.setItem("cd-tema", novo); } catch (e) {}
 }
 
+/* ---------- cambio (dolar e canadense, cotacao da Wise) ----------
+   Mesmo mecanismo do painel de precos que este cartao substitui (decomissionado
+   em 26/09/2026): wise.json fica ao lado do index.html, mesma origem, e e
+   reescrito de hora em hora pelo LaunchAgent do Mac e a cada 3h pelo workflow
+   cotacao-wise, no repositorio precos-zfold8. D.wise traz o valor de quando a
+   pagina foi gerada, para quem abre sem rede ou antes do primeiro fetch; dai
+   pra frente quem manda e o fetch de mesma origem em buscaCambio(). Nao da pra
+   ir na Wise direto do navegador: o endpoint dela responde 200 mas sem
+   Access-Control-Allow-Origin. */
+function fmtTaxa(v){
+  return v.toLocaleString("pt-BR", {minimumFractionDigits: 4, maximumFractionDigits: 4});
+}
+function faixaCambio(serie){
+  if (!serie || serie.length < 2) return "";
+  const min = Math.min.apply(null, serie), max = Math.max.apply(null, serie);
+  const w = 44, h = 16, n = serie.length, amp = (max - min) || 1;
+  const pts = serie.map(function(v, i){
+    const x = (i / (n - 1)) * w, y = h - ((v - min) / amp) * h;
+    return x.toFixed(1) + "," + y.toFixed(1);
+  }).join(" ");
+  // dolar em alta e ma noticia para quem vai gastar em dolar na viagem, entao
+  // sobe em vermelho (--ru) e cai em verde (--ok), a mesma convencao de bom e
+  // ruim que o resto da pagina usa para tempo e estrada.
+  const cor = serie[serie.length - 1] >= serie[0] ? "var(--ru)" : "var(--ok)";
+  return '<svg class="fx" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">' +
+    '<polyline points="' + pts + '" fill="none" stroke="' + cor + '" stroke-width="1.6" ' +
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function pintaCambio(w){
+  const el = document.getElementById("cambio");
+  if (!el || !w) return;
+  const pares = w.pares || {};
+  const usd = pares.USDBRL, cad = pares.CADBRL;
+  if (!usd && !cad){ el.hidden = true; return; }
+
+  function bloco(rot, d){
+    if (!d) return "";
+    const serie = d.serie || [];
+    const faixa = faixaCambio(serie);
+    let variacao = "";
+    const base = serie.length > 1 ? serie[serie.length - 2] : d.anterior;
+    if (base){
+      const pct = (d.valor / base - 1) * 100;
+      const cls = Math.abs(pct) < 0.005 ? "eq" : (pct > 0 ? "up" : "dn");
+      const seta = cls === "eq" ? "" : (pct > 0 ? "▲" : "▼");
+      variacao = ' <span class="var ' + cls + '">' + seta +
+        Math.abs(pct).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) +
+        "%</span>";
+    }
+    const aviso = d.velho ? " Leitura mais recente falhou; valor anterior mantido." : "";
+    return '<span class="par" title="Cotação intermediária da Wise, atualiza de hora em hora.' + aviso + '">' +
+      '<span class="rot">' + rot + '</span>' +
+      '<span class="vl">R$ ' + fmtTaxa(d.valor) + '</span>' + variacao + faixa + '</span>';
+  }
+
+  const dt = w.atualizado ? new Date(w.atualizado) : null;
+  const hora = dt ? dt.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"}) : "";
+  el.innerHTML = bloco("Dólar", usd) +
+    (usd && cad ? '<span class="sep"></span>' : "") +
+    bloco("Dólar CAD", cad) +
+    '<span class="sep"></span>' +
+    '<span class="fonte"><a href="https://wise.com/br/currency-converter/usd-to-brl-rate" ' +
+    'target="_blank" rel="noopener">Wise</a>' + (hora ? " " + hora : "") + '</span>';
+  el.hidden = false;
+}
+async function buscaCambio(){
+  try{
+    const r = await fetch("wise.json?t=" + Date.now(), {cache: "no-store"});
+    if (!r.ok) return;
+    const w = await r.json();
+    if (w && w.pares) pintaCambio(w);
+  }catch(e){ /* HTML aberto de disco, ou rede fora: fica o valor embutido */ }
+}
+
 (function inicia(){
   document.querySelectorAll("a.d").forEach(function(b){
     b.addEventListener("click", function(ev){
@@ -597,13 +694,6 @@ function tema(){
   });
   document.querySelectorAll("details.sec-grade").forEach(function(det){
     det.addEventListener("toggle", function(){ if (det.open) iniciaGrade(det.dataset.reg); });
-  });
-  /* monitor do Kilauea: a pagina inteira so e baixada quando alguem abre */
-  document.querySelectorAll("details.kil-full").forEach(function(det){
-    det.addEventListener("toggle", function(){
-      const f = det.querySelector("iframe[data-src]");
-      if (det.open && f){ f.src = f.dataset.src; f.removeAttribute("data-src"); }
-    });
   });
   /* mapa do trajeto: a imagem so e baixada quando alguem abre */
   document.querySelectorAll("details.mapa-dia").forEach(function(det){
@@ -631,6 +721,9 @@ function tema(){
   });
   contagem();
   setInterval(contagem, 60000);
+
+  pintaCambio(D.wise);
+  buscaCambio();
 })();
 """
 
@@ -1195,6 +1288,7 @@ def monta(d):
         "pontos": [{"id": p["id"], "nome": p["nome"], "regiao": p["regiao"],
                     "hourly": _enxuga(p["hourly"], d["dias_grade"])}
                    for p in d["pontos"]],
+        "wise": d.get("wise") or {"pares": {}},
     }
     js = JS.replace("DADOS", _j.dumps(dados, ensure_ascii=False, separators=(",", ":")), 1)
 
@@ -1238,6 +1332,7 @@ HTML = """<!DOCTYPE html>
   </div>
   <button class="tema" id="bt-tema" aria-label="Alternar tema claro ou escuro" title="tema">&#9680;</button>
 </div></header>
+<div class="cambio-faixa"><div class="env"><div class="cambio" id="cambio" hidden></div></div></div>
 <nav class="datas" aria-label="Dias da viagem"><div class="faixa-rola" id="faixa">{{FAIXA}}</div></nav>
 
 <main class="env">
