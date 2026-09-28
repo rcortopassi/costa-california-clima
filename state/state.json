@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-27T23:09:22+00:00",
+ "rodada_utc": "2026-09-28T05:35:40+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -193,18 +193,15 @@
   "trajeto_hamakua_3012": "06a1d9e86f",
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
+  "nws_050ce182ed31": "d02f1baae3",
+  "nws_5d4906b24f02": "3164811a63",
+  "nws_e18eae58dca4": "7c8cda2eaa",
+  "nws_43714fa5acd2": "12766b9214",
+  "nws_e651074d9d8f": "3424f58d9d",
   "nws_4100509b52ec": "dc7c827331",
-  "nws_5e66c7ef36a3": "3164811a63",
-  "nws_c343299c1754": "7c8cda2eaa",
-  "nws_909113ed7c23": "12766b9214",
-  "nws_c566cded2815": "3424f58d9d",
-  "nws_d334e734e19e": "92eebef8f2",
-  "nws_62f80204acf9": "daa8628286",
-  "nws_8b5646efbf31": "cbfbf8b9d0",
-  "nws_c95fa529535a": "563200c4df",
-  "nws_9d9628992355": "0206cc5aff",
-  "resumo_ca": "8ce3585d2d",
-  "resumo_oahu": "62e2effb66",
-  "resumo_bi": "1f227922e4"
+  "nws_7d913d770eff": "6b842b34d1",
+  "nws_73bd809c9410": "0206cc5aff",
+  "resumo_ca": "2c89471fdf",
+  "resumo_oahu": "b9096f1349"
  }
 }
