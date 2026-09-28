@@ -99,6 +99,14 @@ button.tema{border:1px solid var(--linha);background:transparent;color:var(--tin
    fina abaixo do cabecalho, e nao dentro dele, porque a linha1 ja disputa
    espaco com o titulo e a contagem; aqui tem a largura toda para respirar. */
 .cambio-faixa{background:var(--cartao);border-bottom:1px solid var(--linha)}
+.relogios-faixa{background:var(--cartao);border-bottom:1px solid var(--linha)}
+.relogios{display:flex;gap:22px;flex-wrap:wrap;padding:7px 0;font-size:14px}
+.relogios .rel-i{display:flex;align-items:baseline;gap:7px}
+.relogios .cid{color:var(--tinta2)}
+.relogios .hr{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.3px}
+.relogios .gmt{color:var(--tinta2);font-size:12px}
+.relogios .dia{color:var(--tinta2);font-size:12px}
+@media (max-width:560px){.relogios{gap:14px;font-size:13px}}
 .cambio{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:6px 0;
   font-size:13px;color:var(--tinta2)}
 .cambio .par{display:inline-flex;align-items:baseline;gap:6px}
@@ -259,11 +267,17 @@ details.sec>summary{display:flex;align-items:center;min-height:48px;font-size:16
 details.sec>summary .dica{margin-left:auto;padding-left:10px;font-size:14px;font-weight:400;flex:0 1 auto;
   color:var(--tinta2);text-align:right}
 .sec-corpo{padding:0 0 14px;min-width:0}
-.kil-full{margin-top:12px}
-.kil-moldura{border:1px solid var(--linha);border-radius:10px;overflow:hidden;
- background:#14110d;box-shadow:0 2px 10px rgba(60,40,20,.12)}
-.kil-moldura iframe{display:block;width:100%;height:min(1180px,88vh);border:0}
-@media (max-width:640px){.kil-moldura iframe{height:min(980px,80vh)}}
+.kil{margin-top:12px}
+.kil .fatos{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin:0 0 10px}
+.kil .fato{border:1px solid var(--linha);border-left-width:3px;border-radius:8px;padding:8px 10px}
+.kil .fato b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.4px;
+ color:var(--tinta2);font-weight:600;margin-bottom:2px}
+.kil .cams{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.kil .cams a{border:1px solid var(--linha);border-radius:999px;padding:5px 12px;
+ font-size:14px;text-decoration:none}
+.kil figure{margin:0}
+.kil figure img{width:100%;max-width:520px;border-radius:8px;display:block}
+.kil figcaption{font-size:13px;color:var(--tinta2);margin-top:4px}
 .sec-corpo .leg{margin:0 0 10px;font-size:14px;color:var(--tinta2)}
 
 .faixa{display:inline-block;border-radius:5px;padding:0 6px;font-size:12px;line-height:20px;
@@ -670,6 +684,88 @@ function pintaCambio(w){
     'target="_blank" rel="noopener">Wise</a>' + (hora ? " " + hora : "") + '</span>';
   el.hidden = false;
 }
+/* ---------- Kilauea (o site proprio foi absorvido aqui em 26/09/2026) ----------
+   O monitor do vulcao segue rodando de 5 em 5 min so para o alerta no celular,
+   e publica kilauea.json ao lado deste index.html. Buscamos de mesma origem a
+   cada carregamento, entao o vulcao fica fresco mesmo entre as rodadas de 2 h.
+   Contrato definido por resumo_honeymoon() no monitor.py do kilauea-monitor. */
+function pintaKilauea(k){
+  const el = document.getElementById("kil");
+  if (!el || !k || !k.cor) return;
+  const esc = function(s){ const d = document.createElement("span"); d.textContent = s || ""; return d.innerHTML; };
+  const ativo = k.fase === "fonte";
+  const fatos = [];
+  fatos.push(["Agora", ativo
+    ? "Fonte de lava ativa. E a hora de subir ao mirante."
+    : (k.fase === "precursor"
+        ? "Lava transbordando (atividade precursora). A fonte costuma vir depois, de horas a dias."
+        : "Sem fonte de lava. A cratera vale de dia; o brilho noturno so existe em erupcao.")]);
+  if (k.episodio && k.episodio.n){
+    const d = function(s){ if(!s) return ""; const p = s.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; };
+    const i = d(k.episodio.inicio), f = d(k.episodio.fim);
+    fatos.push(["Ultimo episodio", "Episodio " + k.episodio.n
+      + (i && f && i !== f ? ", de " + i + " a " + f : (i ? ", em " + i : ""))]);
+  }
+  if (k.previsao) fatos.push(["Proximo episodio", k.previsao]);
+  let h = '<div class="fatos">' + fatos.map(function(x){
+    return '<div class="fato"><b>' + esc(x[0]) + "</b>" + esc(x[1]) + "</div>";
+  }).join("") + "</div>";
+  if (k.sinopse) h += "<p>" + esc(k.sinopse) + "</p>";
+  if (k.cameras && k.cameras.length){
+    h += '<p class="num">Camera ao vivo:</p><div class="cams">' + k.cameras.map(function(c){
+      return '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.n) + "</a>";
+    }).join("") + "</div>";
+  }
+  if (k.foto && k.foto.src){
+    h += '<figure><img loading="lazy" src="' + esc(k.foto.src) + '" alt="' + esc(k.foto.cap) + '">'
+       + "<figcaption>" + esc(k.foto.cap)
+       + (k.foto.ep ? " &middot; episodio " + k.foto.ep : "") + " &middot; USGS</figcaption></figure>";
+  }
+  const L = k.links || {};
+  h += '<p class="num">' + (L.usgs ? '<a href="' + esc(L.usgs) + '" target="_blank" rel="noopener">Boletim do USGS</a> &middot; ' : "")
+     + (L.webcams ? '<a href="' + esc(L.webcams) + '" target="_blank" rel="noopener">Todas as webcams</a> &middot; ' : "")
+     + (L.parque ? '<a href="' + esc(L.parque) + '" target="_blank" rel="noopener">Condicoes do parque</a>' : "")
+     + "</p>";
+  el.innerHTML = h;
+  el.hidden = false;
+}
+async function buscaKilauea(){
+  try{
+    const r = await fetch("kilauea.json?t=" + Date.now(), {cache: "no-store"});
+    if (!r.ok) return;
+    pintaKilauea(await r.json());
+  }catch(e){ /* HTML aberto de disco, ou rede fora: a secao fica so com a cor */ }
+}
+/* ---------- relogios dos tres fusos da viagem ----------
+   Brasilia, Los Angeles e Honolulu. Usamos zona IANA em vez de GMT fixo: a
+   California sai do horario de verao no inicio de novembro (GMT-7 vira GMT-8)
+   e a viagem e em dezembro; o Havai nunca muda. O rotulo mostra o
+   deslocamento real do dia, entao ele se corrige sozinho. */
+const FUSOS = [["Brasília", "America/Sao_Paulo"],
+               ["Los Angeles", "America/Los_Angeles"],
+               ["Honolulu", "Pacific/Honolulu"]];
+function gmtDe(tz, agora){
+  const s = new Intl.DateTimeFormat("pt-BR", {timeZone: tz, timeZoneName: "longOffset"})
+    .formatToParts(agora).find(function(p){ return p.type === "timeZoneName"; });
+  return s ? s.value.replace("GMT", "GMT").replace(":00", "") : "";
+}
+function pintaRelogios(){
+  const el = document.getElementById("relogios");
+  if (!el) return;
+  const agora = new Date();
+  const hoje = new Intl.DateTimeFormat("pt-BR", {timeZone: "America/Sao_Paulo",
+    day: "2-digit", month: "2-digit"}).format(agora);
+  el.innerHTML = FUSOS.map(function(f){
+    const hr = new Intl.DateTimeFormat("pt-BR", {timeZone: f[1], hour: "2-digit",
+      minute: "2-digit", hour12: false}).format(agora);
+    const dia = new Intl.DateTimeFormat("pt-BR", {timeZone: f[1], day: "2-digit",
+      month: "2-digit"}).format(agora);
+    return '<span class="rel-i"><span class="cid">' + f[0] + '</span>'
+      + '<span class="hr">' + hr + '</span>'
+      + '<span class="gmt">' + gmtDe(f[1], agora) + '</span>'
+      + (dia !== hoje ? '<span class="dia">' + dia + '</span>' : '') + '</span>';
+  }).join("");
+}
 async function buscaCambio(){
   try{
     const r = await fetch("wise.json?t=" + Date.now(), {cache: "no-store"});
@@ -722,8 +818,12 @@ async function buscaCambio(){
   contagem();
   setInterval(contagem, 60000);
 
+  pintaRelogios();
+  setInterval(pintaRelogios, 1000);
   pintaCambio(D.wise);
   buscaCambio();
+  pintaKilauea(D.kilauea);
+  buscaKilauea();
 })();
 """
 
@@ -1134,23 +1234,13 @@ def _bloco_pacifico(e, k):
                     "noturno só existe em erupção.")
                  + '</p></div>')
     if k is not None:
-        # O monitor do Kilauea e um site completo (status, cameras ao vivo,
-        # fotos e mapa das bocas) e se atualiza sozinho de 5 em 5 minutos.
-        # Embutir a pagina inteira evita manter o mesmo conteudo em dois
-        # projetos, que divergiriam. Mesma origem, sem X-Frame-Options.
-        # O src so entra quando alguem abre a secao (ver JS: details.kil-full).
-        h.append('<div class="kil-full">'
-                 '<p class="leg">Abaixo vai o monitor do Kilauea inteiro, o mesmo de '
-                 '<a href="../kilauea/" target="_blank" rel="noopener">/kilauea/</a>: '
-                 'status e fase da erupção, câmeras ao vivo do USGS, fotos do último '
-                 'episódio e o mapa das bocas, mirantes e estacionamentos. '
-                 'Ele se atualiza sozinho de 5 em 5 minutos.</p>'
-                 '<div class="kil-moldura">'
-                 '<iframe data-src="../kilauea/" title="Monitor do Kilauea" '
-                 'loading="lazy" referrerpolicy="same-origin"></iframe></div>'
-                 '<p class="num">Se ficar apertado nesta janela, '
-                 '<a href="../kilauea/" target="_blank" rel="noopener">abra em uma aba '
-                 'separada</a>.</p></div>')
+        # O site proprio do Kilauea foi absorvido aqui (26/09/2026). O monitor
+        # continua rodando de 5 em 5 min so para o alerta, e publica um
+        # kilauea.json ao lado deste index.html. A pagina busca esse arquivo de
+        # mesma origem ao carregar, como o cambio faz, entao o vulcao fica
+        # fresco mesmo entre as rodadas de 2 h do Honeymoon. Sem pagina dentro
+        # de pagina: isto aqui e desenhado com o visual do proprio painel.
+        h.append('<div class="kil" id="kil" hidden></div>')
     return "".join(h)
 
 
@@ -1215,7 +1305,7 @@ def _painel(d, reg, aberto):
     if reg == "bi":
         k = d.get("kilauea") or {}
         sec("Kilauea", _e((k.get("cor", "") + " / " + k.get("nivel", "")) if k.get("cor") else ""),
-            _bloco_pacifico(None, k), "kil-full")
+            _bloco_pacifico(None, k))
 
     decs = [x for x in d["decisoes"] if x.get("regiao") == reg]
     if decs:
@@ -1289,6 +1379,7 @@ def monta(d):
                     "hourly": _enxuga(p["hourly"], d["dias_grade"])}
                    for p in d["pontos"]],
         "wise": d.get("wise") or {"pares": {}},
+        "kilauea": d.get("kilauea_resumo") or {},
     }
     js = JS.replace("DADOS", _j.dumps(dados, ensure_ascii=False, separators=(",", ":")), 1)
 
@@ -1333,6 +1424,7 @@ HTML = """<!DOCTYPE html>
   <button class="tema" id="bt-tema" aria-label="Alternar tema claro ou escuro" title="tema">&#9680;</button>
 </div></header>
 <div class="cambio-faixa"><div class="env"><div class="cambio" id="cambio" hidden></div></div></div>
+<div class="relogios-faixa"><div class="env"><div class="relogios" id="relogios"></div></div></div>
 <nav class="datas" aria-label="Dias da viagem"><div class="faixa-rola" id="faixa">{{FAIXA}}</div></nav>
 
 <main class="env">

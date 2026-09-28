@@ -1657,6 +1657,19 @@ def main():
               f"cartao do dolar nasce sem valor de reserva")
         d["wise"] = {"pares": {}}
 
+    # Mesmo arranjo para o vulcao: o monitor do Kilauea publica kilauea.json
+    # aqui do lado de 5 em 5 min. Embutimos o retrato para a secao nascer
+    # preenchida mesmo sem fetch (navegador offline, ou app que bloqueia
+    # subrecurso); a propria pagina atualiza depois, de mesma origem.
+    try:
+        d["kilauea_resumo"] = fetch_json(
+            "https://rafaelcortopassi.pythonanywhere.com/honeymoon/kilauea.json",
+            timeout=15, tentativas=1)
+    except Exception as e:
+        print(f"aviso: kilauea.json indisponivel ({type(e).__name__}); "
+              f"secao do vulcao nasce so com a cor")
+        d["kilauea_resumo"] = {}
+
     # ---- mapas: um por dia de estrada e um por aviso que tenha lugar. Falha
     # aqui nao pode calar o aviso: sem mapa, o texto sai do mesmo jeito.
     geo = _le(GEO, {})
