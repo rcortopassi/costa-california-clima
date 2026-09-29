@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-28T20:36:38+00:00",
+ "rodada_utc": "2026-09-29T02:04:44+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -198,10 +198,8 @@
   "nws_6e1f924f3a53": "3424f58d9d",
   "nws_6ce72b182e72": "d02f1baae3",
   "nws_4100509b52ec": "dc7c827331",
-  "nws_4da95ec6a3e3": "89cd9a7483",
-  "nws_e9dfed239628": "28dfcec1a7",
+  "nws_20816d99c045": "43cddf779b",
   "resumo_ca": "dc64a7795c",
-  "resumo_oahu": "89d9fa14ef",
-  "resumo_bi": "8939854600"
+  "resumo_bi": "c2c93b8272"
  }
 }
