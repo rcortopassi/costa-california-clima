@@ -277,6 +277,7 @@ details.sec>summary .dica{margin-left:auto;padding-left:10px;font-size:14px;font
  font-size:14px;text-decoration:none}
 .kil figure{margin:0}
 .kil figure img{width:100%;max-width:520px;border-radius:8px;display:block}
+.kil figure img[src*='UWD-TILT']{max-width:100%;background:#fff;padding:6px}
 .kil figcaption{font-size:13px;color:var(--tinta2);margin-top:4px}
 .sec-corpo .leg{margin:0 0 10px;font-size:14px;color:var(--tinta2)}
 
@@ -719,6 +720,22 @@ function pintaKilauea(k){
       return '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.n) + "</a>";
     }).join("") + "</div>";
   }
+  /* Inclinometro UWD, no cume. E o grafico que o HVO usa para antecipar o
+     proximo episodio: sobe enquanto a camara de magma enche (inflacao) e cai
+     de golpe quando a fonte de lava comeca. As imagens sao do proprio USGS e
+     se atualizam sozinhas; o ?t de hora em hora evita cache velho sem
+     rebaixar a imagem a cada render. */
+  const tsh = Math.floor(Date.now() / 3600000);
+  const TILT = "https://volcanoes.usgs.gov/vsc/captures/kilauea/UWD-TILT-";
+  h += '<p class="num">Inclinometro do cume (UWD), do USGS:</p>'
+     + '<figure><img loading="lazy" src="' + TILT + 'week.png?t=' + tsh + '"'
+     + ' alt="Inclinacao do cume do Kilauea nos ultimos 7 dias">'
+     + '<figcaption>Últimos 7 dias. A linha subindo é a câmara de magma enchendo; '
+     + 'a queda brusca é o episódio começando.</figcaption></figure>'
+     + '<figure><img loading="lazy" src="' + TILT + '3month.png?t=' + tsh + '"'
+     + ' alt="Inclinacao do cume do Kilauea nos ultimos 3 meses">'
+     + '<figcaption>Últimos 3 meses. Cada dente da serra é um episódio: dá para ver '
+     + 'a que altura a inclinação costuma estar quando a fonte dispara.</figcaption></figure>';
   if (k.foto && k.foto.src){
     h += '<figure><img loading="lazy" src="' + esc(k.foto.src) + '" alt="' + esc(k.foto.cap) + '">'
        + "<figcaption>" + esc(k.foto.cap)
