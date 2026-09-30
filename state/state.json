@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-09-27T01:40:57+00:00",
+ "rodada_utc": "2026-09-30T23:58:50+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -55,6 +55,8 @@
   "urn:oid:2.49.0.1.840.0.6822165e775be02446b08bc1036107e1831fcdcf.026.2",
   "urn:oid:2.49.0.1.840.0.6822165e775be02446b08bc1036107e1831fcdcf.027.1",
   "urn:oid:2.49.0.1.840.0.6822165e775be02446b08bc1036107e1831fcdcf.027.2",
+  "urn:oid:2.49.0.1.840.0.6df8c047e1cbe829627cc92d595584cc92d7c79f.001.1",
+  "urn:oid:2.49.0.1.840.0.6df8c047e1cbe829627cc92d595584cc92d7c79f.002.1",
   "urn:oid:2.49.0.1.840.0.768c540e442a70b7e16cfdddaf347a4284ce134f.001.1",
   "urn:oid:2.49.0.1.840.0.7808c1574e7b0a32c26c9052420d64c7400d6c63.015.1",
   "urn:oid:2.49.0.1.840.0.7808c1574e7b0a32c26c9052420d64c7400d6c63.018.1",
@@ -180,7 +182,7 @@
   "via:ddca993b5d17",
   "via:ea5b61cc9ed3"
  ],
- "dias_para": 86,
+ "dias_para": 82,
  "mapas": {
   "trajeto_ida_2212": "3d57a04c04",
   "trajeto_peninsula_2312": "c2071b3421",
@@ -190,31 +192,11 @@
   "trajeto_hamakua_3012": "06a1d9e86f",
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
-  "nws_0eded3780503": "3164811a63",
-  "nws_598b1717ca8d": "7c8cda2eaa",
-  "nws_5816f60ef928": "12766b9214",
-  "nws_72bf11a9affc": "3424f58d9d",
-  "nws_2a38126d76d6": "ce75edbb25",
-  "nws_65653162809b": "35e38e9757",
-  "nws_13086922b70f": "cbfbf8b9d0",
-  "nws_0e568b84d4da": "563200c4df",
-  "nws_4bf7ab681456": "a9a6644820",
-  "nws_e1035f3049a9": "f8a6326aa7",
-  "nws_98e443353ed4": "35c0564e1f",
-  "nws_ed1d31725c5e": "7d547d7064",
-  "nws_f9793d5ef2bd": "d0cd457e9e",
-  "nws_e5f35dfef332": "424fd51cb5",
-  "nws_9f8efbe912ff": "f8b90cc835",
-  "nws_5149b17bcd69": "871152a6dd",
-  "nws_47bd9f8e4566": "e7d2a2665b",
-  "nws_a7839934f74d": "f4a760d9a5",
-  "nws_2be87c8ab86e": "d573ed3ed1",
-  "nws_314526d9ca7a": "2887f01a13",
-  "nws_1c24661a9c04": "9be5708e2f",
-  "nws_3caa207372aa": "69575effe9",
-  "nws_4e70795a24bf": "8a8515abcb",
-  "resumo_ca": "108354d5e4",
-  "resumo_oahu": "af2ef29fe4",
-  "resumo_bi": "74dfa08c59"
+  "nws_c37c5e801ecf": "d02f1baae3",
+  "nws_b5e3b1c7e758": "ba2cef13c6",
+  "nws_7f04248e1b23": "cceb5a5dc2",
+  "nws_334abbaa5e7d": "ee6922279b",
+  "nws_03148ce3c769": "4b9aec70a9",
+  "resumo_ca": "63fe732311"
  }
 }
