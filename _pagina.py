@@ -706,7 +706,10 @@ function pintaKilauea(k){
     fatos.push(["Ultimo episodio", "Episodio " + k.episodio.n
       + (i && f && i !== f ? ", de " + i + " a " + f : (i ? ", em " + i : ""))]);
   }
-  if (k.previsao) fatos.push(["Proximo episodio", k.previsao]);
+  /* cartao sempre presente: quando o HVO nao consegue modelar a janela, isso
+     e informacao, nao ausencia dela. E ele volta a prever sem avisar. */
+  fatos.push(["Proximo episodio", k.previsao
+    || "O HVO nao divulgou janela no aviso mais recente."]);
   let h = '<div class="fatos">' + fatos.map(function(x){
     return '<div class="fato"><b>' + esc(x[0]) + "</b>" + esc(x[1]) + "</div>";
   }).join("") + "</div>";

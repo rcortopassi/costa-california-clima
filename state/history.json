@@ -399,38 +399,24 @@
   "urgentes": 0
  },
  {
-  "utc": "2026-09-27T08:21:45+00:00",
+  "utc": "2026-09-27T01:33:30+00:00",
   "dias_para": 86,
   "kilauea": "ORANGE",
-  "avisos": 15,
-  "urgentes": 2
- },
- {
-  "utc": "2026-09-27T14:09:43+00:00",
-  "dias_para": 86,
-  "kilauea": "ORANGE",
-  "avisos": 12,
+  "avisos": 23,
   "urgentes": 0
  },
  {
-  "utc": "2026-09-27T23:09:22+00:00",
-  "dias_para": 85,
+  "utc": "2026-09-27T01:39:40+00:00",
+  "dias_para": 86,
   "kilauea": "ORANGE",
-  "avisos": 10,
-  "urgentes": 1
- },
- {
-  "utc": "2026-09-28T05:35:40+00:00",
-  "dias_para": 85,
-  "kilauea": "ORANGE",
-  "avisos": 8,
+  "avisos": 23,
   "urgentes": 0
  },
  {
-  "utc": "2026-09-28T14:12:21+00:00",
-  "dias_para": 85,
+  "utc": "2026-09-27T01:40:57+00:00",
+  "dias_para": 86,
   "kilauea": "ORANGE",
-  "avisos": 8,
+  "avisos": 23,
   "urgentes": 0
  },
  {
