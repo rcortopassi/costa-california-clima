@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-10-01T13:33:18+00:00",
+ "rodada_utc": "2026-10-01T19:37:55+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -85,6 +85,8 @@
   "urn:oid:2.49.0.1.840.0.9a0ced30397152a87983a212c3eb87437d305097.006.1",
   "urn:oid:2.49.0.1.840.0.9a0ced30397152a87983a212c3eb87437d305097.007.1",
   "urn:oid:2.49.0.1.840.0.9a0ced30397152a87983a212c3eb87437d305097.008.1",
+  "urn:oid:2.49.0.1.840.0.a83e130c2d84400d0abc57e184bd5fa32180bde1.001.2",
+  "urn:oid:2.49.0.1.840.0.a83e130c2d84400d0abc57e184bd5fa32180bde1.002.2",
   "urn:oid:2.49.0.1.840.0.aaa3742406865941224d445b556f7686eedf4f02.001.1",
   "urn:oid:2.49.0.1.840.0.aaa3742406865941224d445b556f7686eedf4f02.002.1",
   "urn:oid:2.49.0.1.840.0.aaa3742406865941224d445b556f7686eedf4f02.003.1",
@@ -182,7 +184,7 @@
   "via:ddca993b5d17",
   "via:ea5b61cc9ed3"
  ],
- "dias_para": 82,
+ "dias_para": 81,
  "mapas": {
   "trajeto_ida_2212": "3d57a04c04",
   "trajeto_peninsula_2312": "c2071b3421",
@@ -192,9 +194,11 @@
   "trajeto_hamakua_3012": "06a1d9e86f",
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
-  "nws_c37c5e801ecf": "d02f1baae3",
-  "nws_b5e3b1c7e758": "ba2cef13c6",
-  "nws_7f04248e1b23": "cceb5a5dc2",
-  "resumo_ca": "11a224ce38"
+  "nws_6df6ed65b999": "4f79c04f45",
+  "nws_2391d661f82d": "c6ed48a5c3",
+  "nws_33c817c46e0b": "59beff5720",
+  "nws_12f822abdca5": "baf293ea5d",
+  "nws_f5a0b7ed5cb0": "67be4b9052",
+  "resumo_ca": "29bc3fe672"
  }
 }
