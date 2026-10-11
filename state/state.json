@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-10-10T18:42:45+00:00",
+ "rodada_utc": "2026-10-11T06:00:59+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -136,6 +136,8 @@
   "urn:oid:2.49.0.1.840.0.b167d090e42990bce437cb8bb59bce4cf6eff846.027.2",
   "urn:oid:2.49.0.1.840.0.b38a446fa072e4111dda5cec8cbe07c3ba9807e6.001.2",
   "urn:oid:2.49.0.1.840.0.b38a446fa072e4111dda5cec8cbe07c3ba9807e6.002.2",
+  "urn:oid:2.49.0.1.840.0.b561af5f972be13968ac55a4d081d277b71f8c97.001.2",
+  "urn:oid:2.49.0.1.840.0.b561af5f972be13968ac55a4d081d277b71f8c97.002.2",
   "urn:oid:2.49.0.1.840.0.c3126c4ccaa67bc07dfa47e9cdbf46d65f9328cf.015.1",
   "urn:oid:2.49.0.1.840.0.c3126c4ccaa67bc07dfa47e9cdbf46d65f9328cf.018.1",
   "urn:oid:2.49.0.1.840.0.c3126c4ccaa67bc07dfa47e9cdbf46d65f9328cf.019.1",
@@ -222,16 +224,20 @@
   "trajeto_hamakua_3012": "06a1d9e86f",
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
-  "nws_feccc27cff17": "d615c5cb62",
-  "nws_742e8b587c72": "0aa07eda37",
-  "nws_5eeb687b4d6b": "9090522572",
-  "nws_b3c0675028e6": "6bfe034fe5",
-  "nws_ba1262106b0a": "0dec3bdc3a",
-  "nws_b520a8c7ff3b": "20f1901128",
-  "nws_596d298b758d": "d1f4ddf9fe",
-  "nws_7de58593e72c": "a0dbb7b9cb",
-  "nws_891a02c8279e": "6bfc1bb46f",
-  "nws_29cd4bc5e5c6": "46ebecaca7",
-  "resumo_ca": "b198854727"
+  "nws_6a483cfaeb91": "6bfc1bb46f",
+  "nws_e67b9168bfd4": "46ebecaca7",
+  "nws_0fe379e0c946": "9607fda84a",
+  "nws_98412f07fe02": "20f1901128",
+  "nws_5928a9cd9cd1": "b05f31249f",
+  "nws_ec484f60291b": "9090522572",
+  "nws_9bb843abf4e7": "2acfece86a",
+  "nws_208efef96e20": "a0dbb7b9cb",
+  "nws_806e8084e5bc": "0aa07eda37",
+  "nws_2cabafc1b3bc": "d615c5cb62",
+  "nws_267753ef5123": "d1f4ddf9fe",
+  "nws_a48fcbf38c43": "1cd534e022",
+  "nws_9d5ac700d502": "6bfe034fe5",
+  "nws_c08a7f2fef20": "0dec3bdc3a",
+  "resumo_ca": "6dd2f87897"
  }
 }
