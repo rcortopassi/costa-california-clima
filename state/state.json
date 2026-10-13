@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-10-12T23:04:53+00:00",
+ "rodada_utc": "2026-10-13T16:07:56+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -225,17 +225,13 @@
   "trajeto_sul_3112": "c6195b0dfa",
   "via_3f401545f646": "bbe8f22578",
   "via_2fbecbd01d39": "e246f05acb",
-  "nws_4c8a640dd37a": "46ebecaca7",
-  "nws_2f118584867e": "6bfc1bb46f",
-  "nws_a1109fcf3242": "20f1901128",
-  "nws_6d0c937e7dfb": "de068b7541",
-  "nws_5dad870e8505": "68e5f25bc3",
-  "nws_a512a5b218c8": "1cd534e022",
-  "nws_40e4147e46f3": "a0dbb7b9cb",
-  "nws_740fe22ff5f9": "2acfece86a",
-  "nws_6e346c89c0e1": "d1f4ddf9fe",
-  "nws_7cc83c66b670": "b05f31249f",
-  "nws_4c311f6a803c": "9607fda84a",
-  "resumo_ca": "2e5bdbcd37"
+  "nws_f340970de87b": "2acfece86a",
+  "nws_e2e203bb05fd": "a0dbb7b9cb",
+  "nws_78bb513fd747": "1cd534e022",
+  "nws_e4d9e2f2560e": "d1f4ddf9fe",
+  "nws_ff30b5d2c050": "de068b7541",
+  "nws_89eb1a552185": "68e5f25bc3",
+  "nws_371f033ae69a": "44809bb2d3",
+  "resumo_ca": "80a8b4f7a6"
  }
 }
