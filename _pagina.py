@@ -184,6 +184,8 @@ a.bt-mapa,a.bt{flex:0 0 auto;display:inline-flex;align-items:center;justify-cont
   min-height:44px;min-width:64px;padding:0 14px;border:1px solid var(--linha);border-radius:10px;
   font-size:15px;font-weight:650;color:var(--azul2);text-decoration:none;background:var(--cartao)}
 p.sem{margin:2px 0 6px;font-size:16px}
+a.ir{color:inherit;text-decoration:underline;text-decoration-color:var(--linha);text-underline-offset:3px}
+.tag.t-plano{background:var(--ok-bg);color:var(--ok)}
 ul.opcoes{list-style:none;margin:0;padding:0}
 li.op{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--linha2)}
 li.op:last-child{border-bottom:0}
@@ -877,9 +879,11 @@ def _br(dia):
     return dia[8:10] + "/" + dia[5:7]
 
 
-def _gmaps_busca(q):
+def _gmaps_rota(q):
+    """Abre o Google Maps tracando a rota de onde a pessoa esta ate o lugar
+    (sem origin, o Maps usa a localizacao atual do celular)."""
     from urllib.parse import quote
-    return "https://www.google.com/maps/search/?api=1&query=" + quote(q)
+    return "https://www.google.com/maps/dir/?api=1&destination=" + quote(q)
 
 
 def _link(href, texto, cls="bt-mapa", rotulo=""):
@@ -953,7 +957,7 @@ def _op(hora, ig, nota=""):
     return ('<li class="op"><div class="op-txt"><span class="op-h">' + _e(hora) + "</span>"
             '<span class="op-n">' + _e(ig["nome"]) + '</span><span class="op-l">' + _e(ig["lugar"])
             + "</span>" + ('<span class="op-nota">' + _e(nota) + "</span>" if nota else "")
-            + "</div>" + _link(_gmaps_busca(ig["busca"]), "Mapa", rotulo="Mapa: " + ig["nome"])
+            + "</div>" + _link(_gmaps_rota(ig["busca"]), "Rota", rotulo="Rota até " + ig["nome"])
             + "</li>")
 
 
@@ -980,8 +984,8 @@ def _bloco_missa(x, igrejas):
         chaves.append(r["igreja"])
         h.append('<div class="missa"><span class="hora">' + _e(r["hora"]) + '</span>'
                  '<div class="onde"><b>' + _e(ig["nome"]) + "</b><span>" + _e(ig["lugar"])
-                 + "</span></div>" + _link(_gmaps_busca(ig["busca"]), "Mapa",
-                                           rotulo="Mapa: " + ig["nome"]) + "</div>")
+                 + "</span></div>" + _link(_gmaps_rota(ig["busca"]), "Rota",
+                                           rotulo="Rota até " + ig["nome"]) + "</div>")
         if m.get("aviso"):
             h.append('<p class="sem aviso-missa">' + _e(m["aviso"]) + "</p>")
         info.append("<p>" + _e(r["dist"][:1].upper() + r["dist"][1:]) + ". " + _e(r["porque"]) + "</p>")
@@ -1036,8 +1040,12 @@ def _bloco_o_dia(x):
         h = ['<section class="bl bl-dia"><div class="rot-linha"><h3 class="rot">O dia</h3></div>',
              '<p class="dia-cab2">' + _e(p["cabecalho"][:1].upper() + p["cabecalho"][1:]) + "</p>",
              '<ol class="horas">']
+        dest = p.get("destinos", {})
         for hora, oque, _como, _dur in p["trechos"]:
-            h.append('<li><span class="h">' + _e(hora) + "</span><span>" + _e(oque) + "</span></li>")
+            txt = (('<a class="ir" href="' + _e(_gmaps_rota(dest[hora])) + '" target="_blank" '
+                    'rel="noopener" aria-label="Rota até ' + _e(oque) + '">' + _e(oque) + "</a>")
+                   if hora in dest else _e(oque))
+            h.append('<li><span class="h">' + _e(hora) + "</span><span>" + txt + "</span></li>")
         h.append('</ol><details class="mais-info"><summary>Como ir e observações</summary>'
                  '<div class="info"><ol class="trechos">')
         for hora, oque, como, dur in p["trechos"]:
@@ -1055,6 +1063,47 @@ def _bloco_o_dia(x):
         return ('<section class="bl bl-dia"><div class="rot-linha"><h3 class="rot">O dia</h3></div>'
                 '<p class="resumo">' + _e(e["resumo"]) + "</p></section>")
     return ""
+
+
+def _item_mesa(r):
+    cab = r["ref"] + (" " + r["hora"] if r["hora"] else "")
+    return ('<li class="op"><div class="op-txt"><span class="op-h">' + _e(cab) + "</span>"
+            '<span class="op-n">' + _e(r["nome"]) + '</span><span class="op-l">' + _e(r["onde"])
+            + " · cerca de US$ " + str(r["preco"]) + " para os dois</span>"
+            + ('<span class="op-nota">' + _e(r["nota"]) + "</span>" if r["nota"] else "")
+            + "</div>" + _link(_gmaps_rota(r["busca"]), "Rota", rotulo="Rota até " + r["nome"])
+            + "</li>")
+
+
+def _bloco_mesa(x, d):
+    rs = [r for r in d.get("refeicoes", []) if r["dia"] == x["dia"]]
+    if not rs:
+        return ""
+    plano = [r for r in rs if r["plano"]]
+    sug = [r for r in rs if not r["plano"]]
+    h = ['<section class="bl bl-mesa"><div class="rot-linha"><h3 class="rot">Comer</h3>'
+         + ('<span class="tag t-plano">plano</span>' if plano else "") + "</div>"]
+    if plano:
+        h.append('<ul class="opcoes">' + "".join(_item_mesa(r) for r in plano) + "</ul>")
+    if sug:
+        corpo = '<ul class="opcoes">' + "".join(_item_mesa(r) for r in sug) + "</ul>"
+        if plano:
+            h.append('<details class="mais-info"><summary>Sugestões (' + str(len(sug))
+                     + ')</summary><div class="info">' + corpo + "</div></details>")
+        else:
+            h.append('<p class="extra-rot">Sugestões, ainda não decididas</p>' + corpo)
+    h.append("</section>")
+    return "".join(h)
+
+
+def _bloco_hotel(x, d):
+    ht = d.get("hoteis", {}).get(x["dia"])
+    if not ht:
+        return ""
+    nome, busca = ht
+    return ('<section class="bl bl-hotel"><div class="missa"><div class="onde"><span>Hotel da noite'
+            "</span><b>" + _e(nome) + "</b></div>"
+            + _link(_gmaps_rota(busca), "Rota", rotulo="Rota até " + nome) + "</div></section>")
 
 
 def _bloco_tempo(x, d):
@@ -1146,6 +1195,8 @@ def _cartao_dia(x, d):
             + ("<h2>" + _e(titulo) + "</h2>" if titulo else "") + "</header>"
             + _bloco_missa(x, d["igrejas"])
             + _bloco_o_dia(x)
+            + _bloco_mesa(x, d)
+            + _bloco_hotel(x, d)
             + _bloco_tempo(x, d)
             + _bloco_atencao(x, d)
             + _bloco_links(x)

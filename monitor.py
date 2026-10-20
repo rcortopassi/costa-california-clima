@@ -470,6 +470,178 @@ ROTEIRO = [
   ]},
 ]
 
+# Destino de cada parada do roteiro, para o link "Rota" abrir o Google Maps
+# tracando o caminho de onde a pessoa estiver ate la. {dia: {hora: busca}}
+DESTINOS = {
+    "2026-12-22": {
+        "09:00": "Alamo Rent A Car, Los Angeles International Airport",
+        "10:20": "El Matador State Beach, Malibu, CA",
+        "12:15": "Stearns Wharf, Santa Barbara, CA",
+        "15:10": "Pismo State Beach Monarch Butterfly Grove, Pismo Beach, CA",
+        "18:25": "Gosby House Inn, 643 Lighthouse Ave, Pacific Grove, CA"},
+    "2026-12-23": {
+        "09:45": "Monterey Bay Aquarium, 886 Cannery Row, Monterey, CA",
+        "12:30": "Cannery Row, Monterey, CA",
+        "14:00": "17-Mile Drive Pacific Grove Gate, Pacific Grove, CA",
+        "15:15": "Point Lobos State Natural Reserve, Carmel, CA",
+        "16:30": "Bixby Creek Bridge, Big Sur, CA",
+        "17:30": "Gosby House Inn, 643 Lighthouse Ave, Pacific Grove, CA"},
+    "2026-12-24": {
+        "08:15": "St. Rose of Lima Catholic Church, Paso Robles, CA",
+        "08:30": "St. Rose of Lima Catholic Church, Paso Robles, CA",
+        "10:40": "Buellton, CA",
+        "14:00": "gas station near Los Angeles International Airport",
+        "14:15": "Alamo Rent A Car, Los Angeles International Airport",
+        "17:43": "Los Angeles International Airport"},
+    "2026-12-27": {
+        "10:00": "1778 Ala Moana Blvd, Honolulu, HI",
+        "10:40": "Hanauma Bay Nature Preserve, Honolulu, HI",
+        "12:30": "Makapuu Point Lookout, Waimanalo, HI",
+        "13:45": "Kailua Beach Park, Kailua, HI",
+        "15:00": "Kualoa Regional Park, Kaneohe, HI",
+        "16:15": "Waimea Bay Beach Park, Haleiwa, HI",
+        "17:30": "Haleiwa, HI",
+        "19:30": "The Ambassador Hotel of Waikiki, Honolulu, HI"},
+    "2026-12-29": {
+        "08:30": "Kilauea Visitor Center, Hawaii Volcanoes National Park",
+        "09:15": "Kilauea Overlook, Hawaii Volcanoes National Park",
+        "11:30": "Nahuku Thurston Lava Tube, Hawaii Volcanoes National Park",
+        "13:00": "Holei Sea Arch, Hawaii Volcanoes National Park",
+        "16:00": "Hilo Hawaiian Hotel, 71 Banyan Dr, Hilo, HI",
+        "19:00": "Kilauea Overlook, Hawaii Volcanoes National Park"},
+    "2026-12-30": {
+        "08:30": "Hawaii Tropical Bioreserve and Garden, Papaikou, HI",
+        "10:30": "Akaka Falls State Park, Honomu, HI",
+        "12:10": "Waipio Valley Lookout, Honokaa, HI",
+        "13:30": "Waimea, HI",
+        "14:45": "Mauna Kea Visitor Information Station, HI",
+        "16:00": "Mauna Kea Visitor Information Station, HI",
+        "16:50": "Mauna Kea Summit, HI",
+        "17:53": "Mauna Kea Summit, HI",
+        "20:00": "Hilo Hawaiian Hotel, 71 Banyan Dr, Hilo, HI"},
+    "2026-12-31": {
+        "10:30": "Punaluu Black Sand Beach, HI",
+        "11:45": "Ka Lae South Point, HI",
+        "15:00": "Kailua Pier, Kailua-Kona, HI",
+        "16:00": "Outrigger Kona Resort and Spa, 78-128 Ehukai St, Kailua-Kona, HI"},
+}
+for _p in ROTEIRO:
+    _p["destinos"] = DESTINOS.get(_p["dia"], {})
+
+# ---------------------------------------------------------------- hoteis
+_H_LAX = ("Holiday Inn LAX", "Holiday Inn Los Angeles LAX Airport, 9901 S La Cienega Blvd, Los Angeles, CA")
+_H_GOSBY = ("Gosby House Inn", "Gosby House Inn, 643 Lighthouse Ave, Pacific Grove, CA")
+_H_AMB = ("The Ambassador of Waikiki", "The Ambassador Hotel of Waikiki, 2040 Kuhio Ave, Honolulu, HI")
+_H_HILO = ("Hilo Hawaiian Hotel", "Hilo Hawaiian Hotel, 71 Banyan Dr, Hilo, HI")
+_H_KONA = ("Outrigger Kona Resort & Spa", "Outrigger Kona Resort and Spa, 78-128 Ehukai St, Kailua-Kona, HI")
+# hotel onde se dorme na noite de cada dia (as datas da lista "Honeymoon" do Maps)
+HOTEIS = {"2026-12-21": _H_LAX, "2026-12-22": _H_GOSBY, "2026-12-23": _H_GOSBY,
+          "2026-12-24": _H_AMB, "2026-12-25": _H_AMB, "2026-12-26": _H_AMB, "2026-12-27": _H_AMB,
+          "2026-12-28": _H_HILO, "2026-12-29": _H_HILO, "2026-12-30": _H_HILO,
+          "2026-12-31": _H_KONA, "2027-01-01": _H_KONA, "2027-01-02": _H_KONA, "2027-01-03": _H_KONA,
+          "2027-01-04": _H_LAX}
+
+# ---------------------------------------------------------------- refeicoes
+# 19/10/2026. "plano" = salvo na lista "Honeymoon" do Google Maps ou decidido por
+# eles (Chipotle, Aha 'Aina, Big Kahuna); o resto e sugestao. Preco em USD para os
+# dois, com taxa e gorjeta. Nada de sopa (regra de saude): fora o pea soup de
+# Buellton e o udon de Waikiki; no Aha 'Aina, pedir troca da chowder.
+def _r(dia, ref, nome, onde, busca, preco, nota="", plano=False, hora=""):
+    return {"dia": dia, "ref": ref, "nome": nome, "onde": onde, "busca": busca,
+            "preco": preco, "nota": nota, "plano": plano, "hora": hora}
+
+
+REFEICOES = [
+    _r("2026-12-21", "Jantar", "Chipotle", "La Tijera Blvd, a 3 km do hotel",
+       "Chipotle, 6719 La Tijera Blvd, Los Angeles, CA 90045", 35,
+       "Aberto até 23h. Faz entrega no hotel, se chegarem cansados.", plano=True),
+    _r("2026-12-22", "Almoço", "Brophy Bros", "Porto de Santa Barbara",
+       "Brophy Bros, 119 Harbor Way, Santa Barbara, CA", 80, "Frutos do mar com vista do porto.",
+       plano=True),
+    _r("2026-12-22", "Jantar", "Passionfish", "Pacific Grove",
+       "Passionfish, 701 Lighthouse Ave, Pacific Grove, CA", 140,
+       "A uma quadra da Gosby House: chega, larga o carro e vai a pé."),
+    _r("2026-12-23", "Almoço", "Monterey's Fish House", "Monterey",
+       "Monterey's Fish House, 2114 Del Monte Ave, Monterey, CA", 70,
+       "Peixe dos pescadores locais, a 5 minutos de carro do aquário."),
+    _r("2026-12-23", "Jantar", "La Bicyclette", "Carmel-by-the-Sea",
+       "La Bicyclette, Dolores St and 7th Ave, Carmel-by-the-Sea, CA", 200,
+       "Reserva pela agência. No dia 24 a saída é às 6h10: não esticar a noite.",
+       plano=True, hora="20h15"),
+    _r("2026-12-24", "Café", "Café em Paso Robles", "Depois da missa",
+       "coffee shop near St. Rose of Lima Church, Paso Robles, CA", 20),
+    _r("2026-12-24", "Almoço", "Padaria dinamarquesa em Solvang", "A 5 min de Buellton",
+       "Mortensen's Danish Bakery, 1588 Mission Dr, Solvang, CA", 30,
+       "Solvang está salvo no mapa de vocês. Cabe nos 30 minutos da parada das 10h40."),
+    _r("2026-12-24", "Almoço", "Ellen's Danish Pancake House", "Buellton",
+       "Ellen's Danish Pancake House, 272 Avenue of the Flags, Buellton, CA", 45,
+       "Alternativa a Solvang, sem sair da 101."),
+    _r("2026-12-24", "Jantar", "No LAX antes do voo", "Terminal", "Los Angeles International Airport",
+       50, "Pouso em Honolulu às 21h31: comer antes de embarcar."),
+    _r("2026-12-25", "Café", "Eggs 'n Things", "Saratoga Rd, Waikiki",
+       "Eggs 'n Things, 343 Saratoga Rd, Honolulu, HI", 50, "Panquecas, clássico de Waikiki."),
+    _r("2026-12-25", "Jantar", "Duke's Waikiki, Barefoot Bar", "Praia de Waikiki",
+       "Duke's Waikiki, 2335 Kalakaua Ave, Honolulu, HI", 95,
+       "Na areia, música havaiana ao vivo, sem couvert. O bar não reserva: chegar umas 17h, "
+       "antes do poente. Horário de Natal a confirmar: (808) 922-2268.", plano=True),
+    _r("2026-12-26", "Café", "Leonard's Bakery", "Kapahulu, a caminho do Diamond Head",
+       "Leonard's Bakery, 933 Kapahulu Ave, Honolulu, HI", 25, "Malasadas."),
+    _r("2026-12-26", "Almoço", "Alicia's Market", "Kalihi, 15 min de Pearl Harbor",
+       "Alicia's Market, 267 Mokauea St, Honolulu, HI", 40,
+       "Poke e assados. Sábado das 8h às 18h; fecha aos domingos. De aplicativo.", plano=True),
+    _r("2026-12-26", "Jantar", "Heavenly Island Lifestyle", "Waikiki",
+       "Heavenly Island Lifestyle, 342 Seaside Ave, Honolulu, HI", 70),
+    _r("2026-12-27", "Café", "Island Vintage Coffee", "Royal Hawaiian Center",
+       "Island Vintage Coffee, Royal Hawaiian Center, Honolulu, HI", 35, "Antes do carro às 10h."),
+    _r("2026-12-27", "Almoço", "Kalapawai Market", "Kailua",
+       "Kalapawai Market, 306 S Kalaheo Ave, Kailua, HI", 40, "Sanduíches, ao lado da praia."),
+    _r("2026-12-27", "Jantar", "Giovanni's Shrimp Truck", "Haleʻiwa",
+       "Giovanni's Shrimp Truck, 66-472 Kamehameha Hwy, Haleiwa, HI", 40,
+       "O camarão no alho do North Shore. Fecha cedo: ir no poente."),
+    _r("2026-12-28", "Almoço", "Aeroporto de Honolulu", "Antes do voo das 14h17",
+       "Daniel K. Inouye International Airport, Honolulu, HI", 40),
+    _r("2026-12-28", "Jantar", "Hilo Bay Cafe", "Hilo, na baía",
+       "Hilo Bay Cafe, 123 Lihiwai St, Hilo, HI", 80),
+    _r("2026-12-29", "Almoço", "Kilauea General Store", "Volcano",
+       "Kilauea General Store, Volcano, HI", 40, "Lanche rápido para o dia no parque."),
+    _r("2026-12-29", "Jantar", "The Rim, na Volcano House", "Borda da cratera",
+       "The Rim at Volcano House, Hawaii Volcanoes National Park, HI", 130,
+       "Só se der, como na nota de vocês. Janta e espera o brilho da cratera ali, sem "
+       "voltar a Hilo. Jantar das 17h às 20h30; reserva pelo (808) 930-6910.", plano=True),
+    _r("2026-12-30", "Café", "Ken's House of Pancakes", "Hilo",
+       "Ken's House of Pancakes, 1730 Kamehameha Ave, Hilo, HI", 35),
+    _r("2026-12-30", "Almoço", "Big Island Brewhaus", "Waimea",
+       "Big Island Brewhaus, 64-1066 Mamalahoa Hwy, Waimea, HI", 50,
+       "Rápido. Comprar lanche e água no Foodland de Waimea para o cume."),
+    _r("2026-12-30", "Jantar", "Ken's House of Pancakes", "Hilo, na volta do Mauna Kea",
+       "Ken's House of Pancakes, 1730 Kamehameha Ave, Hilo, HI", 45,
+       "Volta por volta de 21h: confirmar se ainda está aberto."),
+    _r("2026-12-31", "Café", "Café 100", "Hilo",
+       "Cafe 100, 969 Kilauea Ave, Hilo, HI", 20, "Onde nasceu o loco moco."),
+    _r("2026-12-31", "Almoço", "Punaluʻu Bake Shop", "Nāʻālehu",
+       "Punaluu Bake Shop, Naalehu, HI", 25, "A padaria mais ao sul dos EUA, no caminho."),
+    _r("2026-12-31", "Jantar", "Aha ʻAina, réveillon no PIKO", "Outrigger Kona",
+       "Outrigger Kona Resort and Spa, 78-128 Ehukai St, Kailua-Kona, HI", 370,
+       "US$ 149 por pessoa com vinhos. O menu tem chowder: pedir troca.", plano=True, hora="18h30"),
+    _r("2027-01-01", "Café", "Island Lava Java", "Aliʻi Drive",
+       "Island Lava Java, 75-5799 Alii Dr, Kailua-Kona, HI", 60, "Brunch de frente para o mar."),
+    _r("2027-01-01", "Jantar", "Big Kahuna Beach Grill", "Kailua-Kona",
+       "Big Kahuna Beach Grill, 75-5663 Palani Rd, Kailua-Kona, HI", 130,
+       "Reservar com a Daniele. No Ano-Novo quase tudo fecha. Alternativa: jantar de 03/01.",
+       plano=True),
+    _r("2027-01-02", "Almoço", "Da Poke Shack", "Kailua-Kona",
+       "Da Poke Shack, 76-6246 Alii Dr, Kailua-Kona, HI", 35,
+       "Depois do catamarã. À noite, snorkel com as mantas às 20h15."),
+    _r("2027-01-03", "Jantar", "Kona Brewing Hawaii", "Kailua-Kona",
+       "Kona Brewing Hawaii, 74-5612 Pawai Pl, Kailua-Kona, HI", 70),
+    _r("2027-01-05", "Café", "République", "La Brea",
+       "Republique, 624 S La Brea Ave, Los Angeles, CA", 60),
+    _r("2027-01-05", "Almoço", "Grand Central Market", "Centro",
+       "Grand Central Market, 317 S Broadway, Los Angeles, CA", 45),
+    _r("2027-01-05", "Jantar", "Versailles", "Culver City, a caminho do LAX",
+       "Versailles, 10319 Venice Blvd, Los Angeles, CA", 55, "Cubano. Aeroporto às 22h."),
+]
+
 # ---------------------------------------------------------------- missas
 # Conferido em 13/09/2026 nos sites das proprias paroquias (e, onde o site
 # bloqueia leitura, no diretorio oficial da diocese). Agregadores erraram quatro
@@ -483,6 +655,11 @@ IGREJAS = {
         "horarios": "segunda a sexta 8h · sábado 17h · domingo 8h, 9h30 e 11h",
         "busca": "Church of the Visitation, 6561 W 88th St, Los Angeles",
         "fonte": "https://www.visitationchurch-la.com/"},
+    "anastasia": {
+        "nome": "St. Anastasia", "lugar": "Westchester, Los Angeles",
+        "horarios": "segunda, quarta e sexta 8h · terça e quinta 6h30",
+        "busca": "St. Anastasia Catholic Church, 7390 W Manchester Ave, Los Angeles, CA",
+        "fonte": "https://lacatholics.org/venue/st-anastasia-catholic-church/"},
     "sancarlos": {
         "nome": "San Carlos Cathedral (Royal Presidio Chapel)", "lugar": "Monterey",
         "horarios": "segunda a sexta 7h30 e 12h (exceto feriados) · sábado 16h · "
@@ -625,9 +802,13 @@ MISSAS = [
                "nota": "Plano B, na chegada a Los Angeles (pouso às 18h10). É o horário do semestre, "
                        "e 21/12 é férias na USC: confirmar em dezembro."}]},
     {"dia": "2026-12-22", "regiao": "ca", "liturgia": "Advento",
-     "rec": {"hora": "8h", "igreja": "visitation", "dist": "5 km do Holiday Inn LAX",
-             "porque": "Café do hotel antes. A missa termina por volta de 8h35 e as locadoras "
-                       "ficam a 10 minutos de aplicativo: dá para pegar o carro às 9h."},
+     "rec": {"hora": "6h30", "igreja": "anastasia", "dist": "4 km do Holiday Inn LAX",
+             "porque": "A que vocês salvaram no mapa. Terça tem missa às 6h30: termina por volta "
+                       "de 7h05, dá tempo de voltar para o café do hotel e pegar o carro às 9h "
+                       "sem correr."},
+     "alts": [{"hora": "8h", "igreja": "visitation",
+               "nota": "Plano B. Termina por volta de 8h35 e as locadoras ficam a 10 minutos "
+                       "de aplicativo: o carro ainda sai às 9h, mas sem folga."}],
      "descartadas": "Old Mission Santa Barbara só celebra às 8h, quando vocês ainda estão em "
                     "Los Angeles. Não há missa ao meio-dia em Santa Barbara nem à noite em "
                     "Pacific Grove."},
@@ -703,7 +884,7 @@ MISSAS = [
                "nota": "Mais perto da H-1, também no caminho do aeroporto."}]},
 
     {"dia": "2026-12-29", "regiao": "bi", "liturgia": "Oitava do Natal",
-     "rec": {"hora": "6h", "igreja": "joseph", "dist": "3 km do Castle Hilo Hawaiian",
+     "rec": {"hora": "6h", "igreja": "joseph", "dist": "3 km do Hilo Hawaiian Hotel",
              "porque": "Café depois e saída para o Hawaii Volcanoes National Park às 8h30. "
                        "Seis da manhã em Hilo são oito no relógio que vocês trazem da Golden Coast."},
      "alts": [{"hora": "12h15", "igreja": "joseph",
@@ -752,7 +933,7 @@ _LAX = (33.9491, -118.3868, "LAX")
 # orla. Livre, o roteador corta Santa Barbara-Buellton pela CA 154 (San Marcos
 # Pass), 22 km mais curta e por dentro da serra, que nao e o que o roteiro quer.
 _ORLA_101 = (34.4630, -120.0710, None)
-_HILO = (19.7281, -155.0667, "Castle Hilo Hawaiian Hotel")
+_HILO = (19.7281, -155.0667, "Hilo Hawaiian Hotel")
 ROTAS = {
     "ida_2212": {
         "dia": "2026-12-22", "regiao": "ca", "trajeto": True,
@@ -1634,7 +1815,7 @@ def main():
         "pontos": pontos, "por_id": por_id, "etapas": etapas,
         "prev_por_dia": prev_por_dia, "estradas": vias, "alertas": alertas,
         "enso": es, "kilauea": kil,
-        "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO,
+        "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO, "refeicoes": REFEICOES, "hoteis": HOTEIS,
         "missas": MISSAS, "igrejas": IGREJAS,
     }
 
