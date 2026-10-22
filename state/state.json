@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-10-21T23:27:39+00:00",
+ "rodada_utc": "2026-10-22T05:04:05+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -125,6 +125,7 @@
   "urn:oid:2.49.0.1.840.0.a98bbc0a1eaa81bcae163ab759e2a71eef120f8e.001.2",
   "urn:oid:2.49.0.1.840.0.a98bbc0a1eaa81bcae163ab759e2a71eef120f8e.002.1",
   "urn:oid:2.49.0.1.840.0.a98bbc0a1eaa81bcae163ab759e2a71eef120f8e.003.1",
+  "urn:oid:2.49.0.1.840.0.aa8da717453b9bb58fa64b658f4f0e82c5aafaf5.001.1",
   "urn:oid:2.49.0.1.840.0.aaa3742406865941224d445b556f7686eedf4f02.001.1",
   "urn:oid:2.49.0.1.840.0.aaa3742406865941224d445b556f7686eedf4f02.002.1",
   "urn:oid:2.49.0.1.840.0.aaa3742406865941224d445b556f7686eedf4f02.003.1",
@@ -224,6 +225,8 @@
   "urn:oid:2.49.0.1.840.0.e430d9b6ba91319e4d463fc108a9c7181b66e0bf.002.1",
   "urn:oid:2.49.0.1.840.0.e743d6fcfba924b8a69ce968be357e950d588c80.001.1",
   "urn:oid:2.49.0.1.840.0.e743d6fcfba924b8a69ce968be357e950d588c80.002.1",
+  "urn:oid:2.49.0.1.840.0.ef8c688f2cfc134982fcf9ecb92bfbc3c220de19.001.1",
+  "urn:oid:2.49.0.1.840.0.ef8c688f2cfc134982fcf9ecb92bfbc3c220de19.002.1",
   "urn:oid:2.49.0.1.840.0.f3181b0e8a5a2c3b042e0aa663aaaa8d1a5d37a4.001.1",
   "urn:oid:2.49.0.1.840.0.f3181b0e8a5a2c3b042e0aa663aaaa8d1a5d37a4.002.1",
   "urn:oid:2.49.0.1.840.0.f3181b0e8a5a2c3b042e0aa663aaaa8d1a5d37a4.003.1",
@@ -248,10 +251,13 @@
   "trajeto_hamakua_3012": "069e263c50",
   "trajeto_sul_3112": "7e31d6982f",
   "via_3f401545f646": "bbe8f22578",
-  "nws_a896d7db0207": "f72d8c6413",
-  "nws_51f38e91bcf1": "f4c31279c8",
-  "nws_7e020c33632e": "68396c80bc",
+  "nws_4573b6678447": "6d9ef9ed61",
+  "nws_fff0cd73ebb7": "b1256fbe16",
+  "nws_cc43308bdb1f": "68396c80bc",
+  "nws_c96e98078d11": "69e9cc2b9d",
+  "nws_d3a9d42cebdb": "b3e86251f7",
+  "nws_1a06a08b3d07": "b84ab32ad7",
   "nws_d75ee9367ce4": "da2cf8fe17",
-  "resumo_ca": "b5e5b7842d"
+  "resumo_ca": "856c41e351"
  }
 }
