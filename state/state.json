@@ -1,10 +1,11 @@
 {
- "rodada_utc": "2026-10-26T21:05:48+00:00",
+ "rodada_utc": "2026-10-27T08:02:21+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
   "urn:oid:2.49.0.1.840.0.0d2b73ba1f932ef8e0de256e9536ac6e68783bd9.001.1",
   "urn:oid:2.49.0.1.840.0.0d2b73ba1f932ef8e0de256e9536ac6e68783bd9.002.1",
+  "urn:oid:2.49.0.1.840.0.0d82640cc256234f7c51ea330c894d2dec23571a.001.1",
   "urn:oid:2.49.0.1.840.0.0e2b6a9e0b5751903ff2e2982181acae7f3226f0.001.1",
   "urn:oid:2.49.0.1.840.0.1f7b086a6ad56d044bb16dca148157a534b80015.001.1",
   "urn:oid:2.49.0.1.840.0.1f7b086a6ad56d044bb16dca148157a534b80015.002.1",
@@ -256,12 +257,12 @@
   "trajeto_sul_3112": "7e31d6982f",
   "via_10d76155a245": "af22b860d0",
   "via_3f401545f646": "bbe8f22578",
-  "nws_ca9450e035fd": "b61a3aefcb",
-  "nws_9a92b852ead1": "29d8beae45",
-  "nws_30d9b5b7c496": "cc99e5f6dd",
-  "nws_45b2c24617f9": "e2bab49131",
-  "nws_e3ac1beb4b0b": "b9c777cdbe",
-  "resumo_ca": "06dba18923",
+  "nws_c4e4b879da40": "4bf534345d",
+  "nws_eca977e0b834": "cc99e5f6dd",
+  "nws_5fbc11a0a058": "29d8beae45",
+  "nws_1bec6729d012": "e2bab49131",
+  "nws_6da29f668809": "b9c777cdbe",
+  "resumo_ca": "d22effee6b",
   "resumo_oahu": "c45ab55e26",
   "resumo_bi": "19cbda79a8"
  }
