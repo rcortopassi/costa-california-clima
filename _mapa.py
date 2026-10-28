@@ -37,6 +37,7 @@ POPPY = (232, 115, 15)
 PAPEL = (251, 246, 236)
 TINTA = (28, 43, 49)
 TINTA2 = (94, 109, 114)
+AREA_COR = (176, 112, 18)   # contorno da area do aviso, um pouco mais escuro para o rotulo
 PARQUE = (214, 230, 196)     # verde dos parques e reservas no fundo da Esri, ja com o veu
 LINHA = (226, 214, 194)
 
@@ -241,14 +242,14 @@ def renderiza(spec):
         evitar += [px(q) for q in linha] * 3      # cobrir o trecho afetado pesa mais
     marcos = spec.get("marcos", [])
     # os de inicio e fim primeiro: sao eles que o leitor procura
-    ordem = sorted(marcos, key=lambda m: {"inicio": 0, "fim": 1, "ponto": 2}.get(m["tipo"], 3))
+    ordem = sorted(marcos, key=lambda m: {"inicio": 0, "fim": 1, "ponto": 2, "area": 2}.get(m["tipo"], 3))
     for m in ordem:
         x, y = px(m["pos"])
         if m["tipo"] == "parada":
             d.ellipse((x - 7, y - 7, x + 7, y + 7), fill=(255, 255, 255), outline=ROTA, width=4)
             ocupado.append((x - 9, y - 9, x + 9, y + 9))
         else:
-            cor = {"inicio": INICIO, "fim": FIM}.get(m["tipo"], TRECHO)
+            cor = {"inicio": INICIO, "fim": FIM, "area": AREA_COR}.get(m["tipo"], TRECHO)
             d.ellipse((x - 17, y - 17, x + 17, y + 17), fill=(255, 255, 255))
             d.ellipse((x - 12, y - 12, x + 12, y + 12), fill=cor)
             d.ellipse((x - 4, y - 4, x + 4, y + 4), fill=(255, 255, 255))
@@ -258,7 +259,7 @@ def renderiza(spec):
         if m["tipo"] == "parada":
             _rotulo_pequeno(d, x, y, m["nome"], ocupado, evitar)
         else:
-            cor = {"inicio": INICIO, "fim": FIM}.get(m["tipo"], TRECHO)
+            cor = {"inicio": INICIO, "fim": FIM, "area": AREA_COR}.get(m["tipo"], TRECHO)
             _rotulo(d, x, y, m.get("tag", ""), m["nome"], cor, ocupado, evitar)
 
     # visao geral no canto e a faixa do dia: so nos avisos que cruzam o trajeto
@@ -436,8 +437,14 @@ def _cabecalho(tela, spec):
         c = tuple(int(POPPY[k] + (DOURADO[k] - POPPY[k]) * t) for k in range(3))
         d.line((i, TOPO - 6, i, TOPO), fill=c)
     _texto(d, (38, 20), (spec.get("kicker") or "").upper(), fonte(15, True), DOURADO, 2.2)
-    d.text((38, 44), _corta(d, spec.get("titulo", ""), fonte(34, True), W - 76),
-           font=fonte(34, True), fill=(255, 248, 236))
+    # o titulo nunca e cortado: diminui a letra ate caber, e so corta como
+    # ultimo recurso (o nome da area sumia em "Santa Bar...", 28/10/2026)
+    titulo = spec.get("titulo", "")
+    for tam in (34, 31, 28, 25):
+        ft = fonte(tam, True)
+        if d.textlength(titulo, font=ft) <= W - 76:
+            break
+    d.text((38, 44 + (34 - tam) // 2), _corta(d, titulo, ft, W - 76), font=ft, fill=(255, 248, 236))
     # subtitulo em ate duas linhas: e nele que esta o que o aviso quer dizer
     f = fonte(19)
     palavras, linhas, atual = (spec.get("subtitulo") or "").split(), [], ""

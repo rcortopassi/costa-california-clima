@@ -316,6 +316,53 @@ def _sentido(evento):
     return pt, efeito
 
 
+def _tamanho(anel):
+    return ((max(p[0] for p in anel) - min(p[0] for p in anel))
+            * (max(p[1] for p in anel) - min(p[1] for p in anel)))
+
+
+_OVERPASS_FORA = []
+
+
+def _overpass(q):
+    """Uma tentativa curta por servidor. Se todos falharem, desiste pelo resto da
+    rodada: com o Overpass fora do ar, tentar de novo a cada pedaco de area
+    levava minutos (27/10/2026)."""
+    if _OVERPASS_FORA:
+        return None
+    import subprocess
+    for host in ("overpass-api.de/api", "overpass.private.coffee/api", "overpass.kumi.systems/api"):
+        try:
+            r = subprocess.run(["curl", "-sS", "--max-time", "12", "-A", _geo.UA,
+                                f"https://{host}/interpreter?data=" + quote(q)],
+                               capture_output=True, text=True, timeout=15)
+            return json.loads(r.stdout).get("elements", [])
+        except Exception:  # noqa: BLE001 - servidor ocupado responde HTML ou nada
+            continue
+    _OVERPASS_FORA.append(True)
+    return None
+
+
+def _nome_da_area(p, geo):
+    """Nome da ilha que contem o ponto, pelo Overpass (OpenStreetMap). O
+    reverso do Nominatim devolve a cidade (Avalon em vez de Santa Catalina
+    Island) ou um pico. Fora de ilha volta vazio e vale o nome da zona."""
+    k = f"{p[0]:.2f},{p[1]:.2f}"
+    cache = geo.setdefault("ilha", {})
+    geo.pop("nome_area", None)
+    if k not in cache:
+        try:
+            q = (f"[out:json][timeout:20];is_in({p[0]:.4f},{p[1]:.4f})->.a;"
+                 'area.a[place~"island|islet"];out tags;')
+            els = _overpass(q)
+            if els is None:
+                return ""       # sem cache: tenta de novo na proxima rodada
+            cache[k] = next((e["tags"].get("name", "") for e in els if e.get("tags")), "")
+        except Exception:  # noqa: BLE001
+            return ""       # sem cache: tenta de novo na proxima rodada
+    return cache[k]
+
+
 def _comprimento(linha):
     return sum(_geo.km(a, b) for a, b in zip(linha, linha[1:]))
 
@@ -397,7 +444,8 @@ def mapa_aviso(alerta, rotas, geo):
         if n_pedacos > 1:
             lugar = f"em {n_pedacos} pedaços; o maior {lugar}"
         titulo = f"{pt}: {alcance}"
-        efeito = (f"Aviso do tempo, não interdição de estrada. Trecho {lugar}, em {_dias(cruzam)}"
+        onde = f"Trecho {lugar}, em {_dias(cruzam)}" if parcial else f"Vale para o trajeto inteiro de {_dias(cruzam)}"
+        efeito = (f"Aviso do tempo, não interdição de estrada. {onde}"
                   + (f": {sentido}." if sentido else "."))
         leg = [("rota", "seu trajeto"), ("trecho", "trecho dentro do aviso"), ("area", "área do aviso"),
                ("parque", "parque ou reserva")]
@@ -405,15 +453,33 @@ def mapa_aviso(alerta, rotas, geo):
     else:
         centro = [(caixa[0][0] + caixa[1][0]) / 2, (caixa[0][1] + caixa[1][1]) / 2]
         dist, rprox, vert = _perto_do_trajeto([centro], legs)
-        titulo = f"{pt} em {zonas.split(';')[0].strip()}"
+        area_nome = zonas.split(";")[0].strip()
+        # o titulo diz o essencial e cabe; o nome da zona do NWS, que pode ser
+        # comprido, vai no subtitulo e num rotulo em cima da propria area
+        # (Catalina and Santa Barbara Islands, 28/10/2026)
+        titulo = f"{pt}: fora do seu trajeto"
+        # um rotulo por pedaco da area: uma zona como "Catalina and Santa
+        # Barbara Islands" sao duas ilhas, e a pequena sumia sem nome
+        # pedacos com o mesmo nome (uma ilha e as pedras em volta) levam um rotulo so;
+        # pedaco sem nome conhecido leva o nome da zona, se estiver longe dos outros
+        marcos, nomes = [], set()
+        for anel in sorted(aneis, key=_tamanho, reverse=True)[:6]:
+            meio = [sum(p[0] for p in anel) / len(anel), sum(p[1] for p in anel) / len(anel)]
+            nome = _nome_da_area(meio, geo)
+            if nome in nomes or (not nome and any(_geo.km(meio, m["pos"]) < 15 for m in marcos)):
+                continue
+            nomes.add(nome)
+            marcos.append({"pos": meio, "tipo": "area", "tag": "ÁREA DO AVISO",
+                           "nome": nome or area_nome})
         if vert:
-            marcos = [{"pos": vert, "tipo": "parada", "nome": _nome_perto(vert, rotas, geo) or "seu trajeto"}]
+            marcos.append({"pos": vert, "tipo": "parada",
+                           "nome": _nome_perto(vert, rotas, geo) or "seu trajeto"})
             enquadra.append(vert)
             perto = [r for r in legs if _geo.mais_perto(centro, r["linha"])[0] <= dist + 3]
-            efeito = (f"Fora do seu caminho: a área fica a {dist:.0f} km do trajeto ({_dias(perto)}) "
-                      f"e não o cruza.")
+            efeito = (f"Área: {area_nome}, a {dist:.0f} km do trajeto ({_dias(perto)}), "
+                      f"sem cruzá-lo.")
         else:
-            efeito = ""
+            efeito = f"Área: {area_nome}."
         leg = [("rota", "seu trajeto"), ("area", "área do aviso")]
         link = link_gmaps([centro])
     spec = {
