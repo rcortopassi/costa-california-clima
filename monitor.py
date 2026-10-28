@@ -93,9 +93,9 @@ PONTOS = [
      {"tmax": 17.3, "tmin": 7.3, "mm": 3.5, "pct": 24, "forte": 15}, False),
     ("malibu", "Malibu / El Matador", 34.0387, -118.8747, 10, "ca", "Primeira parada da PCH",
      {"tmax": 17.3, "tmin": 7.3, "mm": 3.5, "pct": 24, "forte": 15}, False),
-    ("sb", "Santa Barbara", 34.4208, -119.6982, 15, "ca", "Orla da 101 e almoço do dia 24",
+    ("sb", "Santa Barbara", 34.4208, -119.6982, 15, "ca", "Almoço do dia 22",
      {"tmax": 17.6, "tmin": 8.3, "mm": 4.0, "pct": 27, "forte": 15}, False),
-    ("pismo", "Pismo Beach", 35.1428, -120.6413, 15, "ca", "Onde a costa volta, rumo à SR-1",
+    ("pismo", "Pismo Beach", 35.1428, -120.6413, 15, "ca", "Bosque das monarcas",
      {"tmax": 15.7, "tmin": 8.1, "mm": 3.6, "pct": 31, "forte": 19}, False),
     ("paso", "Paso Robles", 35.6266, -120.6910, None, "ca", "US-101 pelo interior",
      {"tmax": 15.7, "tmin": 8.1, "mm": 3.6, "pct": 31, "forte": 19}, False),
@@ -157,9 +157,9 @@ ETAPAS = [
      "Voos: Brasília 2h, Panamá 6h a 11h35, Houston 14h54 a 16h30, Los Angeles 18h10. "
      "Transfer do Holiday Inn. Sem carro.", ["lax"], False),
     ("2026-12-22", "ca", "Los Angeles a Pacific Grove",
-     "Carro às 7h15 no LAX. PCH até Malibu, 101 pela orla até Santa Barbara, SR-1 de "
-     "Morro Bay a Carmel passando por Big Sur. Recepção fecha às 18h.",
-     ["lax", "malibu", "sb", "pismo", "bixby", "carmel", "pg"], True),
+     "Carro às 9h no LAX. PCH até Malibu, 101 pela orla até Santa Barbara, "
+     "101 pelo interior até Pacific Grove. Recepção fecha às 18h.",
+     ["lax", "malibu", "sb", "pismo", "paso", "salinas", "pg"], True),
     ("2026-12-23", "ca", "Monterey Peninsula",
      "Aquário, Cannery Row, 17-Mile Drive, Carmel, Point Lobos. "
      "Sobra tempo para uma ida e volta até Bixby Bridge.",
@@ -212,55 +212,46 @@ ETAPAS = [
 # datas e coordenadas reais, nao copiados de lugar nenhum.
 # (hora, o que, como, duracao)
 ROTEIRO = [
- {"dia": "2026-12-22", "regiao": "ca", "titulo": "Ida: Los Angeles a Pacific Grove pela costa",
-  "cabecalho": "550 km e cerca de 8h10 de volante, quase tudo de frente para o mar, poente às 16h57 em Big Sur",
+ {"dia": "2026-12-22", "regiao": "ca", "titulo": "Ida: Los Angeles a Pacific Grove",
+  "cabecalho": "563 km e 6h40 de volante, poente às 16h49 no sul e 16h57 no norte",
   "trechos": [
-    ("07:15", "Retirar o carro na Alamo", "Terminal do LAX. A reserva está para 9h: pedir à "
-     "agência para antecipar. Conferir o tanque e a franquia antes de sair", "20 min"),
-    ("07:35", "LAX até El Matador, em Malibu", "Lincoln Blvd norte, I-10 oeste, "
+    ("09:00", "Retirar o carro na Alamo", "Terminal do LAX. Conferir o tanque e a "
+     "franquia antes de sair", "20 min"),
+    ("09:20", "LAX até El Matador, em Malibu", "Lincoln Blvd norte, I-10 oeste, "
      "SR-1 (Pacific Coast Highway). Oceano à esquerda de Santa Monica em diante",
-     "53 km, 55 min"),
-    ("08:30", "El Matador State Beach", "Só o mirante do alto da falésia. USD 10 por veículo. "
-     "Descer a escada até os arcos come 40 minutos que o dia não tem", "15 min"),
-    ("08:45", "Malibu até Santa Barbara", "SR-1 até Oxnard, US-101 norte. De Ventura "
-     "a Santa Barbara a 101 corre na praia", "98 km, 1h15"),
-    ("10:00", "Santa Barbara até Pismo Beach", "Sem parar: o Brophy Bros foi para o almoço do "
-     "dia 24. US-101 pela orla até Gaviota, passando por El Capitán e Refugio. De Gaviota a "
-     "Pismo não existe estrada na costa (é a Vandenberg Space Force Base), então a 101 entra "
-     "no continente. Recusar a CA 154 que o GPS vai sugerir e ignorar a SR-1 para Lompoc",
-     "155 km, 1h45"),
-    ("11:45", "Pismo Beach até Morro Bay", "US-101 até San Luis Obispo e SR-1 norte. Daqui "
-     "até Carmel é SR-1 o tempo todo", "42 km, 35 min"),
-    ("12:20", "Almoço em Morro Bay", "Embarcadero, de frente para Morro Rock", "45 min"),
-    ("13:05", "Morro Bay até Piedras Blancas", "SR-1 por Cayucos, Cambria e San Simeon. "
-     "Hearst Castle fica no alto do morro, à direita", "55 km, 50 min"),
-    ("13:55", "Elephant Seal Vista Point", "Piedras Blancas. Gratuito, colado na estrada. "
-     "Dezembro é a chegada dos machos e o começo dos nascimentos", "15 min"),
-    ("14:10", "Piedras Blancas até McWay Falls", "SR-1 pela falésia: Ragged Point, Gorda, "
-     "Lucia e Regent's Slide, reaberto em janeiro de 2026. Pode haver pare-e-siga de obra",
-     "77 km, 1h30"),
-    ("15:40", "McWay Falls", "Julia Pfeiffer Burns State Park. Trilha de 10 minutos até a "
-     "cachoeira que cai na areia. Estacionar dentro do parque, não no acostamento", "25 min"),
-    ("16:05", "McWay Falls até Bixby Bridge", "SR-1 por Big Sur village e Point Sur. "
-     "Pare-e-siga de obra entre Point Sur e Big Sur até 31/12", "38 km, 45 min"),
-    ("16:50", "Bixby Bridge no poente", "Mirante do lado norte. Poente às 16h57", "15 min"),
-    ("17:05", "Bixby Bridge até Pacific Grove", "SR-1 norte por Carmel, já no lusco-fusco. "
-     "É o trecho manso, não a falésia exposta", "32 km, 35 min"),
-    ("17:40", "Gosby House Inn", "643 Lighthouse Ave. A recepção fecha às 18h", "chegada"),
+     "52 km, 1h"),
+    ("10:20", "El Matador State Beach", "USD 10 por veículo. Escada na falésia até "
+     "os arcos de pedra. Maré baixa deixa passar entre eles", "40 min"),
+    ("11:00", "Malibu até Santa Barbara", "SR-1 até Oxnard, US-101 norte. De Ventura "
+     "a Santa Barbara a 101 corre na praia: sair da PCH aqui não custa mar nenhum",
+     "98 km, 1h15"),
+    ("12:15", "Almoço em Santa Barbara", "State Street e o cais. Estacionamento "
+     "municipal das primeiras 75 minutos de graça", "1h15"),
+    ("13:30", "Santa Barbara até Pismo Beach", "US-101 pela orla até Gaviota, passando por "
+     "El Capitán e Refugio; em Gaviota Pass a estrada entra no continente. Recusar a CA 154 "
+     "(San Marcos Pass) que o GPS vai sugerir: 22 km mais curta, mas é serra por dentro da "
+     "montanha, sem mar. Em Las Cruces ignorar a SR-1 para Lompoc", "155 km, 1h40"),
+    ("15:10", "Monarch Butterfly Grove, em Pismo", "Na Dolliver St, a própria SR-1, "
+     "dois minutos fora da 101. Gratuito. Dezembro é o pico das monarcas "
+     "hibernando nos eucaliptos", "30 min"),
+    ("15:40", "Pismo até Pacific Grove", "US-101 por San Luis Obispo, Atascadero, "
+     "Paso Robles e Salinas. Interior, quatro pistas, rápido e sem graça, e é de "
+     "propósito: é o trecho que sobra para depois do escuro", "257 km, 2h45"),
+    ("18:25", "Gosby House Inn", "643 Lighthouse Ave. A recepção fecha às 18h",
+     "chegada"),
   ],
   "notas": [
-    "Pela costa o caminho inteiro só não dá entre Gaviota e Pismo Beach: ali a costa é base "
-    "militar e não tem estrada. Todo o resto é PCH, 101 na praia ou SR-1.",
-    "O dia só fecha com o carro às 7h15, logo depois da missa das 6h30. Com o carro às 9h, "
-    "a falésia de Big Sur cai inteira depois do poente. Pedir à agência para antecipar a "
-    "retirada na Alamo.",
-    "Não há folga para parada longa. Se atrasar mais de 30 minutos até Morro Bay, comer "
-    "rápido em Cambria e cortar os elefantes-marinhos; McWay Falls e Bixby ficam.",
-    "Se a SR-1 fechar em Big Sur por chuva ou deslizamento, o plano B é o de antes: 101 "
-    "pelo interior de San Luis Obispo a Salinas. O painel acompanha as interdições do "
-    "Caltrans e avisa.",
-    "O Monarch Butterfly Grove de Pismo saiu do dia. O Monarch Grove Sanctuary de Pacific "
-    "Grove fica a 1,5 km da pousada e está no pico em dezembro.",
+    "O dia todo tem 9 horas e o plano cheio pede 9h25. A saída não é cortar "
+    "parada: é pedir à agência para avisar a Gosby House que vocês chegam entre "
+    "18h30 e 19h. A própria confirmação diz que basta avisar antes.",
+    "A ordem foi montada para o escuro cair no trecho feio. Tudo o que tem "
+    "paisagem acontece antes das 16h; os últimos 257 km de 101 são retão de "
+    "quatro pistas e não perdem nada por serem à noite.",
+    "Solvang é a alternativa ao bosque das monarcas, cinco minutos fora da 101 em "
+    "Buellton. Não cabem os dois. O bosque é gratuito, dura 30 minutos e é "
+    "sazonal; o vilarejo dinamarquês fica lá o ano todo.",
+    "Big Sur não entra na ida. Pegar a SR-1 em San Luis Obispo somaria 2h30 e "
+    "jogaria a falésia toda para depois do poente.",
   ]},
 
  {"dia": "2026-12-23", "regiao": "ca", "titulo": "Monterey Peninsula e o pedaço de Big Sur",
@@ -289,10 +280,7 @@ ROTEIRO = [
     "escuro. Nenhuma das duas está errada.",
     "O Monarch Grove Sanctuary de Pacific Grove fica a 1,5 km da pousada, é "
     "gratuito e também está no pico em dezembro. Cabe em 30 minutos antes do "
-    "aquário, e substitui o bosque de Pismo, que saiu da ida.",
-    "A ida já passa por Bixby no poente do dia 22. Se a luz pegou a ponte naquele dia, a "
-    "tarde de hoje pode ficar na península: Lovers Point, Asilomar e o santuário das "
-    "monarcas.",
+    "aquário, e serve de plano B se Pismo não der na ida.",
     "Lovers Point, o poente que o roteiro original sugeria, fica a sete minutos a "
     "pé da pousada e continua disponível em qualquer uma das duas noites.",
   ]},
@@ -309,28 +297,27 @@ ROTEIRO = [
     ("08:30", "Missa em St. Rose of Lima", "A missa do dia, e a razão do horário de saída", "35 min"),
     ("09:10", "Paso Robles até Buellton", "US-101 por San Luis Obispo, Cuesta Grade e "
      "Santa Maria", "146 km, 1h30"),
-    ("10:40", "Buellton até Santa Barbara pela orla", "US-101 por Gaviota e Refugio. A CA "
+    ("10:40", "Buellton, a parada de comida", "Depois daqui não para mais", "30 min"),
+    ("11:10", "Buellton até Santa Barbara pela orla", "US-101 por Gaviota e Refugio. A CA "
      "154 corta caminho e economiza uns 20 minutos: só se o dia apertar e não houver aviso "
      "de vento ou chuva na serra", "73 km, 45 min"),
-    ("11:25", "Almoço no Brophy Bros", "Santa Barbara Harbor. Depois daqui não para mais",
-     "45 min"),
-    ("12:10", "Santa Barbara até Ventura", "US-101 na praia", "44 km, 30 min"),
-    ("12:40", "Ventura até Woodland Hills", "US-101 pelo San Fernando Valley, já com "
+    ("11:55", "Santa Barbara até Ventura", "US-101 na praia", "44 km, 30 min"),
+    ("12:25", "Ventura até Woodland Hills", "US-101 pelo San Fernando Valley, já com "
      "trânsito de véspera de Natal", "70 km, 50 min"),
-    ("13:30", "Woodland Hills até o LAX", "I-405 sul pela Sepulveda Pass, o trecho que "
+    ("13:15", "Woodland Hills até o LAX", "I-405 sul pela Sepulveda Pass, o trecho que "
      "mais trava. Não passar pelo centro", "41 km, 45 min"),
-    ("14:15", "Abastecer perto do aeroporto", "A Alamo cobra caro pelo tanque. Posto na "
+    ("14:00", "Abastecer perto do aeroporto", "A Alamo cobra caro pelo tanque. Posto na "
      "Century Blvd ou na Sepulveda", "15 min"),
-    ("14:30", "Devolver o carro", "Locadoras do lado leste do LAX. Devolução marcada para "
-     "15h", "folga de 30 min"),
+    ("14:15", "Devolver o carro", "Locadoras do lado leste do LAX. Devolução marcada para "
+     "15h", "folga de 45 min"),
     ("17:43", "Voo para Honolulu", "Chegada às 21h31, e cerca de 30 minutos de "
      "aplicativo até Waikiki", "—"),
   ],
   "notas": [
     "A missa do dia fica em Paso Robles, às 8h30, na própria US 101, e é ela que marca a "
     "saída às 6h10. Medido: 564 km e cerca de 6 horas de volante, mais missa, comida, "
-    "abastecimento, o almoço no Brophy Bros e o trânsito de véspera de Natal em Los Angeles, "
-    "e ainda sobram uns 30 minutos antes das 15h. Do outro lado está o voo para Honolulu às 17h43.",
+    "abastecimento e o trânsito de véspera de Natal em Los Angeles, e ainda sobram uns 45 "
+    "minutos antes das 15h. Do outro lado está o voo para Honolulu às 17h43.",
     "A alternativa é a missa das 7h30 na San Carlos Cathedral, em Monterey, saindo às 8h05. "
     "Ela troca o começo no escuro por dia claro, mas a folga até a devolução do carro some "
     "e a parada de comida vira drive-thru.",
@@ -487,13 +474,11 @@ ROTEIRO = [
 # tracando o caminho de onde a pessoa estiver ate la. {dia: {hora: busca}}
 DESTINOS = {
     "2026-12-22": {
-        "07:15": "Alamo Rent A Car, Los Angeles International Airport",
-        "08:30": "El Matador State Beach, Malibu, CA",
-        "12:20": "Morro Bay Embarcadero, Morro Bay, CA",
-        "13:55": "Elephant Seal Vista Point, San Simeon, CA",
-        "15:40": "McWay Falls, Julia Pfeiffer Burns State Park, Big Sur, CA",
-        "16:50": "Bixby Creek Bridge, Big Sur, CA",
-        "17:40": "Gosby House Inn, 643 Lighthouse Ave, Pacific Grove, CA"},
+        "09:00": "Alamo Rent A Car, Los Angeles International Airport",
+        "10:20": "El Matador State Beach, Malibu, CA",
+        "12:15": "Stearns Wharf, Santa Barbara, CA",
+        "15:10": "Pismo State Beach Monarch Butterfly Grove, Pismo Beach, CA",
+        "18:25": "Gosby House Inn, 643 Lighthouse Ave, Pacific Grove, CA"},
     "2026-12-23": {
         "09:45": "Monterey Bay Aquarium, 886 Cannery Row, Monterey, CA",
         "12:30": "Cannery Row, Monterey, CA",
@@ -504,9 +489,9 @@ DESTINOS = {
     "2026-12-24": {
         "08:15": "St. Rose of Lima Catholic Church, Paso Robles, CA",
         "08:30": "St. Rose of Lima Catholic Church, Paso Robles, CA",
-        "11:25": "Brophy Bros, 119 Harbor Way, Santa Barbara, CA",
-        "14:15": "gas station near Los Angeles International Airport",
-        "14:30": "Alamo Rent A Car, Los Angeles International Airport",
+        "10:40": "Buellton, CA",
+        "14:00": "gas station near Los Angeles International Airport",
+        "14:15": "Alamo Rent A Car, Los Angeles International Airport",
         "17:43": "Los Angeles International Airport"},
     "2026-12-27": {
         "10:00": "1778 Ala Moana Blvd, Honolulu, HI",
@@ -570,9 +555,9 @@ REFEICOES = [
     _r("2026-12-21", "Jantar", "Chipotle", "La Tijera Blvd, a 3 km do hotel",
        "Chipotle, 6719 La Tijera Blvd, Los Angeles, CA 90045", 35,
        "Aberto até 23h. Faz entrega no hotel, se chegarem cansados.", plano=True),
-    _r("2026-12-22", "Almoço", "Tognazzini's Dockside", "Morro Bay Embarcadero",
-       "Tognazzini's Dockside Restaurant, 1245 Embarcadero, Morro Bay, CA", 60,
-       "Peixe dos barcos da própria família, de frente para Morro Rock. Balcão rápido ao lado."),
+    _r("2026-12-22", "Almoço", "Brophy Bros", "Santa Barbara Harbor",
+       "Brophy Bros, 119 Harbor Way, Santa Barbara, CA", 80, "Frutos do mar no Santa Barbara Harbor.",
+       plano=True),
     _r("2026-12-22", "Jantar", "Passionfish", "Pacific Grove",
        "Passionfish, 701 Lighthouse Ave, Pacific Grove, CA", 140,
        "A uma quadra da Gosby House: chega, larga o carro e vai a pé."),
@@ -585,13 +570,12 @@ REFEICOES = [
        plano=True, hora="20h15"),
     _r("2026-12-24", "Café", "Café em Paso Robles", "Depois da missa",
        "coffee shop near St. Rose of Lima Church, Paso Robles, CA", 20),
-    _r("2026-12-24", "Almoço", "Brophy Bros", "Santa Barbara Harbor",
-       "Brophy Bros, 119 Harbor Way, Santa Barbara, CA", 80,
-       "Frutos do mar no Santa Barbara Harbor. Abre às 11h: comer em 45 minutos e seguir.",
-       plano=True, hora="11h25"),
+    _r("2026-12-24", "Almoço", "Mortensen's Danish Bakery", "Solvang, a 5 min de Buellton",
+       "Mortensen's Danish Bakery, 1588 Mission Dr, Solvang, CA", 30,
+       "Solvang está salvo no mapa de vocês. Cabe nos 30 minutos da parada das 10h40."),
     _r("2026-12-24", "Almoço", "Ellen's Danish Pancake House", "Buellton",
        "Ellen's Danish Pancake House, 272 Avenue of the Flags, Buellton, CA", 45,
-       "Plano B se a estrada atrasar e o Brophy Bros não couber, sem sair da 101."),
+       "Alternativa a Solvang, sem sair da 101."),
     _r("2026-12-24", "Jantar", "No LAX antes do voo", "Terminal", "Los Angeles International Airport",
        50, "Pouso em Honolulu às 21h31: comer antes de embarcar."),
     _r("2026-12-25", "Café", "Eggs 'n Things", "Saratoga Rd, Waikiki",
@@ -820,11 +804,11 @@ MISSAS = [
     {"dia": "2026-12-22", "regiao": "ca", "liturgia": "Advento",
      "rec": {"hora": "6h30", "igreja": "anastasia", "dist": "4 km do Holiday Inn LAX",
              "porque": "A que vocês salvaram no mapa. Terça tem missa às 6h30: termina por volta "
-                       "de 7h05 e o carro sai às 7h15, o horário que faz Big Sur caber antes do "
-                       "poente. Café para levar."},
+                       "de 7h05, dá tempo de voltar para o café do hotel e pegar o carro às 9h "
+                       "sem correr."},
      "alts": [{"hora": "8h", "igreja": "visitation",
-               "nota": "Plano B. Termina por volta de 8h35 e o carro sai perto das 9h: a "
-                       "falésia de Big Sur fica para depois do poente."}],
+               "nota": "Plano B. Termina por volta de 8h35 e as locadoras ficam a 10 minutos "
+                       "de aplicativo: o carro ainda sai às 9h, mas sem folga."}],
      "descartadas": "Old Mission Santa Barbara só celebra às 8h, quando vocês ainda estão em "
                     "Los Angeles. Não há missa ao meio-dia em Santa Barbara nem à noite em "
                     "Pacific Grove."},
@@ -841,7 +825,7 @@ MISSAS = [
     {"dia": "2026-12-24", "regiao": "ca", "liturgia": "Véspera de Natal",
      "rec": {"hora": "8h30", "igreja": "rose", "dist": "190 km da Gosby House Inn",
              "porque": "Saindo de Pacific Grove às 6h10, a missa cabe no caminho e ainda sobram "
-                       "uns 30 minutos antes de devolver o carro às 15h. O roteiro do dia já está "
+                       "uns 45 minutos antes de devolver o carro às 15h. O roteiro do dia já está "
                        "montado assim."},
      "alts": [{"hora": "7h30", "igreja": "sancarlos",
                "nota": "A 5 km da pousada e já com dia claro. Mas a saída vai para 8h05, a folga até "
@@ -953,15 +937,12 @@ _HILO = (19.7281, -155.0667, "Hilo Hawaiian Hotel")
 ROTAS = {
     "ida_2212": {
         "dia": "2026-12-22", "regiao": "ca", "trajeto": True,
-        "titulo": "LAX até Pacific Grove pela costa",
-        "resumo": "PCH até Malibu, US 101 pela orla até Gaviota, SR 1 de Morro Bay a Carmel por Big Sur",
+        "titulo": "LAX até Pacific Grove",
+        "resumo": "PCH até Malibu, US 101 pela orla até Santa Barbara e pelo interior até Salinas",
         "paradas": [_LAX, (34.0380, -118.8745, "El Matador State Beach"),
                     (34.4100, -119.6858, "Santa Barbara"), _ORLA_101,
-                    (35.1297, -120.6326, "Pismo Beach"), (35.3658, -120.8499, "Morro Bay"),
-                    (35.6630, -121.2585, "Piedras Blancas"), (36.1580, -121.6720, "McWay Falls"),
-                    (36.3716, -121.9019, "Bixby Bridge"), _GOSBY],
-        "passagens": [(35.5641, -121.0807, "Cambria"), (36.2704, -121.8081, "Big Sur"),
-                      (36.5552, -121.9233, "Carmel-by-the-Sea")]},
+                    (35.1297, -120.6326, "Pismo Beach"), _GOSBY],
+        "passagens": [(35.6266, -120.6910, "Paso Robles"), (36.6777, -121.6555, "Salinas")]},
     "peninsula_2312": {
         "dia": "2026-12-23", "regiao": "ca", "trajeto": True,
         "titulo": "Monterey Peninsula e Bixby Bridge",
@@ -1563,19 +1544,18 @@ def decisoes(prev, mar, kil):
         num = (f"chuva 9h-18h {w['chuva'] or 0:.1f} mm, rajada {w['raj'] or 0:.0f} nós, "
                f"visibilidade mínima {w['vis'] or 20:.0f} km")
         if (w["chuva"] or 0) > 15 or (w["raj"] or 0) > 35:
-            return "ruim", ("Rio atmosférico na falésia. Deixar Big Sur e subir pela 101 do "
-                            "interior a partir de San Luis Obispo: chegar seco vale mais."), num
+            return "ruim", ("Rio atmosférico no dia da transferência. Cortar Malibu e "
+                            "fazer 101 direto: chegar seco vale mais que El Matador."), num
         if (w["chuva"] or 0) > 4:
             return "atencao", "Chuva no caminho. Manter o plano e encurtar as paradas.", num
         return "bom", "Dia de estrada limpo. Plano cheio de pé.", num
 
-    add("ca_ida", "Ida: Los Angeles a Pacific Grove pela costa", "2026-12-22", "13h às 18h",
-        "Troca Big Sur pela 101 do interior se a chuva da tarde na falésia passar de 15 mm, "
-        "a rajada de 35 nós, ou se o Caltrans fechar a SR-1.",
-        J("bixby", "2026-12-22", 13, 18), av_ida,
-        "PCH de Santa Monica a Malibu, 101 pela orla de Ventura a Gaviota, SR-1 de Morro "
-        "Bay a Carmel por Big Sur. Só fecha com o carro às 7h15 e a falésia entre 14h e "
-        "17h, antes do poente das 16h57.")
+    add("ca_ida", "Ida: Los Angeles a Pacific Grove", "2026-12-22", "9h às 18h",
+        "Corta as paradas se a chuva do dia passar de 15 mm ou a rajada de 35 nós.",
+        J("sb", "2026-12-22", 9, 18), av_ida,
+        "PCH de Santa Monica a Malibu, 101 pela orla de Ventura a Gaviota, 101 pelo "
+        "interior até Pacific Grove. Em Santa Barbara, recusar a CA 154 que o GPS "
+        "sugere. Big Sur não entra na ida: seriam 2h30 a mais e no escuro.")
 
     # 5. Volta, 24/12. O risco da madrugada aqui e neblina no vale, nao chuva.
     def av_volta(w):
