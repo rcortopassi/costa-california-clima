@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 UA = "costa-california-clima/1.0 (rafaelmcortopassi@gmail.com)"
 W, H = 1200, 900
-TOPO, RODAPE = 128, 64
+TOPO, RODAPE = 150, 64
 MAPA_H = H - TOPO - RODAPE
 # Fundo: Esri World Street Map, sem chave. A CARTO passou a exigir chave e
 # carimba "API KEY REQUIRED" em cada bloco (visto em 13/09/2026); o OSM padrao
@@ -37,6 +37,7 @@ POPPY = (232, 115, 15)
 PAPEL = (251, 246, 236)
 TINTA = (28, 43, 49)
 TINTA2 = (94, 109, 114)
+PARQUE = (214, 230, 196)     # verde dos parques e reservas no fundo da Esri, ja com o veu
 LINHA = (226, 214, 194)
 
 _FONTES = {
@@ -260,6 +261,12 @@ def renderiza(spec):
             cor = {"inicio": INICIO, "fim": FIM}.get(m["tipo"], TRECHO)
             _rotulo(d, x, y, m.get("tag", ""), m["nome"], cor, ocupado, evitar)
 
+    # visao geral no canto e a faixa do dia: so nos avisos que cruzam o trajeto
+    if spec.get("trechos") and spec.get("faixa"):
+        _inset(mapa, spec, enquadra_principal=(ox, oy, wz, hz, z))
+    if spec.get("faixa"):
+        _faixa_linear(mapa, spec["faixa"])
+
     # ---- montagem final
     tela = Image.new("RGB", (W, H), PAPEL)
     tela.paste(mapa.convert("RGB"), (0, TOPO))
@@ -268,6 +275,81 @@ def renderiza(spec):
     buf = io.BytesIO()
     tela.save(buf, "JPEG", quality=88, optimize=True, progressive=True)
     return buf.getvalue()
+
+
+def _inset(mapa, spec, enquadra_principal):
+    """Mapinha no canto com o trajeto inteiro e a area inteira do aviso, e um
+    retangulo mostrando onde o mapa grande esta."""
+    iw, ih, m = 300, 225, 16
+    x0, y0 = W - iw - m, m
+    pts = [p for r in spec.get("rotas", []) for p in r["linha"]] + \
+          [p for a in spec.get("areas", []) for p in a]
+    la0, la1 = min(p[0] for p in pts), max(p[0] for p in pts)
+    lo0, lo1 = min(p[1] for p in pts), max(p[1] for p in pts)
+    k = math.cos(math.radians((la0 + la1) / 2))
+    esc = min((iw - 24) / max((lo1 - lo0) * k, 1e-6), (ih - 24) / max(la1 - la0, 1e-6))
+    cx, cy = (lo0 + lo1) / 2, (la0 + la1) / 2
+
+    def q(p, K=2):
+        return ((iw / 2 + (p[1] - cx) * k * esc) * K, (ih / 2 - (p[0] - cy) * esc) * K)
+
+    K = 2
+    img = Image.new("RGBA", (iw * K, ih * K), (233, 240, 243, 255))
+    d = ImageDraw.Draw(img)
+    for a in spec.get("areas", []):
+        if len(a) > 2:
+            d.polygon([q(p) for p in a], fill=(247, 221, 170, 255), outline=(201, 134, 28, 255))
+    for r in spec.get("rotas", []):
+        if len(r["linha"]) > 1:
+            d.line([q(p) for p in r["linha"]], fill=ROTA + (255,), width=3 * K, joint="curve")
+    for t in spec.get("trechos", []):
+        if len(t) > 1:
+            d.line([q(p) for p in t], fill=TRECHO + (255,), width=6 * K, joint="curve")
+    # retangulo do mapa grande, convertido de pixels do mundo para lat/lon
+    ox, oy, wz, hz, z = enquadra_principal
+
+    def latlon(x, y):
+        n = 2 ** z * TILE
+        lon = x / n * 360 - 180
+        lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y / n))))
+        return [lat, lon]
+    a, b = q(latlon(ox, oy)), q(latlon(ox + wz, oy + hz))
+    d.rectangle((a[0], a[1], b[0], b[1]), outline=TINTA + (255,), width=2 * K)
+    img = img.resize((iw, ih), Image.LANCZOS)
+    dd = ImageDraw.Draw(mapa)
+    dd.rounded_rectangle((x0 - 3, y0 - 3, x0 + iw + 3, y0 + ih + 3), radius=8, fill=(255, 253, 248),
+                         outline=(216, 204, 184))
+    mapa.paste(img.convert("RGB"), (x0, y0))
+    _texto(dd, (x0 + 8, y0 + ih - 20), "VISÃO GERAL", fonte(12, True), TINTA2, 1.4)
+
+
+def _faixa_linear(mapa, fx):
+    """Barra com o dia inteiro de ponta a ponta e o pedaco dentro do aviso
+    pintado: mostra de cara se e parcial ou total."""
+    d = ImageDraw.Draw(mapa)
+    bx0, bx1, h = 40, W - 40, 92
+    by = MAPA_H - h - 14
+    d.rounded_rectangle((bx0 - 16, by, bx1 + 16, by + h), radius=10, fill=(255, 253, 248),
+                        outline=(216, 204, 184))
+    ly = by + 50
+    tot = max(fx["total"], 1)
+    d.line((bx0, ly, bx1, ly), fill=ROTA, width=8)
+    xs = []
+    for ini, fim in fx.get("pedacos") or [(fx["ini"], fx["fim"])]:
+        xa = bx0 + (bx1 - bx0) * ini / tot
+        xb = max(bx0 + (bx1 - bx0) * fim / tot, xa + 6)
+        d.line((xa, ly, xb, ly), fill=TRECHO, width=16)
+        xs += [xa, xb]
+    xa, xb = min(xs), max(xs)
+    for x in (bx0, bx1):
+        d.ellipse((x - 7, ly - 7, x + 7, ly + 7), fill=(255, 255, 255), outline=ROTA, width=3)
+    f, fb = fonte(15), fonte(15, True)
+    _texto(d, (bx0, by + 10), ("SEU DIA " + fx["dia"]).upper(), fonte(12, True), TINTA2, 1.4)
+    d.text((bx0, ly + 12), fx["de"], font=fb, fill=TINTA)
+    d.text((bx1 - d.textlength(fx["ate"], font=fb), ly + 12), fx["ate"], font=fb, fill=TINTA)
+    txt = f"{max(1, round(fx.get('km', fx['fim'] - fx['ini'])))} de {round(tot)} km dentro do aviso"
+    tx = min(max((xa + xb) / 2 - d.textlength(txt, font=fb) / 2, bx0 + 120), bx1 - 330)
+    d.text((tx, by + 8), txt, font=fb, fill=TRECHO)
 
 
 def _tracejado(d, pts, cor, larg, traco, vao):
@@ -356,8 +438,22 @@ def _cabecalho(tela, spec):
     _texto(d, (38, 20), (spec.get("kicker") or "").upper(), fonte(15, True), DOURADO, 2.2)
     d.text((38, 44), _corta(d, spec.get("titulo", ""), fonte(34, True), W - 76),
            font=fonte(34, True), fill=(255, 248, 236))
-    d.text((38, 88), _corta(d, spec.get("subtitulo", ""), fonte(19), W - 76),
-           font=fonte(19), fill=(191, 217, 228))
+    # subtitulo em ate duas linhas: e nele que esta o que o aviso quer dizer
+    f = fonte(19)
+    palavras, linhas, atual = (spec.get("subtitulo") or "").split(), [], ""
+    for w in palavras:
+        teste = (atual + " " + w).strip()
+        if d.textlength(teste, font=f) <= W - 76 or not atual:
+            atual = teste
+        else:
+            linhas.append(atual)
+            atual = w
+    if atual:
+        linhas.append(atual)
+    if len(linhas) > 2:
+        linhas = [linhas[0], _corta(d, " ".join(linhas[1:]), f, W - 76)]
+    for i, ln in enumerate(linhas):
+        d.text((38, 86 + i * 25), ln, font=f, fill=(191, 217, 228))
 
 
 def _legenda(tela, itens):
@@ -379,6 +475,9 @@ def _legenda(tela, itens):
         elif tipo == "trecho":
             d.line((x, cy, x + 34, cy), fill=TRECHO, width=10)
             x += 44
+        elif tipo == "parque":
+            d.rectangle((x, cy - 10, x + 30, cy + 10), fill=PARQUE, outline=(150, 180, 130), width=1)
+            x += 40
         elif tipo == "area":
             d.rectangle((x, cy - 10, x + 30, cy + 10), fill=(247, 221, 170), outline=(201, 134, 28), width=2)
             x += 40

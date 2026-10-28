@@ -279,6 +279,47 @@ def _reverso(p, geo):
     return rev[k]
 
 
+# O que cada aviso do NWS quer dizer para quem esta na estrada. Nenhum deles e
+# interdicao: interdicao de verdade vem da Caltrans e tem mapa proprio.
+SENTIDO_AVISO = {
+    "Coastal Flood Advisory": ("Alerta de maré alta na costa",
+                               "água do mar pode cobrir trechos baixos perto da praia na maré cheia"),
+    "Coastal Flood Warning": ("Alerta de inundação costeira",
+                              "trechos baixos perto do mar podem alagar e fechar"),
+    "Coastal Flood Watch": ("Vigilância de inundação costeira", "risco de maré invadir trechos baixos"),
+    "Beach Hazards Statement": ("Alerta de perigo nas praias", "ondas e correntes fortes; não entrar no mar"),
+    "High Surf Advisory": ("Alerta de ressaca", "ondas grandes; ficar longe das pedras e da beira"),
+    "High Surf Warning": ("Aviso de ressaca forte", "ondas perigosas; mirantes à beira-mar podem fechar"),
+    "Rip Current Statement": ("Alerta de correnteza", "não entrar no mar"),
+    "Wind Advisory": ("Alerta de vento", "rajadas fortes; cuidado com o carro alto nas pontes e serras"),
+    "High Wind Warning": ("Aviso de vento forte", "rajadas perigosas; queda de galhos e árvores"),
+    "Dense Fog Advisory": ("Alerta de neblina densa", "visibilidade baixa; dirigir devagar"),
+    "Flood Watch": ("Vigilância de enchente", "chuva forte pode alagar estradas"),
+    "Flood Advisory": ("Alerta de alagamento", "água acumulada em trechos baixos"),
+    "Flood Warning": ("Aviso de enchente", "estradas podem fechar por alagamento"),
+    "Flash Flood Warning": ("Aviso de enxurrada", "não atravessar trechos alagados"),
+    "Winter Storm Warning": ("Aviso de tempestade de inverno", "neve ou gelo nas partes altas"),
+    "Winter Weather Advisory": ("Alerta de neve e gelo", "pista escorregadia nas partes altas"),
+    "Wind Chill Advisory": ("Alerta de frio intenso", "sensação térmica muito baixa"),
+    "Freeze Warning": ("Aviso de congelamento", "gelo na pista de manhã cedo"),
+    "Frost Advisory": ("Alerta de geada", "gelo fino na pista de manhã cedo"),
+    "Heat Advisory": ("Alerta de calor", "levar água"),
+    "Red Flag Warning": ("Alerta de risco de incêndio", "vento seco; nada de fogo"),
+    "Small Craft Advisory": ("Alerta para barcos pequenos", "mar agitado para passeios de barco"),
+    "Gale Warning": ("Aviso de vendaval no mar", "passeios de barco podem ser cancelados"),
+    "Volcano Advisory": ("Alerta vulcânico", "atividade no vulcão"),
+}
+
+
+def _sentido(evento):
+    pt, efeito = SENTIDO_AVISO.get(evento, (evento, ""))
+    return pt, efeito
+
+
+def _comprimento(linha):
+    return sum(_geo.km(a, b) for a, b in zip(linha, linha[1:]))
+
+
 def mapa_aviso(alerta, rotas, geo):
     aneis = _geo.area_do_aviso(alerta.get("zonas") or [], geo)
     if not aneis:
@@ -286,11 +327,13 @@ def mapa_aviso(alerta, rotas, geo):
     reg = alerta["regioes"][0]
     legs = sorted(_legs(rotas, reg), key=lambda r: r["dia"])
     cruzam = []
+    trechos = []          # pedacos do trajeto que ficam dentro da area, para pintar
     entrada = saida = None
+    km_dentro = km_total = 0.0
+    faixa = None
     for r in legs:
-        corrida, maior = [], []
+        corrida, maior, corridas = [], [], []
         dentro_km = 0.0
-        ant = None
         for p in r["linha"]:
             if any(_geo.dentro(p, a) for a in aneis):
                 if corrida:
@@ -299,50 +342,85 @@ def mapa_aviso(alerta, rotas, geo):
                 if len(corrida) > len(maior):
                     maior = list(corrida)
             else:
+                if len(corrida) > 1:
+                    corridas.append(corrida)
                 corrida = []
+        if len(corrida) > 1:
+            corridas.append(corrida)
         if maior:
             cruzam.append(r)
+            trechos += corridas or [maior]
             if entrada is None:
                 entrada, saida, km_dentro = maior[0], maior[-1], dentro_km
+                n_pedacos = len(corridas) or 1
+                km_total = _comprimento(r["linha"])
+                i0 = r["linha"].index(maior[0])
+                i1 = r["linha"].index(maior[-1])
+                par = r.get("paradas") or []
+                faixa = {"de": par[0][-1] if par else "", "ate": par[-1][-1] if par else "",
+                         "total": km_total, "dia": _br(r["dia"]),
+                         "ini": _comprimento(r["linha"][:i0 + 1]),
+                         "fim": _comprimento(r["linha"][:i1 + 1]), "km": dentro_km,
+                         "pedacos": [(_comprimento(r["linha"][:r["linha"].index(c[0]) + 1]),
+                                      _comprimento(r["linha"][:r["linha"].index(c[-1]) + 1]))
+                                     for c in (corridas or [maior])]}
     todos = [p for a in aneis for p in a]
     lats, lons = [p[0] for p in todos], [p[1] for p in todos]
     caixa = [[min(lats), min(lons)], [max(lats), max(lons)]]
     marcos, enquadra = [], list(caixa)
     zonas = alerta["onde"]
+    pt, sentido = _sentido(alerta.get("evento", ""))
+    fim = alerta.get("fim", "")[:16].replace("T", " ")
+    vale = f" Vale até {fim[8:10]}/{fim[5:7]} às {fim[11:16]}, hora local." if fim else ""
+    rotas_spec = [{"linha": r["linha"]} for r in legs]
     if cruzam:
         n_ent = _nome_perto(entrada, rotas, geo) or "entrada"
         n_sai = _nome_perto(saida, rotas, geo) or "saída"
-        marcos = [{"pos": entrada, "tipo": "inicio", "tag": "ENTRA NA ÁREA", "nome": n_ent},
-                  {"pos": saida, "tipo": "fim", "tag": "SAI DA ÁREA", "nome": n_sai}]
-        enquadra += [entrada, saida]
-        km_txt = f"{max(1, round(km_dentro))} km"
-        if n_ent == n_sai or _geo.km(entrada, saida) < 8:
-            efeito = f"Seu trajeto passa {km_txt} dentro da área, perto de {n_ent}, em {_dias(cruzam)}."
+        curto = n_ent == n_sai or _geo.km(entrada, saida) < 8
+        if curto:
+            marcos = [{"pos": entrada, "tipo": "ponto", "tag": "TRECHO NO AVISO", "nome": n_ent}]
         else:
-            efeito = (f"Seu trajeto passa {km_txt} dentro da área, de {n_ent} até {n_sai}, "
-                      f"em {_dias(cruzam)}.")
-        leg = [("rota", "seu trajeto"), ("area", "área do aviso"),
-               ("inicio", "entra"), ("fim", "sai")]
+            marcos = [{"pos": entrada, "tipo": "inicio", "tag": "COMEÇA O TRECHO", "nome": n_ent},
+                      {"pos": saida, "tipo": "fim", "tag": "TERMINA O TRECHO", "nome": n_sai}]
+        # enquadra o trecho afetado com folga, e nao a area inteira do aviso: uma
+        # area do tamanho da baia de San Francisco deixava 21 km de estrada do
+        # tamanho de um risco (Coastal Flood Advisory, 27/10/2026)
+        pts = [p for t in trechos for p in t]
+        la0, la1 = min(p[0] for p in pts), max(p[0] for p in pts)
+        lo0, lo1 = min(p[1] for p in pts), max(p[1] for p in pts)
+        folga = max(0.12, (la1 - la0) * 0.6, (lo1 - lo0) * 0.6)
+        enquadra = [[la0 - folga, lo0 - folga], [la1 + folga, lo1 + folga]]
+        km_txt = f"{max(1, round(km_dentro))} km"
+        parcial = km_total and km_dentro < 0.9 * km_total
+        alcance = (f"{km_txt} de {round(km_total)} km do trajeto" if parcial else f"todo o trajeto ({km_txt})")
+        lugar = f"perto de {n_ent}" if curto else f"de {n_ent} até {n_sai}"
+        if n_pedacos > 1:
+            lugar = f"em {n_pedacos} pedaços; o maior {lugar}"
+        titulo = f"{pt}: {alcance}"
+        efeito = (f"Aviso do tempo, não interdição de estrada. Trecho {lugar}, em {_dias(cruzam)}"
+                  + (f": {sentido}." if sentido else "."))
+        leg = [("rota", "seu trajeto"), ("trecho", "trecho dentro do aviso"), ("area", "área do aviso"),
+               ("parque", "parque ou reserva")]
         link = link_gmaps([entrada, saida])
     else:
         centro = [(caixa[0][0] + caixa[1][0]) / 2, (caixa[0][1] + caixa[1][1]) / 2]
         dist, rprox, vert = _perto_do_trajeto([centro], legs)
+        titulo = f"{pt} em {zonas.split(';')[0].strip()}"
         if vert:
             marcos = [{"pos": vert, "tipo": "parada", "nome": _nome_perto(vert, rotas, geo) or "seu trajeto"}]
             enquadra.append(vert)
             perto = [r for r in legs if _geo.mais_perto(centro, r["linha"])[0] <= dist + 3]
-            efeito = (f"A área fica a {dist:.0f} km do seu trajeto ({_dias(perto)}) "
+            efeito = (f"Fora do seu caminho: a área fica a {dist:.0f} km do trajeto ({_dias(perto)}) "
                       f"e não o cruza.")
         else:
             efeito = ""
         leg = [("rota", "seu trajeto"), ("area", "área do aviso")]
         link = link_gmaps([centro])
-    fim = alerta.get("fim", "")[:16].replace("T", " ")
     spec = {
-        "kicker": f"Aviso do NWS · {NOME_REG.get(reg, reg)}",
-        "titulo": f"{alerta['evento']} em {zonas.split(';')[0].strip()}",
-        "subtitulo": efeito + (f" Vale até {fim[8:10]}/{fim[5:7]} às {fim[11:16]}, hora local." if fim else ""),
-        "rotas": [{"linha": r["linha"]} for r in legs],
+        "kicker": f"Aviso do NWS · {alerta.get('evento', '')} · {NOME_REG.get(reg, reg)}",
+        "titulo": titulo,
+        "subtitulo": efeito + vale,
+        "rotas": rotas_spec, "trechos": trechos, "faixa": faixa,
         "areas": aneis, "marcos": marcos, "enquadra": enquadra, "legenda": leg,
     }
     return {"tipo": "aviso", "regiao": reg, "spec": spec, "titulo": spec["titulo"],
