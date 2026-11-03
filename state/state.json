@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-11-03T12:05:40+00:00",
+ "rodada_utc": "2026-11-03T19:38:23+00:00",
  "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -255,7 +255,7 @@
   "via:ddca993b5d17",
   "via:ea5b61cc9ed3"
  ],
- "dias_para": 49,
+ "dias_para": 48,
  "mapas": {
   "trajeto_ida_2212": "90a95efbb8",
   "trajeto_peninsula_2312": "c2071b3421",
@@ -267,9 +267,7 @@
   "via_10d76155a245": "e5b115f612",
   "via_3f401545f646": "56bc664e41",
   "via_b8679f71cc60": "e862a52b9a",
-  "nws_496aa03abcde": "4efcf8ae5a",
-  "nws_8e10b237ace2": "9f608f1026",
-  "resumo_ca": "fe9c7e8e66",
-  "resumo_bi": "bfa35526ee"
+  "nws_854771c07eae": "02f1c2ea1b",
+  "resumo_ca": "7f816e5916"
  }
 }
