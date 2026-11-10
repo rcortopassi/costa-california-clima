@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-11-10T04:11:42+00:00",
+ "rodada_utc": "2026-11-10T12:47:39+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0be23b1680d7f4f271507185e74b730f908185fa.001.1",
@@ -266,16 +266,14 @@
   "trajeto_sul_3112": "7e31d6982f",
   "via_10d76155a245": "e5b115f612",
   "via_3f401545f646": "56bc664e41",
-  "nws_eda6a3bf8562": "40998116cd",
+  "nws_d09c01db893c": "7e51d719cf",
+  "nws_1fd050557e05": "63cf218633",
   "nws_be4c31d743f9": "0cff4d86a6",
   "nws_3c867991e025": "2b579ef167",
   "nws_27a4f338c033": "8af5e3cbdd",
   "nws_d37aeb755750": "71eba052f1",
   "nws_5e6782655e51": "9adb2551b1",
-  "nws_3495cac797fa": "63cf218633",
-  "nws_22bc95ca657c": "7e51d719cf",
-  "nws_2af94362324b": "4fa7a6766e",
-  "nws_ca9b2b2fb07e": "ae680e75d1",
-  "resumo_ca": "8d90619c24"
+  "nws_eda6a3bf8562": "40998116cd",
+  "resumo_ca": "1cff541f2d"
  }
 }
