@@ -553,7 +553,11 @@ def mapa_resumo(regiao, itens, rotas):
         leg.append(("trecho", "trecho fechado" if n_int else "trecho com restrição"))
     if areas:
         leg.append(("area", "área de aviso"))
-    leg += [("inicio", "início"), ("fim", "fim")]
+    tipos = {m.get("tipo") for m in marcos}
+    if "ponto" in tipos:
+        leg.append(("ponto", "local da restrição"))
+    if "inicio" in tipos:
+        leg += [("inicio", "início"), ("fim", "fim")]
     return {"tipo": "resumo", "regiao": regiao, "titulo": f"Mapa de {NOME_REG[regiao]}",
             "toca": bool(tocam), "link": "",
             "efeito": (("1 deles está" if len(tocam) == 1 else f"{len(tocam)} deles estão")
