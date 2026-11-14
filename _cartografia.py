@@ -556,7 +556,7 @@ def mapa_resumo(regiao, itens, rotas):
                                 else partes[0]) + " perto do seu trajeto",
                      "subtitulo": (("1 deles toca" if len(tocam) == 1 else f"{len(tocam)} deles tocam")
                                    + " o trajeto de vocês." if tocam
-                                   else "Nenhum deles toca o trajeto de vocês."),
+                                   else "Nada disso toca o trajeto de vocês."),
                      "rotas": [{"linha": r["linha"]} for r in legs],
                      "trechos": trechos, "areas": areas, "marcos": marcos,
                      "enquadra": enquadra, "legenda": leg}}
