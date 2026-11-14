@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-11-14T04:25:51+00:00",
+ "rodada_utc": "2026-11-14T04:31:15+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.082b3f827ff558b13bbd93ae6bc34fa52dcdb8b2.001.2",
@@ -270,6 +270,6 @@
   "trajeto_sul_3112": "7e31d6982f",
   "via_10d76155a245": "e5b115f612",
   "via_3f401545f646": "56bc664e41",
-  "resumo_ca": "2e2cca462d"
+  "resumo_ca": "cc288b8512"
  }
 }
