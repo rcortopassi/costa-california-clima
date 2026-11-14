@@ -193,6 +193,13 @@ def mapa_interdicao(rodovia, item, rotas, geo, lcs):  # noqa: C901
         marcos = [{"pos": loc["inicio"], "tipo": "inicio", "tag": "INÍCIO", "nome": n0},
                   {"pos": loc["fim"], "tipo": "fim", "tag": "FIM", "nome": n1}]
         leg_item = [("trecho", "trecho " + verbo), ("inicio", "início"), ("fim", "fim")]
+        if n0 == n1:
+            # o boletim so da um nome para o trecho todo ("7.5 mi north /at Point
+            # Sur Lighthouse/ to 8.4 mi north"): dois rotulos iguais nao dizem nada
+            meio = [(loc["inicio"][0] + loc["fim"][0]) / 2, (loc["inicio"][1] + loc["fim"][1]) / 2]
+            titulo = f"{rodovia} {verbo} perto de {n0}"
+            marcos = [{"pos": meio, "tipo": "ponto", "tag": "LOCAL", "nome": n0}]
+            leg_item = [("trecho", "trecho " + verbo), ("ponto", "local da restrição")]
 
     dist, rota_prox, vert = _perto_do_trajeto(trecho or pts, legs)
     toca = dist < 0.4
