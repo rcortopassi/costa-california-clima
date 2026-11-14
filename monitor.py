@@ -1093,6 +1093,22 @@ def fetch_json(url, **kw):
     return json.loads(fetch(url, **kw))
 
 
+def _partes_telegram(texto, limite=3500):
+    """Corta o texto em pedacos que cabem numa mensagem do Telegram (4096
+    caracteres, com folga para titulo e escape), sempre em quebra de linha."""
+    partes, atual = [], ""
+    for linha in texto.split("\n"):
+        linha = linha[:limite]
+        if atual and len(atual) + len(linha) + 1 > limite:
+            partes.append(atual)
+            atual = linha
+        else:
+            atual = atual + "\n" + linha if atual else linha
+    if atual.strip():
+        partes.append(atual)
+    return partes or [texto[:limite]]
+
+
 # ---------------------------------------------------------------- previsao
 
 HORARIAS = ("temperature_2m,precipitation,precipitation_probability,snowfall,"
@@ -1118,7 +1134,7 @@ def previsoes_lote(pontos):
                f"&elevation={elev}&hourly={HORARIAS}&daily={DIARIAS}"
                f"&timezone={quote(tz)}&forecast_days=16&wind_speed_unit=kn")
         # 5 tentativas: em 13/11/2026 o Open-Meteo falhou 3 vezes seguidas e derrubou a rodada
-        d = fetch_json(url, timeout=90, tentativas=5)
+        d = fetch_json(url, timeout=60, tentativas=5)
         blocos = d if isinstance(d, list) else [d]
         if len(blocos) != len(grupo):
             raise RuntimeError(f"{reg}: pedi {len(grupo)} pontos, voltaram {len(blocos)}")
@@ -2040,12 +2056,17 @@ def main():
         anexo = next((url_mapa(u["mapa"], True) for u in urgentes if u["mapa"] and url_mapa(u["mapa"])), "")
         textos = "\n".join(u["texto"] for u in urgentes)
         push_ntfy(titulo, textos + "\n\n" + corpo, prioridade="high", tags="warning", anexo=anexo)
-        push_telegram(titulo, textos + "\n\n" + corpo, urgente=True)
+        # O Telegram recusa (400) mensagem acima de 4096 caracteres: com 13 avisos
+        # novos de uma vez, em 14/11/2026, o texto unico nao foi entregue.
+        for n, parte in enumerate(_partes_telegram(textos + "\n\n" + corpo)):
+            push_telegram(titulo if n == 0 else "Honeymoon, continuação", parte, urgente=(n == 0))
         for u in urgentes:
             if u["mapa"] in imagens:
                 push_telegram_foto(imagens[u["mapa"]], legenda(u["mapa"], u["extra"]), urgente=True)
     else:
-        push_telegram(f"Honeymoon, faltam {dias_para} dias", corpo, urgente=False)
+        for n, parte in enumerate(_partes_telegram(corpo)):
+            push_telegram(f"Honeymoon, faltam {dias_para} dias" if n == 0
+                          else "Honeymoon, continuação", parte, urgente=False)
         for mid in sorted(enviar):
             if mid in imagens:
                 push_telegram_foto(imagens[mid], legenda(mid), urgente=False)
