@@ -1096,6 +1096,40 @@ def _bloco_mesa(x, d):
     return "".join(h)
 
 
+def _item_reserva(r, com_dia=True):
+    para = ("para " + _br(r["dia"]) + " · " if com_dia else "")
+    return ('<li class="op"><div class="op-txt"><span class="op-n">' + _e(r["nome"]) + "</span>"
+            '<span class="op-l">' + para + _e(r["quando"]) + "</span>"
+            '<span class="op-nota">' + _e(r["nota"]) + "</span></div>"
+            + _link(r["url"], "Reservar", rotulo="Reservar " + r["nome"]) + "</li>")
+
+
+def _bloco_reservar(x, d):
+    """Dentro do cartao do dia: o que precisa de reserva naquele dia."""
+    rs = [r for r in d.get("reservas", []) if r["dia"] == x["dia"]]
+    if not rs:
+        return ""
+    return ('<section class="bl bl-reservar"><div class="rot-linha"><h3 class="rot">Reservar</h3>'
+            '<span class="tag t-prazo">com data marcada</span></div><ul class="opcoes">'
+            + "".join(_item_reserva(r, com_dia=False) for r in rs) + "</ul></section>")
+
+
+def _bloco_reservas(d):
+    """No alto da pagina: todas as reservas com prazo, na ordem em que vencem."""
+    hoje = date.today().isoformat()
+    rs = [r for r in d.get("reservas", []) if r["dia"] >= hoje]
+    if not rs:
+        return ""
+    rs.sort(key=lambda r: (r["abre"] or "", r["dia"]))
+    ja = sum(1 for r in rs if (r["abre"] or "") <= hoje)
+    resumo = "Reservas com prazo (" + str(len(rs)) + ")"
+    if ja:
+        resumo += " · " + str(ja) + (" já pode ser feita" if ja == 1 else " já podem ser feitas")
+    return ('<details class="reservas"' + (" open" if ja else "") + "><summary>" + resumo
+            + '</summary><ul class="opcoes">' + "".join(_item_reserva(r) for r in rs)
+            + "</ul></details>")
+
+
 def _bloco_hotel(x, d):
     ht = d.get("hoteis", {}).get(x["dia"])
     if not ht:
@@ -1195,6 +1229,7 @@ def _cartao_dia(x, d):
             + ("<h2>" + _e(titulo) + "</h2>" if titulo else "") + "</header>"
             + _bloco_missa(x, d["igrejas"])
             + _bloco_o_dia(x)
+            + _bloco_reservar(x, d)
             + _bloco_mesa(x, d)
             + _bloco_hotel(x, d)
             + _bloco_tempo(x, d)
@@ -1468,6 +1503,7 @@ def monta(d):
             .replace("{{FAVICON}}", FAVICON)
             .replace("{{FAIXA}}", _faixa(dias))
             .replace("{{CARTOES}}", cartoes)
+            .replace("{{RESERVAS}}", _bloco_reservas(d))
             .replace("{{REGS}}", regs_nav)
             .replace("{{PAINEIS}}", paineis)
             .replace("{{GERADO}}", g_data + " às " + g_hora)
@@ -1499,6 +1535,7 @@ HTML = """<!DOCTYPE html>
 <nav class="datas" aria-label="Dias da viagem"><div class="faixa-rola" id="faixa">{{FAIXA}}</div></nav>
 
 <main class="env">
+{{RESERVAS}}
 <div class="cartoes">{{CARTOES}}</div>
 
 <section class="detalhes" id="detalhes">
@@ -1525,6 +1562,11 @@ HTML = """<!DOCTYPE html>
 
 
 CSS += r"""
+details.reservas{background:var(--cartao);border:1px solid var(--linha);border-radius:12px;
+  padding:10px 14px;margin:0 0 14px}
+details.reservas>summary{cursor:pointer;font-weight:700;font-size:16px}
+details.reservas .opcoes{margin-top:8px}
+.tag.t-prazo{background:color-mix(in srgb, #E8730F 14%, transparent);color:var(--tinta)}
 p.aviso-missa{margin:8px 0 0;padding:8px 10px;border-left:3px solid var(--laranja, #E8730F);
   background:color-mix(in srgb, #E8730F 9%, transparent);font-weight:600}
 """

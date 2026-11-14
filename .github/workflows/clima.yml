@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Os mapas dos avisos sao desenhados com Pillow e rotulados em DejaVu,
       # que tem o okina dos nomes havaianos (Haleʻiwa, Punaluʻu).

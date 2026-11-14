@@ -400,8 +400,8 @@ ROTEIRO = [
   "trechos": [
     ("08:30", "Hawaii Tropical Bioreserve Garden", "SR-19 norte, na Scenic Route de "
      "Onomea. USD 25 por pessoa", "1h30"),
-    ("10:30", "Akaka Falls", "SR-19 até Honomū e subir. USD 10 por veículo. Trilha "
-     "de 600 m em laço", "1h"),
+    ("10:20", "Akaka Falls", "SR-19 até Honomū e subir. USD 10 por veículo. Trilha "
+     "de 600 m em laço", "40 min"),
     ("11:00", "Akaka Falls até Waipiʻo Valley Lookout", "SR-19 até Honokaʻa e SR-240. A "
      "descida do vale está fechada a quem não mora lá desde 2022: o mirante é o destino",
      "67 km, 1h10"),
@@ -459,7 +459,8 @@ ROTEIRO = [
      "Kealakekua", "1h30"),
     ("15:00", "Kailua-Kona e o centro histórico", "Antes do check-in, se sobrar "
      "tempo", "1h"),
-    ("16:00", "Check-in no Outrigger Kona, em Keauhou", "Luau do hotel às 17h",
+    ("16:00", "Check-in no Outrigger Kona, em Keauhou", "Réveillon Aha ʻAina "
+     "no PIKO às 18h30",
      "chegada"),
   ],
   "notas": [
@@ -476,7 +477,7 @@ DESTINOS = {
     "2026-12-22": {
         "09:00": "Alamo Rent A Car, Los Angeles International Airport",
         "10:20": "El Matador State Beach, Malibu, CA",
-        "12:15": "Stearns Wharf, Santa Barbara, CA",
+        "12:15": "Brophy Bros, 119 Harbor Way, Santa Barbara, CA",
         "15:10": "Pismo State Beach Monarch Butterfly Grove, Pismo Beach, CA",
         "18:25": "Gosby House Inn, 643 Lighthouse Ave, Pacific Grove, CA"},
     "2026-12-23": {
@@ -511,7 +512,7 @@ DESTINOS = {
         "19:00": "Kilauea Overlook, Hawaii Volcanoes National Park"},
     "2026-12-30": {
         "08:30": "Hawaii Tropical Bioreserve and Garden, Papaikou, HI",
-        "10:30": "Akaka Falls State Park, Honomu, HI",
+        "10:20": "Akaka Falls State Park, Honomu, HI",
         "12:10": "Waipio Valley Lookout, Honokaa, HI",
         "13:30": "Waimea, HI",
         "14:45": "Mauna Kea Visitor Information Station, HI",
@@ -540,6 +541,37 @@ HOTEIS = {"2026-12-21": _H_LAX, "2026-12-22": _H_GOSBY, "2026-12-23": _H_GOSBY,
           "2026-12-28": _H_HILO, "2026-12-29": _H_HILO, "2026-12-30": _H_HILO,
           "2026-12-31": _H_KONA, "2027-01-01": _H_KONA, "2027-01-02": _H_KONA, "2027-01-03": _H_KONA,
           "2027-01-04": _H_LAX}
+
+# ---------------------------------------------------------------- reservas
+# Passeios que exigem reserva com data marcada, conferidos em 13/11/2026.
+# "abre" = dia (em Brasilia) em que a reserva passa a existir; "" = ja da para fazer.
+def _rs(dia, nome, abre, quando, nota, url):
+    return {"dia": dia, "nome": nome, "abre": abre, "quando": quando, "nota": nota, "url": url}
+
+
+RESERVAS = [
+    _rs("2026-12-23", "Monterey Bay Aquarium", "",
+        "Já dá para comprar",
+        "Ingresso só pela internet, com data marcada: não vende na porta. Cerca de US$ 65 por "
+        "adulto. Comprar até 16/12; a semana do Natal esgota.",
+        "https://www.montereybayaquarium.org/visit"),
+    _rs("2026-12-26", "Diamond Head", "2026-11-26",
+        "Abre em 26/11, às 7h de Brasília (meia-noite no Hawaii, 30 dias antes)",
+        "Sem reserva não entra. US$ 5 por pessoa, a pé. Escolher o primeiro horário, às 6h, "
+        "e chegar nos primeiros 30 minutos dele.",
+        "https://gostateparks.hawaii.gov/diamondhead"),
+    _rs("2026-12-26", "Pearl Harbor, USS Arizona Memorial", "",
+        "Ver agora se sobrou horário; senão, 25/12 às 15h do Hawaii",
+        "A primeira leva abriu oito semanas antes, em 31/10. A segunda abre 24 horas antes, "
+        "às 15h do Hawaii de 25/12, quando vocês já estarão em Waikiki. US$ 1 por ingresso, "
+        "no recreation.gov. Não há mais fila de espera na porta.",
+        "https://www.recreation.gov/ticket/facility/233338"),
+    _rs("2026-12-27", "Hanauma Bay", "2026-12-25",
+        "Abre em 25/12 às 7h do Hawaii, dois dias antes",
+        "Esgota em minutos: estar com a página aberta às 6h55. US$ 25 por pessoa e US$ 3 de "
+        "estacionamento. Entrada só até 13h30.",
+        "https://pros8.hnl.info/hanauma-bay"),
+]
 
 # ---------------------------------------------------------------- refeicoes
 # 19/10/2026. "plano" = salvo na lista "Honeymoon" do Google Maps ou decidido por
@@ -595,9 +627,10 @@ REFEICOES = [
        "Island Vintage Coffee, Royal Hawaiian Center, Honolulu, HI", 35, "Antes do carro às 10h."),
     _r("2026-12-27", "Almoço", "Kalapawai Market", "Kailua",
        "Kalapawai Market, 306 S Kalaheo Ave, Kailua, HI", 40, "Sanduíches, ao lado da praia."),
-    _r("2026-12-27", "Jantar", "Giovanni's Shrimp Truck", "Haleʻiwa",
-       "Giovanni's Shrimp Truck, 66-472 Kamehameha Hwy, Haleiwa, HI", 40,
-       "O camarão no alho do North Shore. Fecha cedo: ir no poente."),
+    _r("2026-12-27", "Fim de tarde", "Giovanni's Shrimp Truck", "Kahuku, entre Kualoa e Sunset Beach",
+       "Giovanni's Shrimp Truck, 56-505 Kamehameha Hwy, Kahuku, HI", 40,
+       "O camarão no alho do North Shore, por volta das 16h, no caminho. O de Kahuku fica "
+       "aberto até 18h30; o de Haleʻiwa fecha às 17h, antes do poente. Conferir o horário no dia."),
     _r("2026-12-28", "Almoço", "Daniel K. Inouye International Airport (HNL)", "Antes do voo das 14h17",
        "Daniel K. Inouye International Airport, Honolulu, HI", 40),
     _r("2026-12-28", "Jantar", "Hilo Bay Cafe", "Hilo Bay",
@@ -1084,7 +1117,8 @@ def previsoes_lote(pontos):
         url = (f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}"
                f"&elevation={elev}&hourly={HORARIAS}&daily={DIARIAS}"
                f"&timezone={quote(tz)}&forecast_days=16&wind_speed_unit=kn")
-        d = fetch_json(url, timeout=90)
+        # 5 tentativas: em 13/11/2026 o Open-Meteo falhou 3 vezes seguidas e derrubou a rodada
+        d = fetch_json(url, timeout=90, tentativas=5)
         blocos = d if isinstance(d, list) else [d]
         if len(blocos) != len(grupo):
             raise RuntimeError(f"{reg}: pedi {len(grupo)} pontos, voltaram {len(blocos)}")
@@ -1815,7 +1849,7 @@ def main():
         "pontos": pontos, "por_id": por_id, "etapas": etapas,
         "prev_por_dia": prev_por_dia, "estradas": vias, "alertas": alertas,
         "enso": es, "kilauea": kil,
-        "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO, "refeicoes": REFEICOES, "hoteis": HOTEIS,
+        "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO, "refeicoes": REFEICOES, "reservas": RESERVAS,"hoteis": HOTEIS,
         "missas": MISSAS, "igrejas": IGREJAS,
     }
 
