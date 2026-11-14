@@ -1454,5 +1454,12 @@
   "kilauea": "YELLOW",
   "avisos": 0,
   "urgentes": 0
+ },
+ {
+  "utc": "2026-11-14T04:46:59+00:00",
+  "dias_para": 38,
+  "kilauea": "YELLOW",
+  "avisos": 0,
+  "urgentes": 0
  }
 ]
