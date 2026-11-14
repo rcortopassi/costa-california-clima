@@ -166,7 +166,8 @@ def localiza_interdicao(rodovia, texto, cache, lcs_rodada):
     Devolve {"inicio": [lat, lon], "fim": [lat, lon], "nomes": [ini, fim]} ou None.
     """
     marca = hashlib.md5((rodovia + "|" + " ".join(texto.split())).encode()).hexdigest()[:12]
-    guardado = cache.setdefault("interdicoes", {})
+    cache.pop("interdicoes", None)      # cache antigo, com casamentos frouxos
+    guardado = cache.setdefault("interdicoes2", {})
     if marca in guardado:
         return guardado[marca]
 
@@ -206,10 +207,18 @@ def localiza_interdicao(rodovia, texto, cache, lcs_rodada):
             lugar = (str(b.get("beginNearbyPlace", "")) + " " + str(b.get("beginLocationName", ""))).lower()
             if any(n.lower().split()[0] in lugar for n in nomes if n):
                 s += 1
+            # registro que cobre dezenas de km e obra de corredor inteiro, nao o
+            # item do boletim: casava so pela data e punha o inicio em Castroville
+            try:
+                if km([float(b["beginLatitude"]), float(b["beginLongitude"])],
+                      [float(e["endLatitude"]), float(e["endLongitude"])]) > 40:
+                    continue
+            except (KeyError, TypeError, ValueError):
+                continue
             if s > nota:
                 nota, achado = s, (b, e)
-    # exige mais que coincidencia de tipo: postmile ou data de termino
-    if achado and nota >= 3:
+    # exige mais que data e tipo iguais: postmile, ou data + tipo + lugar
+    if achado and nota >= 4:
         b, e = achado
         ini = [float(b["beginLatitude"]), float(b["beginLongitude"])]
         fim = [float(e["endLatitude"]), float(e["endLongitude"])]
