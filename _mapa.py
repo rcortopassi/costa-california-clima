@@ -446,17 +446,21 @@ def _cabecalho(tela, spec):
             break
     d.text((38, 44 + (34 - tam) // 2), _corta(d, titulo, ft, W - 76), font=ft, fill=(255, 248, 236))
     # subtitulo em ate duas linhas: e nele que esta o que o aviso quer dizer
-    f = fonte(19)
-    palavras, linhas, atual = (spec.get("subtitulo") or "").split(), [], ""
-    for w in palavras:
-        teste = (atual + " " + w).strip()
-        if d.textlength(teste, font=f) <= W - 76 or not atual:
-            atual = teste
-        else:
+    # texto comprido encolhe a letra antes de perder o fim, onde fica a validade
+    for tam_sub in (19, 17, 15):
+        f = fonte(tam_sub)
+        palavras, linhas, atual = (spec.get("subtitulo") or "").split(), [], ""
+        for w in palavras:
+            teste = (atual + " " + w).strip()
+            if d.textlength(teste, font=f) <= W - 76 or not atual:
+                atual = teste
+            else:
+                linhas.append(atual)
+                atual = w
+        if atual:
             linhas.append(atual)
-            atual = w
-    if atual:
-        linhas.append(atual)
+        if len(linhas) <= 2:
+            break
     if len(linhas) > 2:
         linhas = [linhas[0], _corta(d, " ".join(linhas[1:]), f, W - 76)]
     for i, ln in enumerate(linhas):

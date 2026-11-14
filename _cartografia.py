@@ -529,17 +529,21 @@ def mapa_resumo(regiao, itens, rotas):
         for q in (r["paradas"][0], r["paradas"][-1]):
             ends.setdefault(q[2], q)
     marcos += [{"pos": list(q[:2]), "tipo": "parada", "nome": n} for n, q in ends.items()]
-    n_int = sum(1 for i in itens if i["tipo"] == "interdicao")
+    n_int = sum(1 for i in itens if i["tipo"] == "interdicao" and i.get("fechado", True))
+    n_res = sum(1 for i in itens if i["tipo"] == "interdicao" and not i.get("fechado", True))
     n_av = sum(1 for i in itens if i["tipo"] == "aviso")
     partes = []
     if n_int:
         partes.append(f"{n_int} interdição" if n_int == 1 else f"{n_int} interdições")
+    if n_res:
+        partes.append(f"{n_res} restrição de tráfego" if n_res == 1
+                      else f"{n_res} restrições de tráfego")
     if n_av:
         partes.append(f"{n_av} aviso do NWS" if n_av == 1 else f"{n_av} avisos do NWS")
     tocam = [i for i in itens if i["toca"]]
     leg = [("rota", "seu trajeto")]
     if trechos:
-        leg.append(("trecho", "trecho fechado"))
+        leg.append(("trecho", "trecho fechado" if n_int else "trecho com restrição"))
     if areas:
         leg.append(("area", "área de aviso"))
     leg += [("inicio", "início"), ("fim", "fim")]
@@ -548,7 +552,8 @@ def mapa_resumo(regiao, itens, rotas):
             "efeito": (("1 deles está" if len(tocam) == 1 else f"{len(tocam)} deles estão")
                        + " no seu trajeto." if tocam else "Nenhum toca o seu trajeto."),
             "spec": {"kicker": f"Resumo · {NOME_REG[regiao]}",
-                     "titulo": " e ".join(partes) + " perto do seu trajeto",
+                     "titulo": (", ".join(partes[:-1]) + " e " + partes[-1] if len(partes) > 1
+                                else partes[0]) + " perto do seu trajeto",
                      "subtitulo": (("1 deles toca" if len(tocam) == 1 else f"{len(tocam)} deles tocam")
                                    + " o trajeto de vocês." if tocam
                                    else "Nenhum deles toca o trajeto de vocês."),

@@ -692,7 +692,7 @@ IGREJAS = {
         "nome": "St. Anastasia", "lugar": "Westchester, Los Angeles",
         "horarios": "segunda, quarta e sexta 8h · terça e quinta 6h30",
         "busca": "St. Anastasia Catholic Church, 7390 W Manchester Ave, Los Angeles, CA",
-        "fonte": "https://lacatholics.org/venue/st-anastasia-catholic-church/"},
+        "fonte": "https://www.st-anastasia.org/mass-schedule"},
     "sancarlos": {
         "nome": "San Carlos Cathedral (Royal Presidio Chapel)", "lugar": "Monterey",
         "horarios": "segunda a sexta 7h30 e 12h (exceto feriados) · sábado 16h · "
@@ -740,12 +740,14 @@ IGREJAS = {
         "fonte": "https://www.catholichawaii.org/parish-listing/co-cathedral-of-saint-theresa/?viewFull=true"},
     "joseph": {
         "nome": "St. Joseph", "lugar": "Hilo",
-        "horarios": "segunda a sexta 6h e 12h15 · sábado 7h e 17h · domingo 7h, 9h, 11h45 e 18h",
+        "horarios": "segunda a sexta 6h e 12h15 · sábado 7h e 17h · domingo 7h, 9h, 11h45 e 18h · "
+                    "feriado legal, uma missa só, às 7h",
         "busca": "St. Joseph Catholic Church, 43 Kapiolani St, Hilo",
         "fonte": "https://stjoehilo.com/"},
     "michael": {
         "nome": "St. Michael the Archangel", "lugar": "Aliʻi Drive, Kailua-Kona",
-        "horarios": "todos os dias 7h · sábado 16h · domingo 7h, 9h, 12h em espanhol e 16h",
+        "horarios": "dias de semana 7h (o site não deixa claro se vale para o sábado) · "
+                    "sábado 16h · domingo 7h, 9h, 12h em espanhol e 16h",
         "busca": "St. Michael the Archangel Church, 75-5769 Alii Dr, Kailua-Kona",
         "fonte": "https://saintmichaelparishkona.org/our-parish/mass-times-and-locations/"},
     "rose": {
@@ -803,7 +805,7 @@ IGREJAS = {
         "fonte": "https://masstimes.org/"},
     "benedict": {
         "nome": "St. Benedict's Painted Church", "lugar": "Hōnaunau, South Kona",
-        "horarios": "terça a sexta 7h · dias de preceito 7h · domingo 8h",
+        "horarios": "terça a sexta 7h · sábado 16h · domingo 8h · dias de preceito 7h",
         "busca": "St. Benedict's Painted Church, Captain Cook, HI",
         "fonte": "https://www.catholichawaii.org/parish-listing/saint-benedict/?viewFull=true"},
 }
@@ -938,7 +940,8 @@ MISSAS = [
                "nota": "Se houver missa mais tarde, combina melhor com o dia sem despertador."}]},
     {"dia": "2027-01-02", "regiao": "bi", "liturgia": "São Basílio e São Gregório",
      "rec": {"hora": "7h", "igreja": "michael", "dist": "12 km pela Aliʻi Drive",
-             "porque": "Dá tempo de voltar para o catamarã e deixa a noite livre para o snorkel "
+             "porque": "É sábado, e o site lista a missa das 7h como de dia de semana: "
+                       "confirmar com a paróquia na véspera. Dá tempo de voltar para o catamarã e deixa a noite livre para o snorkel "
                        "com arraias-manta em qualquer horário."},
      "alts": [{"hora": "16h", "igreja": "michael",
                "nota": "Vigília da Epifania, já vale pelo domingo. Pede o snorkel das 20h15."}]},
@@ -1202,6 +1205,14 @@ def alertas_por_area(areas=("CA", "HI")):
                 "fim": p.get("ends") or p.get("expires") or "",
                 "id": p.get("id", ""),
             })
+    # o NWS reedita o mesmo aviso: mesma coisa, mesma area e mesmo fim e um so
+    unicos, ja = [], set()
+    for x in out:
+        chave = (x["evento"], x["onde"], x["fim"])
+        if chave not in ja:
+            ja.add(chave)
+            unicos.append(x)
+    out = unicos
     print(f"avisos do NWS na rota: {len(out)}")
     return out
 
@@ -1932,6 +1943,7 @@ def main():
                     if m:
                         i["mapa"] = "via_" + _marca(i["texto"])
                         i["efeito"] = m["efeito"]
+                        m["fechado"] = bool(i["fechado"])
                         mapas[i["mapa"]] = carto.com_hash(m)
         for a in alertas:
             m = carto.mapa_aviso(a, rotas, geo)
