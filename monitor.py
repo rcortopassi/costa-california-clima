@@ -1803,7 +1803,14 @@ def main():
 
     prev = previsoes_lote(PONTOS)
     mar = mar_lote(PONTOS)
-    alertas = alertas_por_area()
+    # Aviso do NWS vale por horas ou poucos dias: a mais de uma semana da
+    # viagem e so ruido, no site e no Telegram. Volta sozinho em 13/12.
+    avisos_silenciados = agora < datetime(2026, 12, 13, 3, 0, tzinfo=timezone.utc)
+    if avisos_silenciados:
+        alertas = []
+        print("avisos do NWS silenciados ate 13/12/2026")
+    else:
+        alertas = alertas_por_area()
     vias = estradas()
     es = enso()
     kil = kilauea_status()
@@ -1864,6 +1871,7 @@ def main():
         "regioes": [{"id": r[0], "nome": r[1]} for r in REGIOES],
         "pontos": pontos, "por_id": por_id, "etapas": etapas,
         "prev_por_dia": prev_por_dia, "estradas": vias, "alertas": alertas,
+        "avisos_silenciados": avisos_silenciados,
         "enso": es, "kilauea": kil,
         "decisoes": decisoes(prev, mar, kil), "roteiro": ROTEIRO, "refeicoes": REFEICOES, "reservas": RESERVAS,"hoteis": HOTEIS,
         "missas": MISSAS, "igrejas": IGREJAS,
@@ -1983,6 +1991,27 @@ def main():
                 urgentes.append({"texto": f"{dec['titulo']} ({dec['dia'][8:10]}/"
                                           f"{dec['dia'][5:7]}): {dec['motivo'][:160]}",
                                  "mapa": dec.get("mapa"), "extra": ""})
+
+    # ---- lembrete de reserva: na vespera e no dia em que a janela abre, uma
+    # vez cada. Reserva perdida nao tem conserto, entao vai como urgente.
+    hoje_brt = agora.astimezone(BRT).strftime("%Y-%m-%d")
+    amanha_brt = (agora.astimezone(BRT) + timedelta(days=1)).strftime("%Y-%m-%d")
+    lembretes = [("2026-12-09", "Monterey Bay Aquarium: comprar o ingresso de 23/12 até 16/12. "
+                                "Só vende pela internet.",
+                  "https://www.montereybayaquarium.org/visit"),
+                 ("2026-12-25", "Pearl Harbor: a segunda leva do USS Arizona Memorial de 26/12 "
+                                "abre em 25/12 às 15h do Hawaii (22h de Brasília).",
+                  "https://www.recreation.gov/ticket/facility/233338")]
+    for r in RESERVAS:
+        if r["abre"]:
+            lembretes.append((r["abre"], f"{r['nome']}: {r['quando']}. {r['nota']}", r["url"]))
+    for dia_l, texto_l, url_l in lembretes:
+        quando_l = "hoje" if dia_l == hoje_brt else "amanhã" if dia_l == amanha_brt else ""
+        marca = f"rs:{dia_l}:{quando_l}:{_marca(texto_l)}"
+        if quando_l and marca not in vistos:
+            novos_ids.append(marca)
+            urgentes.append({"texto": f"Reserva, {quando_l}: {texto_l} {url_l}",
+                             "mapa": None, "extra": ""})
 
     # ---- desenha e publica os mapas. Redesenha so o que mudou, mais o que
     # vai ser enviado agora (o Telegram recebe a imagem em bytes, e nao pela

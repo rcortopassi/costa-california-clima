@@ -1400,8 +1400,13 @@ def _painel(d, reg, aberto):
         sec("Estrada", "Mauna Kea Access Road", '<p class="vazio">' + _e(LEG["estrada_bi"]) + "</p>")
 
     avisos = [a for a in d["alertas"] if reg in a.get("regioes", [])]
-    sec("Avisos oficiais", _plural(len(avisos), "ativo", "ativos") if avisos else "nenhum",
+    sec("Avisos oficiais",
+        _plural(len(avisos), "ativo", "ativos") if avisos
+        else ("a partir de 13/12" if d.get("avisos_silenciados") else "nenhum"),
         _bloco_avisos(avisos) if avisos else
+        '<p class="vazio">Os avisos do National Weather Service valem por horas ou poucos dias. '
+        'Passam a aparecer aqui e no Telegram em 13/12, uma semana antes da viagem.</p>'
+        if d.get("avisos_silenciados") else
         '<p class="vazio">Nenhum aviso ativo do National Weather Service nos pontos de '
         + _e(NOME_REG[reg]) + ".</p>")
 
