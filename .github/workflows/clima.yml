@@ -7,7 +7,10 @@ on:
     # cada 1h30 a 4h30, nao no minuto marcado). A guarda de frescor dentro do
     # monitor.py encerra em segundos qualquer rodada que chegue antes de 5h da
     # ultima, entao adensar o cron nao multiplica a carga nas fontes.
-    - cron: "23 */2 * * *"
+    # Desde 15/11/2026: de meia em meia hora, para o aviso novo chegar em
+    # cerca de uma hora. A guarda caiu para 45 min; o resumo completo no
+    # Telegram segue a cada 5 h (HORAS_RESUMO), so o aviso novo sai na hora.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       forca:

@@ -1070,7 +1070,8 @@ ZONAS_NWS = {
            "haleakala", "south point", "puna", "kau"),
 }
 
-HORAS_FRESCOR = 5          # guarda de frescor: pula a rodada se acabou de publicar
+HORAS_FRESCOR = 0.75       # guarda de frescor: pula a rodada se acabou de publicar
+HORAS_RESUMO = 5           # resumo completo no Telegram: no maximo um a cada 5 h
 DIAS_GRADE = 7             # colunas da grade windguru
 
 
@@ -1978,19 +1979,25 @@ def main():
     # treina o usuario a ignorar o push.
     vistos = set(estado.get("vistos") or [])
     novos_ids, urgentes = [], []
+    # Desde 15/11/2026 TODO aviso novo vai ao Telegram, nao so o grave: aviso
+    # do NWS de qualquer severidade e restricao de estrada, alem de fechamento.
+    # "grave" so decide se o push toca (urgente) ou chega em silencio.
     for a in alertas:
-        if a["severidade"] in ("Severe", "Extreme") and a["id"] not in vistos:
+        if a["id"] not in vistos:
             novos_ids.append(a["id"])
             urgentes.append({"texto": f"NWS {a['evento']}: {a['manchete'][:180]}",
-                             "mapa": a.get("mapa"), "extra": ""})
+                             "mapa": a.get("mapa"), "extra": "",
+                             "grave": a["severidade"] in ("Severe", "Extreme")})
     for v in vias:
         for i in v["itens"]:
-            if i["fechado"] and i["na_rota"]:
+            if i["na_rota"] and not i.get("livre"):
                 marca = "via:" + _marca(i["texto"])
                 if marca not in vistos:
                     novos_ids.append(marca)
-                    urgentes.append({"texto": f"{v['rodovia']} fechada: {i['texto'][:180]}",
-                                     "mapa": i.get("mapa"), "extra": i["texto"]})
+                    rotulo = "fechada" if i["fechado"] else "com restrição"
+                    urgentes.append({"texto": f"{v['rodovia']} {rotulo}: {i['texto'][:180]}",
+                                     "mapa": i.get("mapa"), "extra": i["texto"],
+                                     "grave": bool(i["fechado"])})
     cor_kil = (kil or {}).get("cor", "")
     if cor_kil in ("ORANGE", "RED") and estado.get("kilauea_cor") not in ("ORANGE", "RED"):
         urgentes.append({"texto": f"Kilauea subiu para {cor_kil}: fonte de lava ativa. "
@@ -2090,21 +2097,40 @@ def main():
     corpo = resumo_texto(d)
     print("\n" + corpo + "\n")
 
+    # A rodada agora e de hora em hora, para o aviso chegar cedo; o resumo
+    # completo continua saindo a cada HORAS_RESUMO, senao seriam 24 por dia.
+    resumo_devido = forca
+    try:
+        resumo_devido = resumo_devido or (agora - datetime.fromisoformat(
+            estado["resumo_utc"])).total_seconds() >= HORAS_RESUMO * 3600
+    except Exception:  # noqa: BLE001
+        resumo_devido = True
+    enviou_resumo = False
+
     if "--sem-avisar" in sys.argv:
         print("--sem-avisar: nada enviado")
     elif urgentes:
+        grave = any(u.get("grave", True) for u in urgentes)
         titulo = "Honeymoon: " + urgentes[0]["texto"][:60]
         anexo = next((url_mapa(u["mapa"], True) for u in urgentes if u["mapa"] and url_mapa(u["mapa"])), "")
         textos = "\n".join(u["texto"] for u in urgentes)
-        push_ntfy(titulo, textos + "\n\n" + corpo, prioridade="high", tags="warning", anexo=anexo)
+        inteiro = textos + ("\n\n" + corpo if resumo_devido else "")
+        enviou_resumo = resumo_devido
+        push_ntfy(titulo, inteiro, prioridade="high" if grave else "default",
+                  tags="warning", anexo=anexo)
         # O Telegram recusa (400) mensagem acima de 4096 caracteres: com 13 avisos
         # novos de uma vez, em 14/11/2026, o texto unico nao foi entregue.
-        for n, parte in enumerate(_partes_telegram(textos + "\n\n" + corpo)):
-            push_telegram(titulo if n == 0 else "Honeymoon, continuação", parte, urgente=(n == 0))
+        for n, parte in enumerate(_partes_telegram(inteiro)):
+            push_telegram(titulo if n == 0 else "Honeymoon, continuação", parte,
+                          urgente=(n == 0 and grave))
         for u in urgentes:
             if u["mapa"] in imagens:
-                push_telegram_foto(imagens[u["mapa"]], legenda(u["mapa"], u["extra"]), urgente=True)
+                push_telegram_foto(imagens[u["mapa"]], legenda(u["mapa"], u["extra"]),
+                                   urgente=u.get("grave", True))
+    elif not resumo_devido:
+        print("sem aviso novo e resumo ainda fresco: nada enviado")
     else:
+        enviou_resumo = True
         for n, parte in enumerate(_partes_telegram(corpo)):
             push_telegram(f"Honeymoon, faltam {dias_para} dias" if n == 0
                           else "Honeymoon, continuação", parte, urgente=False)
@@ -2152,6 +2178,8 @@ def main():
         "vistos": sorted(vistos | set(novos_ids))[-400:],
         "dias_para": dias_para,
     })
+    if enviou_resumo:
+        estado["resumo_utc"] = agora.isoformat(timespec="seconds")
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(estado, ensure_ascii=False, indent=1), encoding="utf-8")
     hist = _le(HIST, [])
