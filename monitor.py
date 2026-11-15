@@ -1817,7 +1817,8 @@ def main():
     mar = mar_lote(PONTOS)
     # Aviso do NWS vale por horas ou poucos dias: a mais de uma semana da
     # viagem e so ruido, no site e no Telegram. Volta sozinho em 13/12.
-    avisos_silenciados = agora < datetime(2026, 12, 13, 3, 0, tzinfo=timezone.utc)
+    # Silencio revogado pelo Rafael em 15/11/2026: tudo vale desde ja.
+    avisos_silenciados = False
     if avisos_silenciados:
         alertas = []
         print("avisos do NWS silenciados ate 13/12/2026")
@@ -2110,7 +2111,9 @@ def main():
     if "--sem-avisar" in sys.argv:
         print("--sem-avisar: nada enviado")
     elif urgentes:
-        grave = any(u.get("grave", True) for u in urgentes)
+        grave = True        # 15/11/2026: nenhum aviso chega em silencio
+        for u in urgentes:
+            u["grave"] = True
         titulo = "Honeymoon: " + urgentes[0]["texto"][:60]
         anexo = next((url_mapa(u["mapa"], True) for u in urgentes if u["mapa"] and url_mapa(u["mapa"])), "")
         textos = "\n".join(u["texto"] for u in urgentes)
