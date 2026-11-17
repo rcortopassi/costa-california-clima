@@ -1426,7 +1426,12 @@ def upload_pa(conteudo, nome="index.html"):
                 print(f"upload tentativa {tent} falhou ({e}); repetindo")
                 time.sleep(10 * tent)
             else:
-                print(f"ERRO: upload falhou: {e}")
+                # o corpo da resposta e o que diz o motivo (cota, token, pasta)
+                try:
+                    motivo = e.read().decode("utf-8", "replace")[:300]
+                except Exception:  # noqa: BLE001
+                    motivo = ""
+                print(f"ERRO: upload falhou: {e} {motivo}")
     return False
 
 
