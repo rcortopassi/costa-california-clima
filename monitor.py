@@ -1462,7 +1462,13 @@ def limpa_mapas_pa(atuais):
                                  headers=cab, method="DELETE"), timeout=60):
                 apagados += 1
         except Exception as e:  # noqa: BLE001
-            print(f"aviso: nao apaguei {nome} ({e})")
+            # o servidor limita a ~40 chamadas por minuto: o resto fica para
+            # a proxima rodada, em vez de 600 tentativas recusadas
+            print(f"aviso: nao apaguei {nome} ({e}); paro por esta rodada")
+            break
+        if apagados >= 100:
+            break
+        time.sleep(1.6)
     print(f"mapas antigos apagados do servidor: {apagados} de {len(arquivos)} arquivos")
 
 
