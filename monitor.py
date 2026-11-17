@@ -1435,6 +1435,37 @@ def upload_pa(conteudo, nome="index.html"):
     return False
 
 
+def limpa_mapas_pa(atuais):
+    """Apaga do PythonAnywhere os mapas de avisos que ja acabaram. Cada aviso
+    novo gera um .jpg com nome proprio e nada os removia: em 15/11/2026 a
+    cota de disco estourou e todo upload passou a voltar 403."""
+    if not PA_TOKEN:
+        return
+    pasta = f"/home/{PA_USER}/{PA_DIR}/mapas"
+    cab = {"Authorization": f"Token {PA_TOKEN}"}
+    try:
+        with urlopen(Request(f"{PA_API}/api/v0/user/{PA_USER}/files/tree/?path={pasta}",
+                             headers=cab), timeout=60) as r:
+            arquivos = json.loads(r.read().decode("utf-8"))
+    except Exception as e:  # noqa: BLE001
+        print(f"aviso: nao listei os mapas publicados ({e})")
+        return
+    apagados = 0
+    for caminho in arquivos:
+        nome = str(caminho).rsplit("/", 1)[-1]
+        if not (str(caminho).startswith(pasta + "/") and nome.endswith(".jpg")):
+            continue
+        if nome[:-4] in atuais:
+            continue
+        try:
+            with urlopen(Request(f"{PA_API}/api/v0/user/{PA_USER}/files/path{caminho}",
+                                 headers=cab, method="DELETE"), timeout=60):
+                apagados += 1
+        except Exception as e:  # noqa: BLE001
+            print(f"aviso: nao apaguei {nome} ({e})")
+    print(f"mapas antigos apagados do servidor: {apagados} de {len(arquivos)} arquivos")
+
+
 # ---------------------------------------------------------------- decisoes
 
 def janela(hourly, dia, h0, h1):
@@ -2046,6 +2077,8 @@ def main():
         {k for k in mapas if k.startswith("resumo_")}
     anterior = estado.get("mapas") or {}
     publicados, imagens = {}, {}
+    if mapas and not so_local:
+        limpa_mapas_pa(set(mapas))
     try:
         import _mapa
         print(f"mapas: {len(mapas)} (fonte {_mapa.nome_fonte()})")
