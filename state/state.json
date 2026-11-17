@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-11-17T11:14:13+00:00",
+ "rodada_utc": "2026-11-17T11:18:25+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.082b3f827ff558b13bbd93ae6bc34fa52dcdb8b2.001.2",
@@ -303,5 +303,5 @@
   "resumo_ca": "b4b767ec42",
   "resumo_bi": "c6452bb648"
  },
- "resumo_utc": "2026-11-15T19:41:47+00:00"
+ "resumo_utc": "2026-11-17T11:18:25+00:00"
 }
