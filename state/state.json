@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-11-19T22:06:51+00:00",
+ "rodada_utc": "2026-11-20T03:10:02+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0282d7421866c30a1f4de4aabd3bc424571443fb.002.1",
@@ -379,16 +379,14 @@
   "via_3e551d969b7e": "09ce8b391d",
   "via_10d76155a245": "bbf7c89975",
   "via_3f401545f646": "56bc664e41",
-  "nws_f29e3801f2dc": "c29acd2a65",
-  "nws_1e91b526de9b": "bdf3c5bf1e",
-  "nws_d0a62771d62b": "ae5577c2fd",
   "nws_ea300ac578ae": "0e6264c42d",
+  "nws_d0a62771d62b": "ae5577c2fd",
+  "nws_1e91b526de9b": "bdf3c5bf1e",
+  "nws_f29e3801f2dc": "c29acd2a65",
   "nws_72bab0c0f936": "c599050f9d",
-  "nws_86543805b17f": "e568cf4143",
-  "nws_9217d7e956ac": "c244753a04",
   "nws_00794a435f85": "bb34ac1368",
-  "nws_915ee3ab20ca": "ade86ba71b",
-  "resumo_ca": "716b9a7e64"
+  "nws_9217d7e956ac": "c244753a04",
+  "resumo_ca": "d8320dfeb6"
  },
  "resumo_utc": "2026-11-17T11:18:25+00:00"
 }
