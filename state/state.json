@@ -1,5 +1,5 @@
 {
- "rodada_utc": "2026-11-21T02:08:20+00:00",
+ "rodada_utc": "2026-11-21T10:09:55+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.0282d7421866c30a1f4de4aabd3bc424571443fb.002.1",
@@ -247,6 +247,7 @@
   "urn:oid:2.49.0.1.840.0.b75833ff1b86cf08abe76f96b61a131384bff766.001.1",
   "urn:oid:2.49.0.1.840.0.bcb6edc0d99723f9dfc1c1010a8a281f2c6e7eaa.001.1",
   "urn:oid:2.49.0.1.840.0.bf6424c41beb0065a6cc6618ae3c054fe71fcc1b.001.1",
+  "urn:oid:2.49.0.1.840.0.c05020705d5663127ced9775a7c991b0a52929cc.001.1",
   "urn:oid:2.49.0.1.840.0.c2b12fc2dcd4f8b7af8bb82d1ca4ae77b7f4e7f2.001.1",
   "urn:oid:2.49.0.1.840.0.c2b12fc2dcd4f8b7af8bb82d1ca4ae77b7f4e7f2.003.1",
   "urn:oid:2.49.0.1.840.0.c2b12fc2dcd4f8b7af8bb82d1ca4ae77b7f4e7f2.004.1",
@@ -367,6 +368,9 @@
   "urn:oid:2.49.0.1.840.0.f7a9f3535476a8ccb8510480153efb8ca6db19d1.002.1",
   "urn:oid:2.49.0.1.840.0.f7a9f3535476a8ccb8510480153efb8ca6db19d1.003.1",
   "urn:oid:2.49.0.1.840.0.f7a9f3535476a8ccb8510480153efb8ca6db19d1.004.1",
+  "urn:oid:2.49.0.1.840.0.fb8afd177caed945ae4fcc8265bd506a08c9e7cf.001.1",
+  "urn:oid:2.49.0.1.840.0.fb8afd177caed945ae4fcc8265bd506a08c9e7cf.001.2",
+  "urn:oid:2.49.0.1.840.0.fb8afd177caed945ae4fcc8265bd506a08c9e7cf.002.1",
   "via:-6420877876578995145",
   "via:-7673635007394386922",
   "via:-9183819857089647446",
@@ -398,17 +402,13 @@
   "via_d8f3b15ade3c": "9e9f66b03a",
   "via_10d76155a245": "bbf7c89975",
   "via_3f401545f646": "56bc664e41",
+  "nws_e68fdece4ae0": "b780b78d39",
+  "nws_97f135a8348e": "5e00bbb670",
+  "nws_e701717bbe0e": "7084998285",
+  "nws_3e28ee7b5c26": "1477b358e0",
   "nws_8947b82ca2c8": "a616dc0524",
-  "nws_12bb59f299f0": "0b272ceeb2",
-  "nws_142453ab7f8b": "db486e246c",
-  "nws_172d5f0101e2": "b34bc0e556",
-  "nws_382a85c669e9": "801c01ed9a",
-  "nws_6d19730adb1d": "6894bb71cb",
-  "nws_2cb95e7b2964": "b00d737e9d",
-  "nws_9d0e25deca09": "537508532c",
-  "nws_0b8e8fedc7db": "c1f52c1b12",
   "nws_2fdd7979dc2f": "c244753a04",
-  "resumo_ca": "4117dd9d4e"
+  "resumo_ca": "629f276e56"
  },
  "resumo_utc": "2026-11-17T11:18:25+00:00"
 }
