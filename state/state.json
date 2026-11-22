@@ -1,8 +1,7 @@
 {
- "rodada_utc": "2026-11-22T03:07:55+00:00",
+ "rodada_utc": "2026-11-22T11:56:46+00:00",
  "kilauea_cor": "YELLOW",
  "vistos": [
-  "urn:oid:2.49.0.1.840.0.046e90e02cad1bb4397c2951508dcfdf9bdc942d.003.1",
   "urn:oid:2.49.0.1.840.0.046e90e02cad1bb4397c2951508dcfdf9bdc942d.004.1",
   "urn:oid:2.49.0.1.840.0.046e90e02cad1bb4397c2951508dcfdf9bdc942d.005.1",
   "urn:oid:2.49.0.1.840.0.07c6c926f7cc0c79f54b4497bfae7a307735f400.001.2",
@@ -397,6 +396,7 @@
   "via:a430737d18c1",
   "via:b081995a6e2e",
   "via:b8679f71cc60",
+  "via:b94bd1521d4e",
   "via:cd98e2deab6e",
   "via:d8f3b15ade3c",
   "via:d8fee71d3c0f",
