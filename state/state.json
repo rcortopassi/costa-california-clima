@@ -1,6 +1,6 @@
 {
- "rodada_utc": "2026-11-22T11:56:46+00:00",
- "kilauea_cor": "YELLOW",
+ "rodada_utc": "2026-11-22T19:29:38+00:00",
+ "kilauea_cor": "ORANGE",
  "vistos": [
   "urn:oid:2.49.0.1.840.0.046e90e02cad1bb4397c2951508dcfdf9bdc942d.004.1",
   "urn:oid:2.49.0.1.840.0.046e90e02cad1bb4397c2951508dcfdf9bdc942d.005.1",
@@ -403,7 +403,7 @@
   "via:ddca993b5d17",
   "via:ea5b61cc9ed3"
  ],
- "dias_para": 30,
+ "dias_para": 29,
  "mapas": {
   "trajeto_ida_2212": "90a95efbb8",
   "trajeto_peninsula_2312": "c2071b3421",
@@ -415,16 +415,16 @@
   "via_d8f3b15ade3c": "9e9f66b03a",
   "via_10d76155a245": "bbf7c89975",
   "via_3f401545f646": "56bc664e41",
-  "nws_d1d96bf19435": "c1f52c1b12",
   "nws_fa48d4b09bd6": "0b272ceeb2",
   "nws_58487ff47eba": "537508532c",
+  "nws_d1d96bf19435": "c1f52c1b12",
   "nws_26d62c1590f9": "7084998285",
   "nws_3eb26a3efcd6": "b00d737e9d",
   "nws_60a6edab6a8c": "7c4a8f385f",
   "nws_773f97596ec6": "6894bb71cb",
   "nws_0acf5be98fe6": "db486e246c",
   "nws_ab2d0a93b810": "a616dc0524",
-  "resumo_ca": "8b29556e9e"
+  "resumo_ca": "3211783b37"
  },
  "resumo_utc": "2026-11-17T11:18:25+00:00"
 }
