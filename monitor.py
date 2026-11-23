@@ -1094,7 +1094,17 @@ def fetch(url, ua=UA, tentativas=3, timeout=45, accept=None):
 
 
 def fetch_json(url, **kw):
-    return json.loads(fetch(url, **kw))
+    # Resposta cortada no meio (Open-Meteo, 23/11/2026) chega com HTTP 200 e
+    # so quebra no json.loads: baixar de novo, em vez de derrubar a rodada.
+    for t in range(1, 4):
+        texto = fetch(url, **kw)
+        try:
+            return json.loads(texto)
+        except json.JSONDecodeError as e:
+            if t == 3:
+                raise RuntimeError(f"{url}: JSON invalido em 3 tentativas ({e})") from e
+            print(f"aviso: JSON cortado ({len(texto)} bytes, {e}); baixando de novo")
+            time.sleep(5 * t)
 
 
 def _partes_telegram(texto, limite=3500):
